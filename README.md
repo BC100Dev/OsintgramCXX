@@ -50,24 +50,70 @@ act ethically.
 ---
 
 ## Build Process
-Prepare a Linux environment, with either one of these options:
-- Host (main OS / Dual Boot)
-- VM (Virtual Machine)
-- Cloud Shell / Servers (Google Cloud, Linode)
-- Containers (Docker)
-- WSL (Windows-only)
+To build OsintgramCXX, you need a Linux environment with `vcpkg` installed. If you
+haven't installed `vcpkg` yet, then fetch [the `vcpkg` repo](https://github.com/microsoft/vcpkg).
+Optionally, you can also put the `vcpkg` command into the PATH environment for easy access,
+but it is not necessary.
 
-This project is mainly focused and optimized for **the Linux platform**. Simple
-setup with the Shell scripts:
+```bash
+$ vcpkg integrate install
+```
 
-1. ***Download dependencies***:
-    - Debian/Ubuntu based: `sudo apt install build-essential cmake tar wget`
-    - Arch/Manjaro based: `sudo pacman -Sy base-devel cmake tar wget`
-2. ***Clone the repo***: `git clone https://github.com/BeChris100/OsintgramCXX`
-3. ***Change the directory***: `cd OsintgramCXX`
-4. ***Set up environment***: `mkdir Build && cmake -S $(pwd) -B $(pwd)/Build`
-5. ***Build***: `cmake --build $(pwd)/Build --target all -- -j$(nproc)`
+If you see something like this:
 
-The built binaries will be found in the directory of the Build. Change the directory
-to the `Build` directory (or however you named it), and you can run `./OsintgramCXX`
-from there.
+```
+Applied user-wide integration for this vcpkg root.
+CMake projects should use: "-DCMAKE_TOOLCHAIN_FILE=/home/bc100dev/.vcpkg-clion/vcpkg/scripts/buildsystems/vcpkg.cmake"
+```
+
+Then you are good to go. Make sure to copy the CLI argument that it also provides, as
+you will need it.
+
+From there, install `libcurl`, as it is used to make Network Requests. For those unfamiliar,
+run this:
+
+```bash
+$ vcpkg install curl
+```
+
+If you plan to cross-compile for aarch64 (arm64), then you can append `:arm64-linux`, resulting
+in `curl:arm64-linux`. From there, clone the OsintgramCXX repository:
+
+```bash
+$ git clone https://github.com/BeChris100/OsintgramCXX
+$ cd OsintgramCXX
+```
+
+Now, you are ready to do the final process: actually building it. You can do this by
+doing the following:
+
+```bash
+$ cmake -S . -B Build -DCMAKE_TOOLCHAIN_FILE="/path/to/vcpkg/you/copied"
+$ cmake --build Build
+```
+
+Remember that one CLI argument that `vcpkg integrate install` told you? Yeah, replace
+that `-DCMAKE_TOOLCHAIN_FILE="/path/to/vcpkg/you/copied` with that argument that `vcpkg`
+is telling you to. In my case, it would be
+`-DCMAKE_TOOLCHAIN_FILE=/home/bc100dev/.vcpkg-clion/vcpkg/scripts/buildsystems/vcpkg.cmake`,
+since I had it downloaded automatically by CLion.
+
+This process will build the `OsintgramCXX` executable under the `Build` directory. That is,
+if you have decided to change the `-B Build` to something like `-B out`, then `out` is the
+output directory, in which the executable will be living under.
+
+Of course, if you wish to cross-compile to aarch64, you NEED to add another following
+argument, being `-DVCPKG_TARGET_TRIPLET=arm64-linux`, along with
+`-DAPP_CONFIG_TARGET=Linux_arm64` to point to the compilers. This will tell `vcpkg` and `cmake`
+to use the binaries from this triplet. Applying it programmatically in the CMake is not possible,
+since the Toolchain file gets sourced first before the project's CMake.
+
+Okay, but you might be running Windows or macOS, so how else can you build it? Different
+methods include:
+
+- Virtual Machines
+- Cloud Shell (via SSH)
+- Containers (e.g. Docker)
+- Dual-Booting (if you have a Windows PC)
+- WSL (Windows only)
+- Termux (Android only, still experimenting for a proper build)

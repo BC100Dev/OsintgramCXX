@@ -10,7 +10,7 @@
 std::string GetExecutableDirectory() {
 #ifdef _WIN32
     char buffer[MAX_PATH];
-    GetModuleFileName(NULL, buffer, MAX_PATH);
+    GetModuleFileName(nullptr, buffer, MAX_PATH);
     fs::path exePath = std::string(buffer);
     return exePath.parent_path().string();
 #else

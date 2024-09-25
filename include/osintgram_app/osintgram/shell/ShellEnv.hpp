@@ -3,27 +3,26 @@
 
 #include <string>
 #include <functional>
+#include <stdexcept>
+#include <map>
 
 namespace OsintgramCXX {
 
-    struct ShellEnvironment {
-
-        std::string name;
-        std::string value;
-
-    };
+    using ShellEnvironment = std::map<std::string, std::string>;
 
     struct ShellCommand {
 
         std::string commandName;
-        std::function<int(const std::vector<std::string>&, const std::vector<ShellEnvironment>&)> executionCommand;
-        std::function<std::string(const std::vector<std::string>&)> helpCommand;
+        std::function<int(const std::vector<std::string> &, const ShellEnvironment &)> executionCommand;
+        std::function<std::string(const std::vector<std::string> &)> helpCommand;
         std::string quickHelpStr;
 
     };
 
-    extern std::vector<ShellEnvironment> shellEnvMap;
-    extern std::vector<ShellCommand> shellCommandMap;
+    class ShellException : public std::runtime_error {
+    public:
+        explicit ShellException(const std::string &message) : std::runtime_error(message) {}
+    };
 
 }
 

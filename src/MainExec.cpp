@@ -11,6 +11,7 @@
 #include <set>
 
 #include <osintgram/shell/ShellEnv.hpp>
+#include <osintgram/shell/Shell.hpp>
 #include <osintgram/Defaults.hpp>
 #include <osintgram/Properties.hpp>
 #include <osintgram/AppProps.hpp>
@@ -20,7 +21,20 @@
 #include <AppCommons/Utils.hpp>
 
 #ifdef _WIN32
+
 #include <windows.h>
+
+void WinSetColorMode() {
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut == INVALID_HANDLE_VALUE) return;
+
+    DWORD dwMode = 0;
+    if (!GetConsoleMode(hOut, &dwMode)) return;
+
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, dwMode);
+}
+
 #else
 
 #include <unistd.h>
@@ -138,12 +152,8 @@ void init() {
     //OsintgramCXX::InitLoadSettings();
 }
 
-void testThread() {
-    std::cout << "From test thread" << std::endl;
-}
-
-void appParseArgs(const std::vector<std::string>& args, const std::string& fileCall) {
-    for (const std::string& arg : args) {
+void appParseArgs(const std::vector<std::string> &args, const std::string &fileCall) {
+    for (const std::string &arg: args) {
         if (arg[0] == '-') {
             if (arg == "-h" || arg == "--help") {
                 usage();
@@ -166,14 +176,7 @@ void appParseArgs(const std::vector<std::string>& args, const std::string& fileC
                     continue;
                 }
 
-                std::string key = keyValue.substr(0, eqPos);
-                std::string val = keyValue.substr(eqPos + 1);
-
-                OsintgramCXX::ShellEnvironment envMap;
-                envMap.name = key;
-                envMap.value = val;
-
-                OsintgramCXX::shellEnvMap.push_back(envMap);
+                OsintgramCXX::Shell::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
         } else if (arg[0] == '@') {
             std::string filePath = arg.substr(1);
@@ -212,14 +215,7 @@ int main(int argc, char **argv) {
 
     // required: coloring system in "src/AppCommons/Terminal.cpp"
 #ifdef _WIN32
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hOut == INVALID_HANDLE_VALUE) return;
-
-    DWORD dwMode = 0;
-    if (!GetConsoleMode(hOut, &dwMode)) return;
-
-    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    SetConsoleMode(hOut, dwMode);
+    WinSetColorMode();
 #endif
 
     init();
@@ -228,6 +224,26 @@ int main(int argc, char **argv) {
         initParseArgs(argc, argv);
 
     std::cout << TEXT_BLOCK() << std::endl;
+
+    if (IsAdmin()) {
+        if (!suppressWarnings) {
+#if defined(__linux__) || defined(__APPLE__)
+            std::cerr << "Warning: You are running this process as root." << std::endl;
+            std::cerr << "Avoid running processes as root, unless you know exactly, what you are running." << std::endl;
+#endif
+
+#ifdef _WIN32
+            std::cerr << "Warning: You are running this process with elevated privileges." << std::endl;
+            std::cerr
+                    << "Avoid running processes with elevated privileges, unless you know exactly, what you are running"
+                    << std::endl;
+#endif
+        }
+    }
+
+    //Shell shell;
+    //shell.launch();
+    //shell.close();
 }
 
 void parseFileArgs(const std::string &filePath) {

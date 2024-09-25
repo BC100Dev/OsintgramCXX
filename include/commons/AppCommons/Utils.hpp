@@ -4,45 +4,54 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <regex>
+#include <iostream>
+
+#ifdef __linux__
+
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <pwd.h>
+#include <climits>
+
+#endif
+
+#ifdef _WIN32
+#define SECURITY_WIN32
+
+#include <windows.h>
+#include <secext.h>
+#include <direct.h>
+#endif
 
 namespace OsintgramCXX {
 
-    std::string TrimString(const std::string &str) {
-        size_t start = str.find_first_not_of(" \t\n");
-        size_t end = str.find_last_not_of(" \t\n");
+    bool StringContains(const std::string& str, const std::string& val);
 
-        return (start == std::string::npos || end == std::string::npos) ? "" : str.substr(start, end - start + 1);
-    }
+    std::string TrimString(const std::string &str);
 
-    std::map<int, std::string> SplitString(const std::string& str, const std::string& delim) {
-        std::map<int, std::string> tokens;
-        size_t startIndex = 0;
-        size_t delimPos = 0;
-        int tokenIndex = 0;
+    std::map<int, std::string> SplitString(const std::string& str, const std::string& delim, int limit);
 
-        while ((delimPos = str.find(delim, startIndex)) != std::string::npos) {
-            tokens[tokenIndex++] = str.substr(startIndex, delimPos - startIndex);
-            startIndex = delimPos + delim.length();
-        }
+    std::map<int, std::string> SplitString(const std::string &str, const std::string &delim);
 
-        tokens[tokenIndex] = str.substr(startIndex);
+    bool StartsWith(const std::string &str, const std::string &prefix);
 
-        return tokens;
-    }
+    bool EndsWith(const std::string &str, const std::string &suffix);
 
-    bool StartsWith(const std::string& str, const std::string& prefix) {
-        if (prefix.size() > str.size())
-            return false;
+    // don't forget to pull up that Regex skill without googling it! (evil laughter)
+    std::string ReplaceAll(const std::string& str, const std::string& pattern, const std::string& replacement);
 
-        return std::equal(prefix.begin(), prefix.end(), str.begin());
-    }
+    std::string ReplaceFirst(const std::string& str, const std::string& from, const std::string& to);
 
-    bool EndsWith(const std::string& str, const std::string& suffix) {
-        if (suffix.size() > str.size())
-            return false;
+    std::string Replace(const std::string& str, const std::string& from, const std::string& to);
 
-        return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
-    }
+    bool IsAdmin();
+
+    std::string GetHostname();
+
+    std::string CurrentWorkingDirectory();
+
+    std::string CurrentUsername();
 
 }
 

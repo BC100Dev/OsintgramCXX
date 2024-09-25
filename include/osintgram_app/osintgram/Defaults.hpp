@@ -39,7 +39,7 @@ namespace OsintgramCXX {
         INFO,
         WARN,
         SEVERE,
-        ERROR,
+        ERR,
         VERBOSE,
         DEBUG,
         SUCCESS
@@ -53,7 +53,7 @@ namespace OsintgramCXX {
             }
         }
 
-        void log(const LogLevel& level, const std::string& message, bool onDisplay, const std::exception& exception) {
+        void log(LogLevel level, const std::string& message, bool onDisplay, const std::exception& exception) {
             if (!fileStream.is_open())
                 throw std::runtime_error("Log File Write Error");
 
@@ -66,7 +66,7 @@ namespace OsintgramCXX {
             fileStream << sLog << std::endl << std::endl;
         }
 
-        void log(const LogLevel& level, const std::string& message, bool onDisplay) {
+        void log(LogLevel level, const std::string& message, bool onDisplay) {
             log(level, message, onDisplay, std::runtime_error(""));
         }
 
@@ -87,7 +87,7 @@ namespace OsintgramCXX {
         std::ofstream fileStream;
         std::string filePath;
 
-        static std::string LevelToString(const LogLevel& lvl) {
+        static std::string LevelToString(LogLevel lvl) {
             switch (lvl) {
                 case INFO:
                     return "INFO";
@@ -95,7 +95,7 @@ namespace OsintgramCXX {
                     return "WARNING";
                 case SEVERE:
                     return "SEVERE";
-                case ERROR:
+                case ERR:
                     return "ERROR";
                 case VERBOSE:
                     return "VERBOSE";

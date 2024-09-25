@@ -1,3 +1,6 @@
 .idea
 tests
 Builds
+Build
+InstallDir
+vcpkg_config.cmake
