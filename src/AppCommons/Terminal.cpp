@@ -15,9 +15,17 @@ void Terminal::print(TermColor color, const std::string &msg, bool reset) {
         std::cout << translateColor(TermColor::RESET);
 }
 
+void Terminal::print(Terminal::TermColor color, const std::stringstream &msg, bool reset) {
+    Terminal::print(color, msg.str(), reset);
+}
+
 void Terminal::println(TermColor color, const std::string &msg, bool reset) {
     Terminal::print(color, msg, reset);
     std::cout << std::endl;
+}
+
+void Terminal::println(Terminal::TermColor color, const std::stringstream &msg, bool reset) {
+    Terminal::println(color, msg.str(), reset);
 }
 
 void Terminal::errPrint(TermColor color, const std::string &msg, bool reset) {
@@ -28,9 +36,17 @@ void Terminal::errPrint(TermColor color, const std::string &msg, bool reset) {
         std::cerr << translateColor(TermColor::RESET);
 }
 
+void Terminal::errPrint(Terminal::TermColor color, const std::stringstream &msg, bool reset) {
+    Terminal::errPrint(color, msg.str(), reset);
+}
+
 void Terminal::errPrintln(TermColor color, const std::string &msg, bool reset) {
-    Terminal::print(color, msg, reset);
+    Terminal::errPrint(color, msg, reset);
     std::cerr << std::endl;
+}
+
+void Terminal::errPrintln(Terminal::TermColor color, const std::stringstream &msg, bool reset) {
+    Terminal::errPrintln(color, msg.str(), reset);
 }
 
 std::string Terminal::translateColor(TermColor color) {
@@ -54,37 +70,41 @@ void Terminal::clearTerminal() {
 }
 
 int Terminal::windowColumns() {
+    int res = -1;
+
 #ifdef __linux__
     struct winsize w{};
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1)
         return -1;
 
-    return w.ws_col;
+    res = w.ws_col;
 #endif
 
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
-        return csbi.srWindow.Right - csbi.srWindow.Left + 1;
-
-    return -1;
+        res = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 #endif
+
+    return res;
 }
 
 int Terminal::windowRows() {
+    int res = -1;
+
 #ifdef __linux__
     struct winsize w{};
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1)
         return -1;
 
-    return w.ws_row;
+    res = w.ws_row;
 #endif
 
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
-        return csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-
-    return -1;
+        res = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 #endif
+
+    return res;
 }

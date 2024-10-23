@@ -3,18 +3,17 @@
 #include <vector>
 #include <stdexcept>
 #include <thread>
-#include <csignal>
 #include <sstream>
 #include <typeinfo>
-#include <climits>
 #include <filesystem>
 #include <set>
+#include <csignal>
 
-#include <osintgram/shell/ShellEnv.hpp>
 #include <osintgram/shell/Shell.hpp>
 #include <osintgram/Defaults.hpp>
 #include <osintgram/Properties.hpp>
 #include <osintgram/AppProps.hpp>
+#include <osintgram/WineDetect.hpp>
 
 #include <AppCommons/HelpPage.hpp>
 #include <AppCommons/Terminal.hpp>
@@ -24,7 +23,20 @@
 
 #include <windows.h>
 
+#else
+
+#include <unistd.h>
+#include <climits>
+
+#endif
+
+namespace fs = std::filesystem;
+using namespace OsintgramCXX;
+
+std::set<std::string> processedCmdParamFiles;
+
 void WinSetColorMode() {
+#ifdef _WIN32
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hOut == INVALID_HANDLE_VALUE) return;
 
@@ -33,26 +45,17 @@ void WinSetColorMode() {
 
     dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     SetConsoleMode(hOut, dwMode);
-}
-
-#else
-
-#include <unistd.h>
-
 #endif
-
-namespace fs = std::filesystem;
-
-std::set<std::string> processedCmdParamFiles;
+}
 
 void parseFileArgs(const std::string &filePath);
 
 void exceptionHandler() {
-    std::exception_ptr exptr = std::current_exception();
+    std::exception_ptr exPtr = std::current_exception();
 
-    if (exptr) {
+    if (exPtr) {
         try {
-            std::rethrow_exception(exptr);
+            std::rethrow_exception(exPtr);
         } catch (const std::exception &ex) {
             std::ostringstream sw;
             sw << ex.what();
@@ -148,8 +151,83 @@ void usage() {
     std::cout << "   > (target2 ...)     Multiple optional targets" << std::endl;
 }
 
+#ifdef __linux__
+void sigHandle(int signal) {
+    if (Shell::running)
+        Shell::stopShell(true);
+
+    Shell::cleanup();
+}
+#endif
+
 void init() {
-    //OsintgramCXX::InitLoadSettings();
+#ifdef _WIN32
+    // start Win10 & Win11 check
+    OSVERSIONINFOEX osInfo = {};
+    osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    osInfo.dwMajorVersion = 10;
+    osInfo.dwMinorVersion = 0;
+    osInfo.dwBuildNumber = 10240;
+
+    OSVERSIONINFOEX win11osInfo = {};
+    win11osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    win11osInfo.dwMajorVersion = 10;
+    win11osInfo.dwMinorVersion = 0;
+    win11osInfo.dwBuildNumber = 22000;
+
+    DWORDLONG conditionMask = 0;
+    VER_SET_CONDITION(conditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
+    VER_SET_CONDITION(conditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
+    VER_SET_CONDITION(conditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+
+    if (!VerifyVersionInfo(&osInfo, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, conditionMask)) {
+        DWORD errorCode = GetLastError();
+        if (errorCode == ERROR_OLD_WIN_VERSION) {
+            std::cerr << "Warning: You are using an older version than Windows 10." << std::endl;
+            std::cerr << "Certain features like Terminal Color-Coding will not work." << std::endl;
+            std::cerr << "Expect gambled up mess in the Terminal, or stick to certain alternatives." << std::endl;
+            std::cerr
+                    << "To view alternatives, visit \"https://github.com/BeChris100/OsintgramCXX/blob/master/README.md\""
+                    << std::endl;
+        } else
+            std::cerr << "Error while fetching Windows version, received 0x" << std::hex << errorCode << std::endl;
+    }
+
+    if (VerifyVersionInfo(&win11osInfo, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, conditionMask)) {
+        if (RandomInteger(0, 100000) == 1983) { // a lil easter egg in here, eh
+            std::cout << "god forbid you using Windows 11" << std::endl;
+            CurrentThread_Sleep(983);
+            std::cout << "not really, that's a joke" << std::endl;
+            CurrentThread_Sleep(1200);
+            std::cout << "Maybe it wasn't lul" << std::endl;
+        }
+    }
+
+    if (Wine::WineExecution()) {
+        if (!suppressWarnings) {
+            std::cerr << "Warning: You are operating under Wine!" << std::endl;
+            std::cerr << "Text-coloring system will not work under Wine." << std::endl;
+
+            Wine::Host host = Wine::WineHost();
+
+            if (host.platform == Wine::LINUX)
+                std::cerr << "Consider using the native executable provided for Linux" << std::endl;
+
+            if (host.platform == Wine::MAC_OS)
+                std::cerr << "Consider using a Windows 10/Linux virtual machine" << std::endl;
+        }
+    }
+#endif
+
+#ifdef __linux__
+    signal(SIGINT, sigHandle);
+    signal(SIGTERM, sigHandle);
+    signal(SIGABRT, sigHandle);
+    signal(SIGKILL, sigHandle);
+#endif
+}
+
+void initSettings() {
 }
 
 void appParseArgs(const std::vector<std::string> &args, const std::string &fileCall) {
@@ -164,7 +242,7 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
                 std::cerr << "Suppressing all warnings" << std::endl;
                 std::cerr << "Only apply this warning, when you know, what you are doing." << std::endl;
 
-                OsintgramCXX::suppressWarnings = true;
+                suppressWarnings = true;
             }
 
             if (arg.rfind("-E", 0) == 0 && arg.length() > 2) {
@@ -176,7 +254,7 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
                     continue;
                 }
 
-                OsintgramCXX::Shell::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
+                Shell::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
         } else if (arg[0] == '@') {
             std::string filePath = arg.substr(1);
@@ -194,7 +272,7 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
             Target target;
             target.name = arg;
 
-            OsintgramCXX::targetList.push_back(target);
+            targetList.push_back(target);
         }
     }
 }
@@ -213,37 +291,40 @@ void initParseArgs(int argc, char **argv) {
 int main(int argc, char **argv) {
     std::set_terminate(exceptionHandler);
 
-    // required: coloring system in "src/AppCommons/Terminal.cpp"
-#ifdef _WIN32
+    // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
     WinSetColorMode();
-#endif
-
-    init();
+    initSettings();
 
     if (argc > 1)
         initParseArgs(argc, argv);
 
-    std::cout << TEXT_BLOCK() << std::endl;
+    init();
+
+    std::cout << TEXT_BLOCK() << std::endl << std::endl;
 
     if (IsAdmin()) {
         if (!suppressWarnings) {
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__) // yes, I checked for Apple definition because I know that one of yall will literally port it to macOS (if there even is someone)
             std::cerr << "Warning: You are running this process as root." << std::endl;
-            std::cerr << "Avoid running processes as root, unless you know exactly, what you are running." << std::endl;
+            std::cerr << "Avoid running processes as root, unless you know exactly, what you are running." << std::endl << std::endl;
 #endif
 
 #ifdef _WIN32
             std::cerr << "Warning: You are running this process with elevated privileges." << std::endl;
             std::cerr
                     << "Avoid running processes with elevated privileges, unless you know exactly, what you are running"
-                    << std::endl;
+                    << std::endl << std::endl;
 #endif
         }
     }
 
-    //Shell shell;
-    //shell.launch();
-    //shell.close();
+    // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell.
+    CurrentThread_Sleep(RandomLong(100, 1979));
+
+    Shell::initializeShell();
+    Shell::launchShell();
+
+    return 0;
 }
 
 void parseFileArgs(const std::string &filePath) {
@@ -264,7 +345,7 @@ void parseFileArgs(const std::string &filePath) {
     std::vector<std::string> args;
 
     while (std::getline(file, line)) {
-        std::string processLine = OsintgramCXX::TrimString(line);
+        std::string processLine = TrimString(line);
         if (processLine.empty())
             continue;
 

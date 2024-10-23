@@ -7,7 +7,7 @@ namespace OsintgramCXX::Shell {
 
     extern std::string PS1;
     extern bool running;
-    extern bool shellInitialized;
+    [[maybe_unused]] extern bool shellInitialized;
     extern ShellEnvironment environment;
     extern std::vector<ShellCommand> shellCommands;
 
@@ -15,7 +15,9 @@ namespace OsintgramCXX::Shell {
 
     void launchShell();
 
-    void stopShell();
+    void stopShell(bool forceStop);
+
+    void cleanup();
 
 }
 

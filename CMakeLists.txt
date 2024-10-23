@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 project(OsintgramCXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Android")
     message(STATUS "== Building on Android device")
@@ -38,8 +38,6 @@ else ()
         set(APP_SYSTEM_ARCH "x86_64")
     elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
         set(APP_SYSTEM_ARCH "aarch64")
-    elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "riscv64")
-        set(APP_SYSTEM_ARCH "riscv64")
     else ()
         message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
     endif ()

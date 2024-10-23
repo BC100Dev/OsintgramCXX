@@ -30,9 +30,9 @@ namespace OsintgramCXX {
 
     std::string TrimString(const std::string &str);
 
-    std::map<int, std::string> SplitString(const std::string& str, const std::string& delim, int limit);
+    std::vector<std::string> SplitString(const std::string& str, const std::string& delim, int limit);
 
-    std::map<int, std::string> SplitString(const std::string &str, const std::string &delim);
+    std::vector<std::string> SplitString(const std::string &str, const std::string &delim);
 
     bool StartsWith(const std::string &str, const std::string &prefix);
 
@@ -52,6 +52,20 @@ namespace OsintgramCXX {
     std::string CurrentWorkingDirectory();
 
     std::string CurrentUsername();
+
+    long RandomLong(long min, long max);
+
+    double RandomDouble(double min, double max);
+
+    float RandomFloat(float min, float max);
+
+    int RandomInteger(int min, int max);
+
+    void CurrentThread_Sleep(long duration);
+
+    std::vector<char> Pause(const std::string& prompt, const ssize_t& count);
+    std::vector<char> Pause(const std::string& prompt);
+    std::vector<char> Pause();
 
 }
 

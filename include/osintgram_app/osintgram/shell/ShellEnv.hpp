@@ -14,7 +14,7 @@ namespace OsintgramCXX {
 
         std::string commandName;
         std::function<int(const std::vector<std::string> &, const ShellEnvironment &)> executionCommand;
-        std::function<std::string(const std::vector<std::string> &)> helpCommand;
+        std::function<std::string()> helpCommand;
         std::string quickHelpStr;
 
     };
