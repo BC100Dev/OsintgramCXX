@@ -1,0 +1,40 @@
+{
+    "message": "",
+    "two_factor_required": true,
+    "two_factor_info": {
+        "pk": "(Num:XXXXXXXXXXX)",
+        "username": "bc100dev",
+        "sms_two_factor_on": false,
+        "whatsapp_two_factor_on": false,
+        "totp_two_factor_on": true,
+        "eligible_for_multiple_totp": true,
+        "obfuscated_phone_number": "XXXX",
+        "obfuscated_phone_number_2": "+XX **** *****XX",
+        "two_factor_identifier": "[String]",
+        "show_messenger_code_option": false,
+        "show_new_login_screen": true,
+        "show_trusted_device_option": true,
+        "should_opt_in_trusted_device_option": true,
+        "pending_trusted_notification": false,
+        "sms_not_allowed_reason": null,
+        "trusted_notification_polling_nonce": null,
+        "is_trusted_device": false,
+        "device_id": "[String]",
+        "is_in_sowa_experience": true,
+        "encrypted_context": "",
+        "phone_verification_settings": {
+            "max_sms_count": 2,
+            "resend_sms_delay_sec": 60,
+            "robocall_count_down_time_sec": 30,
+            "robocall_after_max_sms": true
+        }
+    },
+    "phone_verification_settings": {
+        "max_sms_count": 2,
+        "resend_sms_delay_sec": 60,
+        "robocall_count_down_time_sec": 30,
+        "robocall_after_max_sms": true
+    },
+    "status": "fail",
+    "error_type": "two_factor_required"
+}
