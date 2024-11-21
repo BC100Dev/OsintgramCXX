@@ -1,9 +1,9 @@
-#include "../../../Include/OsintgramCXX/App/Shell/Shell.hpp"
+#include <OsintgramCXX/App/Shell/Shell.hpp>
 
-#include "../../../Include/OsintgramCXX/Commons/Utils.hpp"
-#include "../../../Include/OsintgramCXX/Commons/Terminal.hpp"
-#include "../../../Include/OsintgramCXX/Commons/Tools.hpp"
-#include "../../../Include/OsintgramCXX/Commons/HelpPage.hpp"
+#include <OsintgramCXX/Commons/Utils.hpp>
+#include <OsintgramCXX/Commons/Terminal.hpp>
+#include <OsintgramCXX/Commons/Tools.hpp>
+#include <OsintgramCXX/Commons/HelpPage.hpp>
 
 #include <sstream>
 #include <thread>

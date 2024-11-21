@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <any>
-#include "OsintgramCXX_Libs/nlohmann/json.hpp"
+#include <nlohmann/json.hpp>
 
 #define HTTP_STATUS_OK 200
 #define HTTP_STATUS_Unauthorized 403

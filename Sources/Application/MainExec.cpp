@@ -9,15 +9,15 @@
 #include <set>
 #include <csignal>
 
-#include "../../Include/OsintgramCXX/App/Shell/Shell.hpp"
-#include "../../Include/OsintgramCXX/App/Defaults.hpp"
-#include "../../Include/OsintgramCXX/App/Properties.hpp"
-#include "../../Include/OsintgramCXX/App/AppProps.hpp"
-#include "../../Include/OsintgramCXX/App/WineDetect.hpp"
+#include <OsintgramCXX/App/Shell/Shell.hpp>
+#include <OsintgramCXX/App/Defaults.hpp>
+#include <OsintgramCXX/App/Properties.hpp>
+#include <OsintgramCXX/App/AppProps.hpp>
+#include <OsintgramCXX/App/WineDetect.hpp>
 
-#include "../../Include/OsintgramCXX/Commons/HelpPage.hpp"
-#include "../../Include/OsintgramCXX/Commons/Terminal.hpp"
-#include "../../Include/OsintgramCXX/Commons/Utils.hpp"
+#include <OsintgramCXX/Commons/HelpPage.hpp>
+#include <OsintgramCXX/Commons/Terminal.hpp>
+#include <OsintgramCXX/Commons/Utils.hpp>
 
 #ifdef _WIN32
 

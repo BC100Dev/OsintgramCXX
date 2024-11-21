@@ -1,4 +1,4 @@
-#include "../../Include/OsintgramCXX/Networking/Errors.hpp"
+#include <OsintgramCXX/Networking/Errors.hpp>
 #include <typeinfo>
 #include <iostream>
 

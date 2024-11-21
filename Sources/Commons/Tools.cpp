@@ -1,4 +1,4 @@
-#include "../../Include/OsintgramCXX/Commons/Tools.hpp"
+#include <OsintgramCXX/Commons/Tools.hpp>
 
 std::vector<std::string> OsintgramCXX::Tools::translateCmdLine(const std::string &cmdLine) {
     if (cmdLine.empty() || cmdLine.find_first_not_of(' ') == std::string::npos)

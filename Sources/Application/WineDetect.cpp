@@ -1,4 +1,4 @@
-#include "../../Include/OsintgramCXX/App/WineDetect.hpp"
+#include <OsintgramCXX/App/WineDetect.hpp>
 #include <string>
 
 #ifdef _WIN32

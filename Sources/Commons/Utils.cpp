@@ -1,4 +1,4 @@
-#include "../../Include/OsintgramCXX/Commons/Utils.hpp"
+#include <OsintgramCXX/Commons/Utils.hpp>
 #include <random>
 #include <thread>
 #include <filesystem>

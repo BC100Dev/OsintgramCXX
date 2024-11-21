@@ -1,4 +1,4 @@
-#include "../../Include/OsintgramCXX/App/Defaults.hpp"
+#include <OsintgramCXX/App/Defaults.hpp>
 
 #include <climits>
 #include <filesystem>

@@ -1,4 +1,4 @@
-#include "../../Include/OsintgramCXX/Commons/HelpPage.hpp"
+#include <OsintgramCXX/Commons/HelpPage.hpp>
 #include <algorithm>
 
 HelpPage::Item::Item(std::string& a, std::string& e, std::string& d) : arg(a), equalDesc(e), description(d) {}

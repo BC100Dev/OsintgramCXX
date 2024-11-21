@@ -10,8 +10,8 @@
 #include <filesystem>
 #include <cstdlib>
 
-#include "Defaults.hpp"
-#include "../Commons/Utils.hpp"
+#include <OsintgramCXX/App/Defaults.hpp>
+#include <OsintgramCXX/Commons/Utils.hpp>
 
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
