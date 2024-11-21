@@ -1,16 +1,17 @@
-[ ] Reimplement the Osintgram4j features into C++ (except for JAR-like Modding Support)
-[ ] Implement Setting Configurations into the Project, and load them as Shell Environments (read+write from+to file)
+Main features to implement:
+[-] Reimplement the Osintgram4j features into C++ (except for JAR-like Modding Support)
+[ ] Implement Features from the settings
 [ ] Write the documentation for setup and usage
 [ ] Implement Instagram APIs (that includes authentication, sadly...)
 [ ] Implement Rate Limiting and Wait Timers
 [ ] Write a Dockerfile (because we want to avoid that "it works on my machine" bullshit)
 [ ] Cross-platform support for Windows (not macOS, sorry, I don't have a MacBook, and they isolate too much)
+[ ] Implement Configurable Proxies
+[ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, CFG, YAML, XML)
 
 Potential features for the future:
-[ ] Implement Configurable Proxy / Proxy-Chaining Support
 [ ] Write a "setup.sh" script that implements vcpkg into the project CMake
 [ ] Automate the VCPKG_ROOT, removing the unnecessary CLI arguments
-[ ] Implement Modding Support via Local Network Sockets
 [ ] Implement Multi-Lingual Support
 
-Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes, and please do try-catch blocks.
+Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.
