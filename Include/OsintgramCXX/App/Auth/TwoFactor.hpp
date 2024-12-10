@@ -7,7 +7,7 @@
 
 #include "OsintgramCXX/Networking/Networking.hpp"
 
-#include "../../../../Sources/Application/Auth/Cookies.hpp"
+#include "Cookies.hpp"
 
 using json = nlohmann::json;
 using namespace OsintgramCXX::Networking;

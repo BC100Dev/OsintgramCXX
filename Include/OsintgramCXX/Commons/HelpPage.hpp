@@ -17,6 +17,7 @@ private:
 
     int spaceWidth, startSpaceWidth;
     std::vector<Item> argItemList;
+    std::string descSep = "=";
 
 public:
     HelpPage();
@@ -26,6 +27,9 @@ public:
 
     void setStartSpaceWidth(int width);
     [[nodiscard]] int getStartSpaceWidth() const;
+
+    void setDescSeparator(const std::string& sep);
+    [[nodiscard]] std::string getDescSeparator() const;
 
     void addArg(std::string arg, std::string assignableDesc, std::string description);
     [[nodiscard]] std::string display() const;

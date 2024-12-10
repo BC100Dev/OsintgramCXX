@@ -2,6 +2,8 @@
 #include <random>
 #include <thread>
 #include <filesystem>
+#include <algorithm>
+#include <cstdlib>
 
 #define PAUSE_PROMPT_DEFAULT "Press any key to continue..."
 
@@ -10,18 +12,39 @@
 #elif __linux__
 #include <termios.h>
 #include <unistd.h>
+#include <sys/utsname.h>
+#include <netdb.h>
 #endif
 
 namespace OsintgramCXX {
+
+    std::string ToLowercase(const std::string &str) {
+        std::string result = str;
+        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
+            return std::tolower(c);
+        });
+        return result;
+    }
+
+    std::string ToUppercase(const std::string &str) {
+        std::string result = str;
+        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
+            return std::toupper(c);
+        });
+        return result;
+    }
 
     bool StringContains(const std::string& str, const std::string& val) {
         return str.find(val) != std::string::npos;
     }
 
     std::string TrimString(const std::string &str) {
-        size_t start = str.find_first_not_of(" \t\n");
-        size_t end = str.find_last_not_of(" \t\n");
+        return TrimString(str, " \t\r\n");
+    }
 
+    std::string TrimString(const std::string &str, const std::string &chars) {
+        size_t start = str.find_first_not_of(chars);
+        size_t end = str.find_last_not_of(chars);
         return (start == std::string::npos || end == std::string::npos) ? "" : str.substr(start, end - start + 1);
     }
 
@@ -122,9 +145,9 @@ namespace OsintgramCXX {
         std::string result = "unknown-host";
 
 #ifdef __linux__
-        struct utsname buffer{};
-        if (uname(&buffer) == 0)
-            result = std::string(buffer.nodename);
+        char hostname[HOST_NAME_MAX];
+        if (gethostname(hostname, sizeof(hostname)) == 0)
+            result = std::string(hostname);
 #endif
 
 #ifdef _WIN32
@@ -132,6 +155,22 @@ namespace OsintgramCXX {
         DWORD size = sizeof(hostname) / sizeof(hostname[0]);
         if (GetComputerNameA(hostname, &size))
             result = std::string(hostname);
+#endif
+
+        return result;
+    }
+
+    std::string UserDomain() {
+        std::string result = "LOCALHOST|UNKNOWN-DOMAIN";
+
+#ifdef __linux__
+        result = GetHostname() + "/" + CurrentUsername();
+#elif _WIN32
+        char username[256];
+        DWORD username_len = sizeof(username);
+
+        if (GetUserNameExA(NameSamCompatible, username, &username_len))
+            result = username;
 #endif
 
         return result;
@@ -155,7 +194,7 @@ namespace OsintgramCXX {
         char username[256];
         DWORD username_len = sizeof(username) / sizeof(username[0]);
 
-        if (GetUserNameExA(NameSamCompatible, username, &username_len))
+        if (GetUserNameA(username, &username_len))
             result = std::string(username);
 #endif
 
@@ -163,13 +202,48 @@ namespace OsintgramCXX {
     }
 
     long RandomLong(long min, long max) {
+        if (min == max)
+            return min;
+
+        if (min > max)
+            std::swap(min, max);
+
         std::random_device rd;
         std::mt19937_64 gen(rd());
         std::uniform_int_distribution<long> dis(min, max);
         return dis(gen);
     }
 
+    long long RandomLLong(long long min, long long max) {
+        if (min == max)
+            return min;
+
+        if (min > max)
+            std::swap(min, max);
+
+        std::random_device rd;
+        std::mt19937_64 gen(rd());
+        std::uniform_int_distribution<long long> dis(min, max);
+        return dis(gen);
+    }
+
+    unsigned long long RandomULLong(unsigned long long min, unsigned long long max) {
+        if (min > max)
+            std::swap(min, max);
+
+        std::random_device rd;
+        std::mt19937_64 gen(rd());
+        std::uniform_int_distribution<unsigned long long> dis(min, max);
+        return dis(gen);
+    }
+
     double RandomDouble(double min, double max) {
+        if (min == max)
+            return min;
+
+        if (min > max)
+            std::swap(min, max);
+
         std::random_device rd;
         std::mt19937_64 gen(rd());
         std::uniform_real_distribution<double> dis(min, max);
@@ -177,6 +251,12 @@ namespace OsintgramCXX {
     }
 
     float RandomFloat(float min, float max) {
+        if (min == max)
+            return min;
+
+        if (min > max)
+            std::swap(min, max);
+
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<float> dis(min, max);
@@ -184,10 +264,29 @@ namespace OsintgramCXX {
     }
 
     int RandomInteger(int min, int max) {
+        if (min == max)
+            return min;
+
+        if (min > max)
+            std::swap(min, max);
+
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<int> dis(min, max);
         return dis(gen);
+    }
+
+    long RandomSeed(long min, long max) {
+        std::random_device rd;
+        unsigned int seed = rd();
+
+        std::mt19937_64 gen(seed);
+        std::uniform_int_distribution<long> dis(min, max);
+
+        long rnd = dis(gen);
+        rnd *= RandomInteger(10000, 55000) + RandomLong(5000, 500000) + (RandomLong(500, 1000) * RandomLong(2, 100000))
+                * 99999;
+        return rnd;
     }
 
     void CurrentThread_Sleep(long duration) {
@@ -232,6 +331,26 @@ namespace OsintgramCXX {
 #endif
 
         return chArr;
+    }
+
+    void ExitProgram(int code) {
+        std::exit(code);
+    }
+
+}
+
+namespace OsintgramCXX::SpecificUtils {
+
+    std::string GetUserDataDirectory() {
+    }
+
+    std::string GetUserCacheDirectory() {
+    }
+
+    std::string GetUserConfigDirectory() {
+    }
+
+    std::string GetExecutableDirectory() {
     }
 
 }

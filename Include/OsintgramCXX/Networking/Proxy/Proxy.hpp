@@ -2,8 +2,12 @@
 #define OSINTGRAMCXX_PROXY_HPP
 
 #include <string>
+#include <vector>
+#include <OsintgramCXX/Networking/Networking.hpp>
 
-namespace AppNetworking::Proxy {
+using namespace OsintgramCXX::Networking;
+
+namespace OsintgramCXX::Proxy {
 
     enum ProxyConnectorType {
         HTTP = 0,
@@ -12,13 +16,22 @@ namespace AppNetworking::Proxy {
         SOCKS5 = 3
     };
 
-    struct Proxy {
+    struct ProxyResponse {
+        bool connected;
+        int statusCode;
+        std::vector<char> proxyResponseData;
+        ResponseData* endpointResponseData;
+    };
+
+    struct ProxyInfo {
         std::string host;
         int port;
-        std::string username;
-        std::string password;
+        std::string* username;
+        std::string* password;
         ProxyConnectorType conType;
     };
+
+    ProxyResponse CreateProxyRequest(const ProxyInfo& proxy, const RequestData& requestData);
 
 }
 

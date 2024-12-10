@@ -22,7 +22,7 @@ namespace OsintgramCXX::Networking {
 
         // We shisha deleted the Windows macro conflict because as usual, compiling for Windows
         // must be an ass
-        SHISHA_DELETED = 5,
+        SHISHA_DELETE = 5,
         CONNECT = 6,
         OPTIONS = 7,
         TRACE = 8
@@ -41,14 +41,6 @@ namespace OsintgramCXX::Networking {
         Headers headers;
         HttpVersion version;
         std::string errorData;
-
-        std::string HeaderValue(const std::string& key) const {
-            auto it = headers.find(key);
-            if (it != headers.end())
-                return it->second;
-
-            return {};
-        }
     };
 
     struct RequestData {

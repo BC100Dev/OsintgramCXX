@@ -1,7 +1,8 @@
 #include <OsintgramCXX/Commons/HelpPage.hpp>
 #include <algorithm>
+#include <sstream>
 
-HelpPage::Item::Item(std::string& a, std::string& e, std::string& d) : arg(a), equalDesc(e), description(d) {}
+HelpPage::Item::Item(std::string &a, std::string &e, std::string &d) : arg(a), equalDesc(e), description(d) {}
 
 HelpPage::HelpPage() : spaceWidth(5), startSpaceWidth(0) {}
 
@@ -25,29 +26,37 @@ void HelpPage::addArg(std::string arg, std::string assignableDesc, std::string d
     argItemList.emplace_back(arg, assignableDesc, description);
 }
 
+void HelpPage::setDescSeparator(const std::string &sep) {
+    descSep = sep;
+}
+
+std::string HelpPage::getDescSeparator() const {
+    return descSep;
+}
+
 std::string HelpPage::display() const {
-    std::string output;
+    std::ostringstream oss;
     int maxItemLength = 0;
 
-    for (const auto& item : argItemList) {
-        std::string argLine = item.arg + (item.equalDesc.empty() ? "" : "=" + item.equalDesc);
+    for (const auto &item: argItemList) {
+        std::string argLine = item.arg + (item.equalDesc.empty() ? "" : descSep + item.equalDesc);
         maxItemLength = std::max(maxItemLength, static_cast<int>(argLine.length()));
     }
 
-    for (const auto& item : argItemList) {
-        std::string argLine = item.arg + (item.equalDesc.empty() ? "" : "=" + item.equalDesc);
+    for (const auto &item: argItemList) {
+        std::string argLine = item.arg + (item.equalDesc.empty() ? "" : descSep + item.equalDesc);
         if (startSpaceWidth > 0)
-            output += std::string(startSpaceWidth, ' ');
+            oss << std::string(startSpaceWidth, ' ');
 
-        output += argLine;
-        output += std::string(maxItemLength - argLine.length() + spaceWidth, ' ');
-        output += item.description + "\n";
+        oss << argLine
+            << std::string(maxItemLength - argLine.length() + spaceWidth, ' ')
+            << item.description + "\n";
     }
 
-    return output;
+    return oss.str();
 }
 
-void HelpPage::display(std::ostream& os) const {
+void HelpPage::display(std::ostream &os) const {
     os << display();
 }
 

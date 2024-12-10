@@ -5,6 +5,8 @@
 #include <OsintgramCXX/Commons/Tools.hpp>
 #include <OsintgramCXX/Commons/HelpPage.hpp>
 
+#include "cmd/ShellCommandEntries.hpp"
+
 #include <sstream>
 #include <thread>
 #include <iostream>
@@ -13,6 +15,12 @@
 #ifdef __linux__
 #include <csignal>
 #include <pthread.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <sys/types.h>
+#elif _WIN32
+#include <windows.h>
+#include <shlobj.h>
 #endif
 
 using namespace OsintgramCXX;
@@ -27,6 +35,8 @@ int helpCmd(const std::vector<std::string> &, const ShellEnvironment &) {
     for (const auto &cmdVar: Shell::shellCommands)
         page.addArg(cmdVar.commandName, "", cmdVar.quickHelpStr);
 
+    page.addArg("exit", "", "Exits the application");
+
     page.display(std::cout);
 
     return 0;
@@ -37,8 +47,28 @@ std::string helpStrCmd() {
     return "A help command, what do you expect?";
 }
 
-int cmd_writeSettings(const std::vector<std::string> &, const ShellEnvironment &) {
-    std::cout << "To be implemented" << std::endl;
+int cmd_writeSettings(const std::vector<std::string> &ar, const ShellEnvironment &vn) {
+    std::string fPath;
+
+#ifdef __linux__
+    struct passwd* pw = getpwuid(getuid());
+    if (pw && pw->pw_dir) {
+        fPath = std::string(pw->pw_dir);
+        fPath.append("/.config/net.bc100dev/OsintgramCXX/Settings.env");
+    }
+#elif _WIN32
+    char homeDir[MAX_PATH_LIMIT];
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, homeDir))){
+        fPath = std::string(homeDir);
+        fPath.append("\\AppData\\Local\\bc100dev.net\\OsintgramCXX\\Settings.env");
+    }
+#endif
+
+    if (fPath.empty()) {
+        std::cerr << "Failed to fetch home directory" << std::endl;
+        return 1;
+    }
+
     return 1;
 }
 
@@ -66,13 +96,7 @@ namespace OsintgramCXX::Shell {
         alreadyForceStopped = false;
 
         std::string user = CurrentUsername();
-#ifdef _WIN32
-        std::vector<std::string> _user_splits = OsintgramCXX::SplitString(user, "\\");
-        user = _user_splits[1];
-#endif
-
         std::string sCwd = CurrentWorkingDirectory();
-
         fs::path cwd = fs::current_path();
 
         std::stringstream strStream;
@@ -95,6 +119,10 @@ namespace OsintgramCXX::Shell {
 
         shellCommands.push_back(vHelpCmd);
         shellCommands.push_back(vWriteSettings);
+
+        std::vector<ShellCommand> cmdList = AppShell::Commands::importCommands();
+        for (const auto& it : cmdList)
+            shellCommands.push_back(it);
 
         shellInitialized = true;
     }
@@ -144,6 +172,10 @@ namespace OsintgramCXX::Shell {
                 std::getline(std::cin, line);
 
                 line = TrimString(line);
+
+                // forgotten lines (would SegFault otherwise)
+                if (line.empty())
+                    continue;
 
                 if (line[0] == '&')
                     modEnviron(line);
@@ -201,8 +233,10 @@ namespace OsintgramCXX::Shell {
                     }
                 }
 
-                if (!cmdFound)
+                if (!cmdFound) {
                     std::cerr << cmdLine[0] << ": command not found" << std::endl;
+                    CurrentThread_Sleep(90);
+                }
             } catch (const std::exception &ex) {
                 std::cerr << "ShellError: " << ex.what() << std::endl;
             }

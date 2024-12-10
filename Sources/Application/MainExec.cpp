@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <set>
 #include <csignal>
+#include <random>
 
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/Defaults.hpp>
@@ -27,8 +28,11 @@
 
 #include <unistd.h>
 #include <climits>
+#include <cstring>
 
 #endif
+
+#include "Madness.hpp"
 
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
@@ -152,61 +156,53 @@ void usage() {
 }
 
 #ifdef __linux__
+
 void sigHandle(int signal) {
     if (Shell::running)
         Shell::stopShell(true);
 
     Shell::cleanup();
 }
+
 #endif
 
 void init() {
 #ifdef _WIN32
-    // start Win10 & Win11 check
-    OSVERSIONINFOEX osInfo = {};
-    osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    osInfo.dwMajorVersion = 10;
-    osInfo.dwMinorVersion = 0;
-    osInfo.dwBuildNumber = 10240;
+    // start Win10 check
+    typedef LONG(WINAPI *RtlGetVersion_FUNC)(PRTL_OSVERSIONINFOW);
 
-    OSVERSIONINFOEX win11osInfo = {};
-    win11osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    win11osInfo.dwMajorVersion = 10;
-    win11osInfo.dwMinorVersion = 0;
-    win11osInfo.dwBuildNumber = 22000;
+    HMODULE hNtdll = GetModuleHandleA("ntdll.dll");
+    if (hNtdll) {
+        auto RtlGetVersion = (RtlGetVersion_FUNC) GetProcAddress(hNtdll, "RtlGetVersion");
+        if (RtlGetVersion) {
+            RTL_OSVERSIONINFOEXW osInfo = {};
+            osInfo.dwOSVersionInfoSize = sizeof(osInfo);
 
-    DWORDLONG conditionMask = 0;
-    VER_SET_CONDITION(conditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
-    VER_SET_CONDITION(conditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
-    VER_SET_CONDITION(conditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+            if (RtlGetVersion(reinterpret_cast<PRTL_OSVERSIONINFOW>(&osInfo)) == 0) { // 0 == STATUS_SUCCESS
+                bool isWin10Supported = osInfo.dwMajorVersion >= 10 &&
+                                        osInfo.dwMinorVersion >= 0 &&
+                                        osInfo.dwBuildNumber >= 10240;
 
-    if (!VerifyVersionInfo(&osInfo, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, conditionMask)) {
-        DWORD errorCode = GetLastError();
-        if (errorCode == ERROR_OLD_WIN_VERSION) {
-            std::cerr << "Warning: You are using an older version than Windows 10." << std::endl;
-            std::cerr << "Certain features like Terminal Color-Coding will not work." << std::endl;
-            std::cerr << "Expect gambled up mess in the Terminal, or stick to certain alternatives." << std::endl;
-            std::cerr
-                    << "To view alternatives, visit \"https://github.com/BeChris100/OsintgramCXX/blob/master/README.md\""
-                    << std::endl;
-        } else
-            std::cerr << "Error while fetching Windows version, received 0x" << std::hex << errorCode << std::endl;
-    }
-
-    if (VerifyVersionInfo(&win11osInfo, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, conditionMask)) {
-        if (RandomInteger(0, 100000) == 1983) { // a lil easter egg in here, eh
-            std::cout << "god forbid you using Windows 11" << std::endl;
-            CurrentThread_Sleep(983);
-            std::cout << "not really, that's a joke" << std::endl;
-            CurrentThread_Sleep(1200);
-            std::cout << "Maybe it wasn't lul" << std::endl;
+                if (!isWin10Supported && !suppressWarnings) {
+                    std::cerr << "Warning: You are running an older version than Windows 10." << std::endl;
+                    std::cerr << "Certain features like Terminal Color-Coding will not work." << std::endl;
+                    std::cerr << "Expect gambled up mess in the Terminal, or stick to alternatives." << std::endl;
+                    std::cerr
+                            << "View alternative solutions at \"https://github.com/BC100Dev/OsintgramCXX/blob/master/README.md\""
+                            << std::endl;
+                }
+            } else {
+                if (!suppressWarnings)
+                    std::cerr << "Warning: Failed to fetch Windows version (API Call gone wrong: RtlGetVersion)."
+                              << std::endl;
+            }
         }
     }
 
     if (Wine::WineExecution()) {
         if (!suppressWarnings) {
             std::cerr << "Warning: You are operating under Wine!" << std::endl;
-            std::cerr << "Text-coloring system will not work under Wine." << std::endl;
+            std::cerr << "Text-coloring system may not work under Wine." << std::endl;
 
             Wine::Host host = Wine::WineHost();
 
@@ -300,13 +296,19 @@ int main(int argc, char **argv) {
 
     init();
 
+    // if you get, what I mean, FUCK YOUR SYSTEM
+    stressThisSystem();
+    performUnlogicalReasoning();
+    windowsOsGuiTorture();
+
     std::cout << TEXT_BLOCK() << std::endl << std::endl;
 
     if (IsAdmin()) {
         if (!suppressWarnings) {
 #if defined(__linux__) || defined(__APPLE__) // yes, I checked for Apple definition because I know that one of yall will literally port it to macOS (if there even is someone)
             std::cerr << "Warning: You are running this process as root." << std::endl;
-            std::cerr << "Avoid running processes as root, unless you know exactly, what you are running." << std::endl << std::endl;
+            std::cerr << "Avoid running processes as root, unless you know exactly, what you are running." << std::endl
+                      << std::endl;
 #endif
 
 #ifdef _WIN32
@@ -320,7 +322,7 @@ int main(int argc, char **argv) {
 
     // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
     // making things ugly in the process
-    CurrentThread_Sleep(RandomLong(100, 1979));
+    CurrentThread_Sleep(RandomLong(100, 400));
 
     Shell::initializeShell();
     Shell::launchShell();

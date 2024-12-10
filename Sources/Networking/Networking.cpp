@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <sstream>
 
 struct ProgressState {
     long startTime;
@@ -90,7 +89,7 @@ namespace OsintgramCXX::Networking {
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.postData.data());
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, request.postData.size());
                     break;
-                case SHISHA_DELETED:
+                case SHISHA_DELETE:
                     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
                     break;
                 case PATCH:

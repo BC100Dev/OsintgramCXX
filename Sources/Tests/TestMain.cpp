@@ -1,11 +1,10 @@
-// Test Main Executable (TestMain.cpp)
-// "/test" directory excluded; any testing code goes in here
-
 #include <iostream>
 #include <format>
 
 #include <OsintgramCXX/Networking/Networking.hpp>
 #include <OsintgramCXX/Networking/Errors.hpp>
+#include <OsintgramCXX/Networking/Proxy/Proxy.hpp>
+#include <OsintgramCXX/Networking/Proxy/ProxyChains.hpp>
 
 #include <OsintgramCXX/Commons/HelpPage.hpp>
 #include <OsintgramCXX/Commons/Terminal.hpp>
@@ -25,12 +24,14 @@
 using namespace OsintgramCXX;
 using namespace OsintgramCXX::Wine;
 using namespace OsintgramCXX::Networking;
+using namespace OsintgramCXX::Proxy;
+using namespace nlohmann;
 
 bool performNet() {
     RequestData reqData;
     reqData.readTimeoutMillis = 9000;
     reqData.connTimeoutMillis = 5000;
-    reqData.url = "https://bc100dev.net";
+    reqData.url = "https://www.google.com";
     reqData.method = RequestMethod::GET;
     reqData.version = HTTP_1_1;
 
@@ -40,10 +41,19 @@ bool performNet() {
         return false;
     }
 
+    for (const auto& it : respData.headers) {
+        std::cout << "Header \"" << it.first << "\" == \"" << it.second << "\"" << std::endl;
+    }
+
     std::cout << "Status: " << respData.statusCode << std::endl;
+
+
     return true;
 }
 
 int main(int argc, char **argv) {
-    return performNet() ? 0 : 1;
+    std::cout << "User Domain: " << UserDomain() << std::endl;
+    std::cout << "Hostname: " << GetHostname() << std::endl;
+    std::cout << "Username: " << CurrentUsername() << std::endl;
+    return 0;
 }
