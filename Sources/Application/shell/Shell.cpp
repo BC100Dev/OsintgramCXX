@@ -32,7 +32,7 @@ int helpCmd(const std::vector<std::string> &, const ShellEnvironment &) {
     page.setSpaceWidth(5);
     page.setStartSpaceWidth(2);
 
-    for (const auto &cmdVar: Shell::shellCommands)
+    for (const auto &cmdVar: OsintgramCXX::ShellFuckery::shellCommands)
         page.addArg(cmdVar.commandName, "", cmdVar.quickHelpStr);
 
     page.addArg("exit", "", "Exits the application");
@@ -60,7 +60,7 @@ int cmd_writeSettings(const std::vector<std::string> &ar, const ShellEnvironment
     char homeDir[MAX_PATH_LIMIT];
     if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, homeDir))){
         fPath = std::string(homeDir);
-        fPath.append("\\AppData\\Local\\bc100dev.net\\OsintgramCXX\\Settings.env");
+        fPath.append(R"(\AppData\Local\bc100dev.net\OsintgramCXX\Settings.env)");
     }
 #endif
 
@@ -69,7 +69,7 @@ int cmd_writeSettings(const std::vector<std::string> &ar, const ShellEnvironment
         return 1;
     }
 
-    return 1;
+    return 0;
 }
 
 std::string help_writeSettings() {
@@ -77,12 +77,16 @@ std::string help_writeSettings() {
 }
 
 void forceStopShell(int) {
-    Shell::stopShell(true);
-    Shell::cleanup();
+    OsintgramCXX::ShellFuckery::stopShell(true);
+    OsintgramCXX::ShellFuckery::cleanup();
     std::cin.setstate(std::ios::badbit);
 }
 
-namespace OsintgramCXX::Shell {
+// why did MinGW now decide to make the conflict with "Shell" against my "OsintgramCXX::Shell"
+// makes no fucking sense
+// did someone in C++ development experience something similar? If not, then I guess it's just me, constantly battling
+// well, now it is ShellFuckery
+namespace OsintgramCXX::ShellFuckery {
 
     std::string PS1;
     bool running = false;
@@ -113,7 +117,7 @@ namespace OsintgramCXX::Shell {
 
         ShellCommand vWriteSettings;
         vWriteSettings.commandName = "write-settings";
-        vWriteSettings.quickHelpStr = "Write Shell environment variables to the Settings file";
+        vWriteSettings.quickHelpStr = "Write ShellFuckery environment variables to the Settings file";
         vWriteSettings.executionCommand = cmd_writeSettings;
         vWriteSettings.helpCommand = help_writeSettings;
 
@@ -245,7 +249,7 @@ namespace OsintgramCXX::Shell {
 
     void launchShell() {
         if (!shellInitialized) {
-            std::cerr << "Shell not initialized" << std::endl;
+            std::cerr << "ShellFuckery not initialized" << std::endl;
             return;
         }
 
@@ -256,7 +260,7 @@ namespace OsintgramCXX::Shell {
             shellThread = std::thread(cmd);
             shellThread.join();
         } catch (std::exception &ex) {
-            std::cerr << "Shell Thread Error (Shell.cpp): " << ex.what() << std::endl;
+            std::cerr << "ShellFuckery Thread Error (ShellFuckery.cpp): " << ex.what() << std::endl;
             stopShell(false);
         }
     }

@@ -9,4 +9,4 @@ add_library(OsintgramCXX-security STATIC ${ModSources})
 
 # this eventually connects to the Networking, which connects to libcurl, which libcurl eventually connects to OpenSSL
 # damn.
-target_link_libraries(OsintgramCXX-security PRIVATE OsintgramCXX-networking)
+target_link_libraries(OsintgramCXX-security PRIVATE OsintgramCXX-networking ${OsintgramCXX_LINK_DEPS})

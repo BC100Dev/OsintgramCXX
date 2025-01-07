@@ -3,7 +3,7 @@
 
 #include "ShellEnv.hpp"
 
-namespace OsintgramCXX::Shell {
+namespace OsintgramCXX::ShellFuckery {
 
     extern std::string PS1;
     extern bool running;

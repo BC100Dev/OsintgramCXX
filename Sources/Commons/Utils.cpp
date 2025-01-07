@@ -342,15 +342,19 @@ namespace OsintgramCXX {
 namespace OsintgramCXX::SpecificUtils {
 
     std::string GetUserDataDirectory() {
+        return "";
     }
 
     std::string GetUserCacheDirectory() {
+        return "";
     }
 
     std::string GetUserConfigDirectory() {
+        return "";
     }
 
     std::string GetExecutableDirectory() {
+        return "";
     }
 
 }

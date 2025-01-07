@@ -112,7 +112,7 @@ Okay, but you might be running Windows or macOS, so how else can you build it? D
 methods include:
 
 - Virtual Machines
-- Cloud Shell (via SSH)
+- Cloud ShellFuckery (via SSH)
 - Containers (e.g. Docker)
 - Dual-Booting (if you have a Windows PC)
 - WSL (Windows only)

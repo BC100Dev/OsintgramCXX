@@ -32,7 +32,7 @@ bool performNet() {
     reqData.readTimeoutMillis = 9000;
     reqData.connTimeoutMillis = 5000;
     reqData.url = "https://www.google.com";
-    reqData.method = RequestMethod::GET;
+    reqData.method = RequestMethod::CONNECT;
     reqData.version = HTTP_1_1;
 
     ResponseData respData = CreateRequest(reqData);
@@ -52,8 +52,13 @@ bool performNet() {
 }
 
 int main(int argc, char **argv) {
+    curl_version_info_data *curlInfo = curl_version_info(CURLVERSION_NOW);
+    std::cout << "SSL Backend: " << curlInfo->ssl_version << std::endl;
+
     std::cout << "User Domain: " << UserDomain() << std::endl;
     std::cout << "Hostname: " << GetHostname() << std::endl;
     std::cout << "Username: " << CurrentUsername() << std::endl;
-    return 0;
+
+    std::cout << "Performing network request..." << std::endl;
+    return performNet() ? 0 : 1;
 }

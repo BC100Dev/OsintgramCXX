@@ -141,7 +141,7 @@ void usage() {
     hPage.setStartSpaceWidth(4);
     hPage.addArg("-h  | --help", "", "Display usage and its help page");
     hPage.addArg("-Sw | --suppress-warnings", "", "Suppress warning messages");
-    hPage.addArg("-E[key=value]", "", "Applies an environment variable to the Osintgram Shell");
+    hPage.addArg("-E[key=value]", "", "Applies an environment variable to the Osintgram ShellFuckery");
     hPage.addArg("@cmdline_file", "",
                  "Adds command line arguments from a specific file (good for multiple environment variables");
 
@@ -158,10 +158,10 @@ void usage() {
 #ifdef __linux__
 
 void sigHandle(int signal) {
-    if (Shell::running)
-        Shell::stopShell(true);
+    if (ShellFuckery::running)
+        ShellFuckery::stopShell(true);
 
-    Shell::cleanup();
+    ShellFuckery::cleanup();
 }
 
 #endif
@@ -250,8 +250,11 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
                     continue;
                 }
 
-                Shell::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
+                ShellFuckery::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
+
+            if (arg == "--embrace-full-chaos")
+                embraceFullChaos = true;
         } else if (arg[0] == '@') {
             std::string filePath = arg.substr(1);
 
@@ -320,12 +323,12 @@ int main(int argc, char **argv) {
         }
     }
 
-    // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
+    // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the ShellFuckery,
     // making things ugly in the process
     CurrentThread_Sleep(RandomLong(100, 400));
 
-    Shell::initializeShell();
-    Shell::launchShell();
+    ShellFuckery::initializeShell();
+    ShellFuckery::launchShell();
 
     return 0;
 }

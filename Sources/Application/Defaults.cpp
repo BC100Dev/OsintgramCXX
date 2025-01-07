@@ -39,6 +39,7 @@ std::string ConstructFromRoot(const std::string& rootDir, const std::string& dir
 namespace OsintgramCXX {
 
     bool suppressWarnings = false;
+    bool embraceFullChaos = false;
     std::vector<Target> targetList;
 
     std::string GetRootDirectory() {
