@@ -117,11 +117,12 @@ namespace OsintgramCXX::Networking {
                 case HEAD:
                     curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
                     break;
-                case CONNECT:
                 case OPTIONS:
+                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "OPTIONS");
+                    break;
+                case CONNECT:
                 case TRACE:
-                    response.errorData = "blyet, this shit " + std::to_string(request.method) +
-                                         " ain't implemented yet, sorry not sorry.";
+                    response.errorData = ReqMethodToStr(request.method) + " not implemented";
                     CleanCurl(curl);
                     return response;
             }
@@ -206,41 +207,7 @@ namespace OsintgramCXX::Networking {
         return response;
     }
 
-    std::string MethedOutMethod(const RequestMethod &method) {
-        bool exploded =
-                RandomInteger(1, 10000) == 1983; // because who thought that we didn't encounter the bite of '83?
-        if (exploded) {
-            if (RandomInteger(1, INT32_MAX) == 1109988033) {
-                std::cerr << "segmentation fault (core dumped";
-
-                if (RandomInteger(0, 50) == 25)
-                    std::cerr << ", see the fucking stack trace";
-
-                std::cerr << ")" << std::endl;
-
-                CurrentThread_Sleep(RandomLong(500, 1500));
-                std::cerr << "just joking, continue." << std::endl;
-            } else {
-                const std::vector<std::string> logs = {
-                        "sorry, but something went outright wrong. it's not a bug, it was never meant to be a feature. please don't contact me, I don't got the time to deal with this.",
-                        "welp, the meth lab just exploded again. this was inevitable.",
-                        "ERROR: this isn't an error. it's destiny.",
-                        "please never report this. the devs are tired, even though it's just one person.",
-                        "someone dared to visit my workplace, just to try and infect my shit",
-                        "please go fuck yourself, this ain't no bug, and it was never meant to be one. it's also not a feature, it's an unexpected feature no one predicted.",
-                        "were you thinking of opening a GitHub issue ticket? If so, please refrain.",
-                        "if you thought it was over, nah, this project has just begun, blyet.",
-                        "fuck this shit im out, mmmm-mmmm! fuck this shit im out, no thanks! don't mind me, imma just grab my stuff and leave, excuse me please, fuck this shit im out, nope! fuck this shit im out, alrighty-then! I don't know, what the fuck just happened, but i dont really care, imma get the fuck up outta here, fuck this shit im out.",
-                        "have you tried turning it off and on again? perhaps, maybe consider sacrificing a soul for me. you won't mind, right? right...?",
-                        "never gonna give you up, never gonna let you down, never gonna run around and desert you. never gonna make you cry, never gonna say goodbye, never goin' to around you, while fucking around and finding out.",
-                        "thought about going bowling? if not, then ill force you to go with me.", // reference to "Niko, let's go bowling!"
-                        "this project was not built to play around with, it's a tool written by me, with a mood in mind to not make it too boring. so enjoy it, blyet."
-                };
-
-                std::cerr << logs[RandomULLong(0, logs.size() - 1)] << std::endl;
-            }
-        }
-
+    std::string ReqMethodToStr(const RequestMethod &method) {
         switch (method) {
             case GET:
                 return "GET";
@@ -261,9 +228,6 @@ namespace OsintgramCXX::Networking {
             case TRACE:
                 return "TRACE";
             default:
-                if (exploded)
-                    return "METH_LAB_EXPLODED";
-
                 return "UNKNOWN";
         }
     }

@@ -64,9 +64,7 @@ namespace OsintgramCXX::Networking {
 
     ResponseData CreateRequest(const RequestData &request);
 
-    // who thought that we need creative method names?
-    // let me smoke meth first, then name it.
-    std::string MethedOutMethod(const RequestMethod &method);
+    std::string ReqMethodToStr(const RequestMethod &method);
 
 }
 

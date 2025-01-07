@@ -19,9 +19,18 @@
 
 namespace OsintgramCXX::FileEncryption {
 
-    std::vector<unsigned char> encrypt(const std::string &filePath, const std::string &password);
+    struct EncryptionData {
+        std::vector<unsigned char> uCharData;
+        std::vector<char> sCharData;
+    };
 
-    std::vector<unsigned char> decrypt(const std::string &filePath, const std::string &password);
+    EncryptionData encrypt(const std::string &filePath, const std::string &password);
+
+    EncryptionData decrypt(const std::string &filePath, const std::string &password);
+
+    void encryptToFile(const std::string &iFilePath, const std::string &pass, const std::string &oFilePath);
+
+    void decryptToFile(const std::string &iFilePath, const std::string &pass, const std::string &oFilePath);
 
 }
 
