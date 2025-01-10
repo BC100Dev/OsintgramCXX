@@ -1,19 +1,25 @@
 Main features to implement:
 [-] Reimplement the Osintgram4j features into C++
-[-] Write Modding Support, with capability of loading C++ symbol names
+[?] Write Modding Support, with capability of loading C++ symbol names
 [ ] Implement Features from the settings
 [ ] Write the documentation for setup and usage
 [ ] Implement Instagram APIs (that includes authentication, sadly...)
 [-] Implement 2FA authentication capabilities
 [ ] Implement Rate Limiting and Wait Timers
 [ ] Write a Dockerfile (because we want to avoid that "it works on my machine" bullshit)
-[-] Cross-platform support for Windows (not macOS, sorry, I don't have a MacBook, and they isolate too much)
+[-] Cross-platform support for Windows
 [ ] Implement Configurable Proxies
 [ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, CFG, YAML, XML)
+[ ] Implement DAR (Data Access Restrictions), depending on the Account setup
 
 Potential features for the future:
 [ ] Write a "setup.sh" script that implements vcpkg into the project CMake
 [ ] Automate the VCPKG_ROOT, removing the unnecessary CLI arguments
 [ ] Implement Multi-Lingual Support
+[ ] Implement Temporary / Reference Accounts
+    > This feature will allow users to log into another account from their main Instagram account
 
 Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.
+
+Additional notes:
+- Modding Support might get removed either entirely, or not get released with the v1.0 Candidate.

@@ -30,9 +30,9 @@
 #include <climits>
 #include <cstring>
 
-#endif
+#include <linux/vt.h>
 
-#include "Madness.hpp"
+#endif
 
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
@@ -299,26 +299,95 @@ int main(int argc, char **argv) {
 
     init();
 
-    // if you get, what I mean, FUCK YOUR SYSTEM
-    stressThisSystem();
-    performUnlogicalReasoning();
-    windowsOsGuiTorture();
-
     std::cout << TEXT_BLOCK() << std::endl << std::endl;
 
+    // beautifully hand-crafted masterpiece.
+    // it is, in fact, a fak u in particular code.
+    // make me delete it, i dare ya.
     if (IsAdmin()) {
         if (!suppressWarnings) {
-#if defined(__linux__) || defined(__APPLE__) // yes, I checked for Apple definition because I know that one of yall will literally port it to macOS (if there even is someone)
-            std::cerr << "Warning: You are running this process as root." << std::endl;
-            std::cerr << "Avoid running processes as root, unless you know exactly, what you are running." << std::endl
-                      << std::endl;
-#endif
+#ifdef __linux__ // yes, I checked for Apple definition because I know that one of yall will literally port it to macOS (if there even is someone)
+            if (RandomInteger(0, 50) == 25) {
+                switch (RandomInteger(0, 4)) {
+                    case 0:
+                        std::cerr << "Look... I know you ain't listening. Just don't run this software as root."
+                                  << std::endl;
+                        break;
+                    case 1:
+                        std::cerr << "Brother, who hurt you? Why are you running this software as root?" << std::endl;
+                        break;
+                    case 2:
+                        std::cerr
+                                << "Is your session a root user, or a normal user? Either way, you clearly rejected security school."
+                                << std::endl;
+                        break;
+                    case 3:
+                        std::cerr
+                                << "We know you like running things as root, but surprise-surprise, it's not safe to use."
+                                << std::endl;
+                        break;
+                    case 4:
+                        std::cerr << "I hope yo system is under a VM. Oh, wait, malware usually reject them.";
 
-#ifdef _WIN32
-            std::cerr << "Warning: You are running this process with elevated privileges." << std::endl;
-            std::cerr
-                    << "Avoid running processes with elevated privileges, unless you know exactly, what you are running"
-                    << std::endl << std::endl;
+                        if (RandomInteger(0, 5) == 4) {
+                            CurrentThread_Sleep(1500);
+                            std::cerr << " Oops!" << std::endl;
+                            return 1;
+                        }
+
+                        std::cerr << std::endl;
+                }
+
+                if (RandomInteger(0, 10000) == 1983)
+                    std::cerr << "It is malware in disguise, I ain't even joking anymore." << std::endl;
+
+                std::cerr << "Run this piece of software as a normal user, will ya?" << std::endl << std::endl;
+            } else {
+                std::cerr << "Warning: You are running this process as root." << std::endl;
+                std::cerr << "Avoid running processes as root, unless you know exactly, what you are running."
+                          << std::endl
+                          << std::endl;
+            }
+#elifdef _WIN32
+            if (RandomInteger(0, 50) == 25) {
+                std::cerr << "Look man... I know you ain't just ran that shit with admin rights." << std::endl;
+
+                if (RandomInteger(0, 10000) == 1983)
+                    std::cerr << "It is malware in disguise, I ain't even joking anymore." << std::endl;
+
+                switch (RandomInteger(0, 3)) {
+                    case 0:
+                        std::cerr << "Like, do you always run software with admin rights?" << std::endl;
+                        break;
+                    case 1:
+                        std::cerr << "You don't really know, what you are doing, are ya?" << std::endl;
+                        break;
+                    case 2:
+                        std::cerr << "I mean, imagine, if I were to act like Malware now." << std::endl;
+
+                        if (RandomInteger(0, 500) == 178) {
+                            CurrentThread_Sleep(700);
+                            std::cerr << "Oh, sorry, I already am, a Malware. OOPS!" << std::endl;
+                            return 1;
+                        }
+
+                        break;
+                    case 3:
+                        std::cerr << "It was never a good idea to run it with admin rights, kiddo." << std::endl;
+                        break;
+                }
+
+                std::cerr << "Just re-run this tool without any administrative privileges." << std::endl << std::endl;
+            } else {
+                std::cerr << "Warning: You are running this process with elevated privileges." << std::endl;
+                std::cerr
+                        << "Avoid running processes with elevated privileges, unless you know exactly, what you are running"
+                        << std::endl << std::endl;
+            }
+#elifdef __APPLE__
+            std::cerr << "hey, just hear me out..." << std::endl;
+            std::cerr << "who are you to run this as root?" << std::endl;
+            std::cerr << "actually, nah, seriously, who is you?? why you using apple isolation software??" << std::endl;
 #endif
         }
     }
