@@ -11,6 +11,8 @@ namespace OsintgramCXX::ShellFuckery {
     extern ShellEnvironment environment;
     extern std::vector<ShellCommand> shellCommands;
 
+    void add_command(const ShellCommand &cmd);
+
     void initializeShell();
 
     void launchShell();

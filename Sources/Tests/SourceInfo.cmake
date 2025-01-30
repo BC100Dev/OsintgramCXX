@@ -6,4 +6,5 @@ endif ()
 CollectSources(${PROJECT_MODULE_ROOT} ModSources)
 
 add_executable(OsintgramCXX-testing ${ModSources})
-target_link_libraries(OsintgramCXX-testing PRIVATE OsintgramCXX-networking OsintgramCXX-security OsintgramCXX-commons ${OsintgramCXX_LINK_DEPS})
+
+target_link_libraries(OsintgramCXX-testing PRIVATE ${OsintgramCXX_LINK_DEPS} OsintgramCXX-networking OsintgramCXX-security OsintgramCXX-commons)

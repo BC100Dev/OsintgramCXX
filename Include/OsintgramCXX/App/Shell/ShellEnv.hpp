@@ -5,6 +5,7 @@
 #include <functional>
 #include <stdexcept>
 #include <map>
+#include <OsintgramCXX/App/ModHandles.hpp>
 
 namespace OsintgramCXX {
 
@@ -13,9 +14,8 @@ namespace OsintgramCXX {
     struct ShellCommand {
 
         std::string commandName;
-        std::function<int(const std::vector<std::string> &, const ShellEnvironment &)> executionCommand;
-        std::function<std::string()> helpCommand;
         std::string quickHelpStr;
+        ModHandles::ShellLibEntry libEntry;
 
     };
 

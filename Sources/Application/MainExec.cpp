@@ -20,6 +20,9 @@
 #include <OsintgramCXX/Commons/Terminal.hpp>
 #include <OsintgramCXX/Commons/Utils.hpp>
 
+#include "ModInit.hpp"
+#include <OsintgramCXX/App/ModHandles.hpp>
+
 #ifdef _WIN32
 
 #include <windows.h>
@@ -252,9 +255,6 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
 
                 ShellFuckery::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
-
-            if (arg == "--embrace-full-chaos")
-                embraceFullChaos = true;
         } else if (arg[0] == '@') {
             std::string filePath = arg.substr(1);
 
@@ -394,10 +394,16 @@ int main(int argc, char **argv) {
 
     // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the ShellFuckery,
     // making things ugly in the process
-    CurrentThread_Sleep(RandomLong(100, 400));
+    CurrentThread_Sleep(RandomLong(200, 400));
 
     ShellFuckery::initializeShell();
+
+    ModLoader_load();
+    ModLoader_start();
+
     ShellFuckery::launchShell();
+
+    ModLoader_stop();
 
     return 0;
 }

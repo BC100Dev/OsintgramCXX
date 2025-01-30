@@ -7,17 +7,17 @@
 #include <windows.h>
 #endif
 
-std::string GetExecutableDirectory() {
+std::string GetExecutablePath() {
 #ifdef _WIN32
     char buffer[MAX_PATH];
     GetModuleFileName(nullptr, buffer, MAX_PATH);
     fs::path exePath = std::string(buffer);
-    return exePath.parent_path().string();
+    return exePath.string();
 #else
     char result[PATH_MAX];
     ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
     fs::path exePath = std::string(result, (count > 0) ? count : 0);
-    return exePath.parent_path().string();
+    return exePath.string();
 #endif
 }
 
@@ -39,11 +39,10 @@ std::string ConstructFromRoot(const std::string& rootDir, const std::string& dir
 namespace OsintgramCXX {
 
     bool suppressWarnings = false;
-    bool embraceFullChaos = false;
     std::vector<Target> targetList;
 
     std::string GetRootDirectory() {
-        fs::path exePath = GetExecutableDirectory();
+        fs::path exePath = GetExecutablePath();
 
 #ifdef __linux__
         // from "{Root}/bin" to "{Root}"
@@ -53,6 +52,7 @@ namespace OsintgramCXX {
 #ifdef _WIN32
         // we stay in "{Root}" because we don't define a "bin" directory; ignore the change
         // exePath = exePath.string();
+        exePath = exePath.parent_path().string();
 #endif
 
         return exePath.string();

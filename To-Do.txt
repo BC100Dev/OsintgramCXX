@@ -1,20 +1,29 @@
+Legend:
+'-' = In Progress
+'?' = Unknown State
+'X' = Finished
+'H' = Halted
+'R' = Marked for Removal
+
 Main features to implement:
 [-] Reimplement the Osintgram4j features into C++
-[?] Write Modding Support, with capability of loading C++ symbol names
+[X] Write Modding Support, with capability of loading C++ symbol names
+    -- holy f***ing shit, that took me 3 hours...
 [ ] Implement Features from the settings
 [ ] Write the documentation for setup and usage
-[ ] Implement Instagram APIs (that includes authentication, sadly...)
+[-] Implement Instagram APIs (that includes authentication, sadly...)
 [-] Implement 2FA authentication capabilities
 [ ] Implement Rate Limiting and Wait Timers
 [ ] Write a Dockerfile (because we want to avoid that "it works on my machine" bullshit)
 [-] Cross-platform support for Windows
-[ ] Implement Configurable Proxies
+[-] Implement Configurable Proxies
 [ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, CFG, YAML, XML)
 [ ] Implement DAR (Data Access Restrictions), depending on the Account setup
 
 Potential features for the future:
-[ ] Write a "setup.sh" script that implements vcpkg into the project CMake
-[ ] Automate the VCPKG_ROOT, removing the unnecessary CLI arguments
+[-] Write a "setup.sh" script that implements vcpkg into the project CMake
+    > Editors Note: Adapted into "prepare.sh"
+[R] Automate the VCPKG_ROOT, removing the unnecessary CLI arguments
 [ ] Implement Multi-Lingual Support
 [ ] Implement Temporary / Reference Accounts
     > This feature will allow users to log into another account from their main Instagram account

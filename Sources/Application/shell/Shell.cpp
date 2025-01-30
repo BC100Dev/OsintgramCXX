@@ -5,19 +5,20 @@
 #include <OsintgramCXX/Commons/Tools.hpp>
 #include <OsintgramCXX/Commons/HelpPage.hpp>
 
-#include "cmd/ShellCommandEntries.hpp"
-
 #include <sstream>
 #include <thread>
 #include <iostream>
 #include <filesystem>
+#include <cstring>
 
 #ifdef __linux__
+
 #include <csignal>
 #include <pthread.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/types.h>
+
 #elif _WIN32
 #include <windows.h>
 #include <shlobj.h>
@@ -27,7 +28,20 @@ using namespace OsintgramCXX;
 
 namespace fs = std::filesystem;
 
-int helpCmd(const std::vector<std::string> &, const ShellEnvironment &) {
+struct CommandExecution {
+    bool cmdFound;
+    int rc;
+};
+
+void helpCmd() {
+    if (OsintgramCXX::ShellFuckery::shellCommands.empty()) {
+        std::cerr << "No commands have been added." << std::endl;
+        std::cerr << "To add commands, load a native library with the use of 'commands.json' file," << std::endl;
+        std::cerr << "and restart the application." << std::endl;
+        std::cerr << "Safely exit out of the application by typing 'exit', 'quit' or 'close'" << std::endl;
+        return;
+    }
+
     HelpPage page;
     page.setSpaceWidth(5);
     page.setStartSpaceWidth(2);
@@ -36,44 +50,7 @@ int helpCmd(const std::vector<std::string> &, const ShellEnvironment &) {
         page.addArg(cmdVar.commandName, "", cmdVar.quickHelpStr);
 
     page.addArg("exit", "", "Exits the application");
-
     page.display(std::cout);
-
-    return 0;
-}
-
-std::string helpStrCmd() {
-    // this will likely never be called
-    return "A help command, what do you expect?";
-}
-
-int cmd_writeSettings(const std::vector<std::string> &ar, const ShellEnvironment &vn) {
-    std::string fPath;
-
-#ifdef __linux__
-    struct passwd* pw = getpwuid(getuid());
-    if (pw && pw->pw_dir) {
-        fPath = std::string(pw->pw_dir);
-        fPath.append("/.config/net.bc100dev/OsintgramCXX/Settings.env");
-    }
-#elif _WIN32
-    char homeDir[MAX_PATH_LIMIT];
-    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, homeDir))){
-        fPath = std::string(homeDir);
-        fPath.append(R"(\AppData\Local\bc100dev.net\OsintgramCXX\Settings.env)");
-    }
-#endif
-
-    if (fPath.empty()) {
-        std::cerr << "Failed to fetch home directory" << std::endl;
-        return 1;
-    }
-
-    return 0;
-}
-
-std::string help_writeSettings() {
-    return "To be implemented";
 }
 
 void forceStopShell(int) {
@@ -82,10 +59,77 @@ void forceStopShell(int) {
     std::cin.setstate(std::ios::badbit);
 }
 
-// why did MinGW now decide to make the conflict with "Shell" against my "OsintgramCXX::Shell"
-// makes no fucking sense
-// did someone in C++ development experience something similar? If not, then I guess it's just me, constantly battling
-// well, now it is ShellFuckery
+int execCommand(const std::string &cmd, const std::vector<std::string> &args, const ShellEnvironment &env,
+                const std::string &cmdLine) {
+    bool found = false;
+    ModHandles::C_CommandExec cmdExecHandle = nullptr;
+
+    for (const auto &it: ModHandles::loadedLibraries) {
+        for (const auto &cmdEntry: it.second.commands) {
+            if (cmd == cmdEntry.cmd) {
+                found = true;
+                cmdExecHandle = cmdEntry.execHandler;
+                break;
+            }
+        }
+    }
+
+    if (cmdExecHandle == nullptr) {
+        std::cerr << "Command \"" << cmd << "\" does not have a handler for execution." << std::endl;
+        return 3;
+    }
+
+    if (!found) {
+        std::cerr << cmd << ": command not found" << std::endl;
+        return 2;
+    }
+
+    char **argv = new char *[args.size()];
+    for (size_t i = 0; i < args.size(); i++) {
+        argv[i] = strdup(args[i].c_str());
+    }
+
+    char **env_map = new char *[env.size()];
+    int index = 0;
+    for (const auto &[key, value]: env) {
+        std::string entry = key;
+        entry.append("=").append(value);
+
+        env_map[index++] = strdup(entry.c_str());
+    }
+
+    // start the listeners for "OnCommandExec"
+    for (const auto &it: ModHandles::loadedLibraries) {
+        std::thread t([handler = it.second, &cmdLine]() {
+            handler.handler_onCmdExec(const_cast<char *>(cmdLine.c_str()));
+        });
+        t.detach();
+    }
+
+    int rc = 3;
+    try {
+        rc = cmdExecHandle(args.size(), argv, env.size(), env_map);
+    } catch (const std::runtime_error &err) {
+        std::cerr << "Runtime error occured, while executing \"" << cmd << "\": " << err.what() << std::endl;
+    } catch (const std::exception &err) {
+        std::cerr << "Error occured, while executing \"" << cmd << "\": " << err.what() << std::endl;
+    } catch (...) {
+        std::cerr << "Unknown error occured, while executing \"" << cmd << "\"" << std::endl;
+    }
+
+    for (int i = 0; i < env.size(); i++) {
+        free(env_map[i]);
+    }
+    delete[] env_map;
+
+    for (int i = 0; i < args.size(); i++) {
+        free(argv[i]);
+    }
+    delete[] argv;
+
+    return rc;
+}
+
 namespace OsintgramCXX::ShellFuckery {
 
     std::string PS1;
@@ -95,6 +139,10 @@ namespace OsintgramCXX::ShellFuckery {
     std::vector<ShellCommand> shellCommands{};
     std::thread shellThread;
     bool alreadyForceStopped = false;
+
+    void add_command(const ShellCommand &cmd) {
+        shellCommands.push_back(cmd);
+    }
 
     void initializeShell() {
         alreadyForceStopped = false;
@@ -108,25 +156,6 @@ namespace OsintgramCXX::ShellFuckery {
                   << (IsAdmin() ? "#" : "$") << " ";
 
         PS1 = strStream.str();
-
-        ShellCommand vHelpCmd;
-        vHelpCmd.commandName = "help";
-        vHelpCmd.quickHelpStr = "List all commands and features";
-        vHelpCmd.executionCommand = helpCmd;
-        vHelpCmd.helpCommand = helpStrCmd;
-
-        ShellCommand vWriteSettings;
-        vWriteSettings.commandName = "write-settings";
-        vWriteSettings.quickHelpStr = "Write ShellFuckery environment variables to the Settings file";
-        vWriteSettings.executionCommand = cmd_writeSettings;
-        vWriteSettings.helpCommand = help_writeSettings;
-
-        shellCommands.push_back(vHelpCmd);
-        shellCommands.push_back(vWriteSettings);
-
-        std::vector<ShellCommand> cmdList = AppShell::Commands::importCommands();
-        for (const auto& it : cmdList)
-            shellCommands.push_back(it);
 
         shellInitialized = true;
     }
@@ -189,6 +218,11 @@ namespace OsintgramCXX::ShellFuckery {
                     return;
                 }
 
+                if (line == "help") {
+                    helpCmd();
+                    continue;
+                }
+
                 std::vector<std::string> cmdLine = Tools::translateCmdLine(line);
                 std::vector<std::string> cmdArgs;
 
@@ -200,35 +234,11 @@ namespace OsintgramCXX::ShellFuckery {
                 std::vector<std::string> _cmdArgs = cmdArgs;
 
                 bool cmdFound = false;
-                std::string helpFetchCmd;
-
-                if (cmdLine[0] == "help") {
-                    cmdFound = true;
-
-                    for (int i = 0; i < _cmdArgs.size(); i++) {
-                        if (cmdArgs[i] == "help")
-                            cmdArgs.erase(cmdArgs.begin() + i);
-                    }
-
-                    if (!cmdArgs.empty()) {
-                        helpFetchCmd = cmdArgs[0];
-                        cmdArgs.erase(cmdArgs.begin());
-                    }
-                }
-
-                if (cmdFound && helpFetchCmd.empty()) {
-                    shellCommands[0].executionCommand(cmdArgs, environment);
-                    continue;
-                }
 
                 for (const auto &cmdEntry: shellCommands) {
-                    if (cmdFound && !helpFetchCmd.empty()) {
-                        if (cmdEntry.commandName == helpFetchCmd) {
-                            std::cout << cmdEntry.helpCommand() << std::endl;
-                            break;
-                        }
-                    } else if (cmdEntry.commandName == cmdLine[0]) {
-                        int rc = cmdEntry.executionCommand(cmdArgs, environment);
+                    if (cmdEntry.commandName == cmdLine[0]) {
+                        int rc = execCommand(cmdLine[0], cmdArgs, environment, line);
+
                         if (rc != 0)
                             std::cerr << cmdLine[0] << ": returned " << rc << std::endl;
 
@@ -249,18 +259,17 @@ namespace OsintgramCXX::ShellFuckery {
 
     void launchShell() {
         if (!shellInitialized) {
-            std::cerr << "ShellFuckery not initialized" << std::endl;
+            std::cerr << "Shell not initialized" << std::endl;
             return;
         }
 
         running = true;
-        std::string line;
 
         try {
             shellThread = std::thread(cmd);
             shellThread.join();
         } catch (std::exception &ex) {
-            std::cerr << "ShellFuckery Thread Error (ShellFuckery.cpp): " << ex.what() << std::endl;
+            std::cerr << "Shell Thread Error (Shell.cpp): " << ex.what() << std::endl;
             stopShell(false);
         }
     }
@@ -272,7 +281,7 @@ namespace OsintgramCXX::ShellFuckery {
 #ifdef __linux__
             pthread_cancel(shellThread.native_handle());
 #elif _WIN32
-            TerminateThread(shellThread.native_handle(), 0);
+            TerminateThread(reinterpret_cast<HANDLE>(shellThread.native_handle()), 0);
 #endif
 
             shellThread.detach();

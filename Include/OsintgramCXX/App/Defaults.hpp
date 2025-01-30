@@ -148,7 +148,6 @@ namespace OsintgramCXX {
     extern Logger networkLogger;
 
     extern bool suppressWarnings;
-    extern bool embraceFullChaos;
     extern std::vector<Target> targetList;
 
     std::string GetRootDirectory();

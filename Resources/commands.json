@@ -1,0 +1,42 @@
+{
+    "version": 1,
+    "command_sets": [
+        {
+            "lib": {
+                "linux": "libOsintgramCXX-core.so",
+                "win64": "OsintgramCXX-core.dll"
+            },
+            "handlers": [
+                {
+                    "handler": "OnLoad",
+                    "symbol": "plugin_handle_start"
+                },
+                {
+                    "handler": "OnStop",
+                    "symbol": "plugin_handle_stop"
+                },
+                {
+                    "handler": "OnCommandExec",
+                    "symbol": "plugin_handle_exec"
+                }
+            ],
+            "cmd_list": [
+                {
+                    "cmd": "cachectl",
+                    "description": "Manages OsintgramCXX and Instagram Cache (involves Cookies & Auth)",
+                    "exec_symbol": "cache_manager"
+                },
+                {
+                    "cmd": "userctl",
+                    "description": "Manages Instagram Accounts",
+                    "exec_symbol": "user_manager"
+                },
+                {
+                    "cmd": "sessionctl",
+                    "description": "Manages Instagram Connection Sessions",
+                    "exec_symbol": "session_manager"
+                }
+            ]
+        }
+    ]
+}
