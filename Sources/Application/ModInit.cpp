@@ -121,6 +121,25 @@ void *get_method_from_handle(void *handle, const char *symbol) {
 #endif
 }
 
+std::string get_error_from_extlib() {
+#ifdef __linux__
+    return dlerror();
+#endif
+
+#ifdef _WIN32
+    char buf[512] = {0};
+    int len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                   NULL, GetLastError(), 0, buf, sizeof(buf), NULL);
+    if (len == 0)
+        return "[UNKNOWN_ERROR]";
+
+    buf[len] = '\0';
+    return buf;
+#endif
+
+    return "[UNSPECIFIED]";
+}
+
 void parse_json(const json &j) {
     if (j["command_sets"].is_array() && !j["command_sets"].empty()) {
         for (const auto &command_set: j["command_sets"]) {
@@ -158,7 +177,7 @@ void parse_json(const json &j) {
                                 void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                                 if (!funcPtr) {
                                     std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
-                                              << dlerror() << std::endl;
+                                              << get_error_from_extlib() << std::endl;
                                     return -1;
                                 }
 
@@ -170,7 +189,7 @@ void parse_json(const json &j) {
                                 void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                                 if (!funcPtr) {
                                     std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
-                                              << dlerror() << std::endl;
+                                              << get_error_from_extlib() << std::endl;
                                     return -1;
                                 }
 
@@ -182,7 +201,7 @@ void parse_json(const json &j) {
                                 void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                                 if (!funcPtr) {
                                     std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
-                                              << dlerror() << std::endl;
+                                              << get_error_from_extlib() << std::endl;
                                     return;
                                 }
 

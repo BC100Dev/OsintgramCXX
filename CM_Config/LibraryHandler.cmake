@@ -20,6 +20,8 @@ if (APP_SYSTEM_TARGET STREQUAL "Windows")
     set_property(TARGET OpenSSL::Crypto PROPERTY INTERFACE_LINK_LIBRARIES "crypt32;ws2_32")
     set_property(TARGET OpenSSL::SSL PROPERTY INTERFACE_LINK_LIBRARIES "crypt32;ws2_32")
 
+    ## fails to statically link, eh, chodas?
+    ## don't worry, I bring a very nice help.
     if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(PTHREADS_WIN64_ENABLED OFF)
         if (NOT DEFINED PTHREADS_WIN64_MINGW_DIR)
