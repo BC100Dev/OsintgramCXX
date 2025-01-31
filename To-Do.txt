@@ -29,6 +29,3 @@ Potential features for the future:
     > This feature will allow users to log into another account from their main Instagram account
 
 Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.
-
-Additional notes:
-- Modding Support might get removed either entirely, or not get released with the v1.0 Candidate.
