@@ -8,7 +8,7 @@ Legend:
 Main features to implement:
 [-] Reimplement the Osintgram4j features into C++
 [X] Write Modding Support, with capability of loading C++ symbol names
-    -- holy f***ing shit, that took me 3 hours...
+    -- holy f***ing shit, that took me 3-4 hours...
 [ ] Implement Features from the settings
 [ ] Write the documentation for setup and usage
 [-] Implement Instagram APIs (that includes authentication, sadly...)
