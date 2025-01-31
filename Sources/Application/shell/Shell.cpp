@@ -20,8 +20,10 @@
 #include <sys/types.h>
 
 #elif _WIN32
+
 #include <windows.h>
 #include <shlobj.h>
+
 #endif
 
 using namespace OsintgramCXX;
@@ -101,7 +103,8 @@ int execCommand(const std::string &cmd, const std::vector<std::string> &args, co
     // start the listeners for "OnCommandExec"
     for (const auto &it: ModHandles::loadedLibraries) {
         std::thread t([handler = it.second, &cmdLine]() {
-            handler.handler_onCmdExec(const_cast<char *>(cmdLine.c_str()));
+            if (handler.handler_onCmdExec != nullptr)
+                handler.handler_onCmdExec(const_cast<char *>(cmdLine.c_str()));
         });
         t.detach();
     }
