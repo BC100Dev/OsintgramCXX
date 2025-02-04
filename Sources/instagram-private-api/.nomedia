@@ -1,0 +1,18 @@
+DAR (Data Access Restriction) Ability
+
+The account is the main reason that the user might misuse the tool. Therefore, the DAR will kick in place, obfuscating certain things in the way.
+For example, the user wants to obtain other's E-Mail Addresses or Phone Numbers:
+
+- +1 888-555-9999 will turn into +1 ***-***-****
+- thisisanemail@gmail.com will turn into t**s*s*n*m**l@gmail.com
+
+This may depend on the obfuscator abilities, and how they would be structured.
+
+To lift or reduce the restrictions, the user's main account should:
+
+- Have 2FA enabled (removes 15%)
+- Have 2FA via App or Secure SMS like WhatsApp (removes 15% = 30%)
+- 2FA SMS should remain disabled (removes 20% = 50%)
+- Phone Numbers should not be added to the account (removes 30% = 80%)
+- Account must be private (removes 10% = 90%)
+- Account's followers count must be above 500 -- account is not seen to be a bot (removes 10% = 100%)
