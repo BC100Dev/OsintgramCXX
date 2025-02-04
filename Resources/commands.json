@@ -2,6 +2,8 @@
     "version": 1,
     "command_sets": [
         {
+            "label": "OsintgramCXX core",
+            "description": "Command set for managing OsintgramCXX core functionalities",
             "lib": {
                 "linux": "libOsintgramCXX-core.so",
                 "win64": "OsintgramCXX-core.dll"
@@ -33,7 +35,7 @@
                 },
                 {
                     "cmd": "sessionctl",
-                    "description": "Manages Instagram Connection Sessions",
+                    "description": "Manages Instagram Target Sessions",
                     "exec_symbol": "session_manager"
                 }
             ]
