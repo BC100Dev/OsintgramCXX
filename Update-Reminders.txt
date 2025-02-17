@@ -7,3 +7,9 @@ In File "Include/OsintgramCXX/App/ModHandles.hpp":
 -- char** = argv = The argument map
 -- int = envc = The count of environment variables passed from the In-App Shell
 -- char** = env_map = The environment variable map from the In-App Shell
+
+Capability: "DLLR (Dynamic Library Loading during Runtime) for Modding Support"
+- modify the "commands.json" file to be able to house multiple architectures (arm64, x64)
+
+Android Platform
+- add support for the platform
