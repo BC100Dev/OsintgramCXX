@@ -18,7 +18,7 @@ Main features to implement:
 [-] Cross-platform support for Windows
 [-] Implement Configurable Proxies
 [ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, CFG, YAML, XML)
-[ ] Implement DAR (Data Access Restrictions), depending on the Account setup
+[ ] Implement DAR (Data Access Restrictions), depending on the Account status and setup
 
 Potential features for the future:
 [-] Write a "setup.sh" script that implements vcpkg into the project CMake
@@ -27,5 +27,7 @@ Potential features for the future:
 [ ] Implement Multi-Lingual Support
 [ ] Implement Temporary / Reference Accounts
     > This feature will allow users to log into another account from their main Instagram account
+[ ] Include OpenCV for Image Processing
+    > This alone already has issues on Arch Linux with the D-Bus library, when building, therefore, may or may not be implemented.
 
 Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.

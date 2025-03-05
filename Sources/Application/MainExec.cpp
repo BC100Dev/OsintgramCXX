@@ -15,13 +15,14 @@
 #include <OsintgramCXX/App/Properties.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
 #include <OsintgramCXX/App/WineDetect.hpp>
+#include <OsintgramCXX/App/ModHandles.hpp>
 
 #include <OsintgramCXX/Commons/HelpPage.hpp>
 #include <OsintgramCXX/Commons/Terminal.hpp>
 #include <OsintgramCXX/Commons/Utils.hpp>
 
 #include "ModInit.hpp"
-#include <OsintgramCXX/App/ModHandles.hpp>
+#include "AndroidCA.hpp"
 
 #ifdef _WIN32
 
@@ -224,6 +225,9 @@ void init() {
     signal(SIGABRT, sigHandle);
     signal(SIGKILL, sigHandle);
 #endif
+
+    // this method can still be called, will be ineffective, if called outside of Android platforms
+    OsintgramCXX::AndroidVer::prepare_cacerts();
 }
 
 void initSettings() {

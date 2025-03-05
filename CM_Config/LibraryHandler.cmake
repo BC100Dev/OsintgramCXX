@@ -1,11 +1,21 @@
 set(CURL_USE_OPENSSL ON)
 set(CURL_USE_SCHANNEL OFF)
 
+## Encryption / Decryption relevant tasks (required by CURL for HTTPS communication)
 find_package(OpenSSL REQUIRED)
+
+## Required for Networking
 find_package(CURL REQUIRED)
 
-list(APPEND OsintgramCXX_LINK_DEPS CURL::libcurl)
+## Required for Local Account Storage (used by CURL)
+find_package(ZLIB REQUIRED)
+
+list(APPEND OsintgramCXX_LINK_DEPS CURL::libcurl ZLIB::ZLIB)
 list(APPEND OsintgramCXX_LINK_OpenSSL OpenSSL::SSL OpenSSL::Crypto)
+
+if (DEFINED APP_TARGETS_ANDROID)
+    list(APPEND OsintgramCXX_LINK_DEPS "-static-libstdc++")
+endif ()
 
 if (APP_SYSTEM_TARGET STREQUAL "Windows")
     list(APPEND OsintgramCXX_LINK_DEPS crypt32 ws2_32 advapi32 secur32)

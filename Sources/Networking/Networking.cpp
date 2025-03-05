@@ -4,6 +4,12 @@
 #include <algorithm>
 #include <iostream>
 
+#ifdef __ANDROID__
+
+#include <filesystem>
+
+#endif
+
 struct ProgressState {
     long startTime;
     long readTimeoutMillis;
@@ -11,12 +17,29 @@ struct ProgressState {
 
 namespace OsintgramCXX::Networking {
 
-    std::string ResponseData::ByteDataToStr() {
-        std::ostringstream str;
-        for (const auto &byte: data)
-            str << byte;
-
-        return str.str();
+    std::string ReqMethodToStr(const RequestMethod &method) {
+        switch (method) {
+            case GET:
+                return "GET";
+            case POST:
+                return "POST";
+            case PUT:
+                return "PUT";
+            case SHISHA_DELETE:
+                return "DELETE";
+            case PATCH:
+                return "PATCH";
+            case HEAD:
+                return "HEAD";
+            case CONNECT:
+                return "CONNECT";
+            case OPTIONS:
+                return "OPTIONS";
+            case TRACE:
+                return "TRACE";
+            default:
+                return "UNKNOWN";
+        }
     }
 
     static size_t WCallback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -43,7 +66,8 @@ namespace OsintgramCXX::Networking {
         if (delimPos != std::string::npos) {
             std::string key = headerLine.substr(0, delimPos);
             std::string value = headerLine.substr(delimPos + 2, headerLine.size() - delimPos - 4);
-            (*headers)[key] = value;
+
+            (*headers).emplace_back(key, value);
         }
 
         return totalSize;
@@ -53,9 +77,8 @@ namespace OsintgramCXX::Networking {
         auto *state = static_cast<ProgressState *>(clientp);
         long currentTime = static_cast<long>(time(nullptr)) * 1000;
 
-        if ((currentTime - state->startTime) > state->readTimeoutMillis) {
+        if ((currentTime - state->startTime) > state->readTimeoutMillis)
             return 1;
-        }
 
         return 0;
     }
@@ -126,6 +149,10 @@ namespace OsintgramCXX::Networking {
                     CleanCurl(curl);
                     return response;
             }
+
+            // CA store check (if given)
+            if (!request.ca_path.empty())
+                curl_easy_setopt(curl, CURLOPT_CAINFO, request.ca_path.c_str());
 
             // HTTP Version
             curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, MapHttpVersion(request.version));
@@ -205,31 +232,6 @@ namespace OsintgramCXX::Networking {
         CleanCurl(curl);
 
         return response;
-    }
-
-    std::string ReqMethodToStr(const RequestMethod &method) {
-        switch (method) {
-            case GET:
-                return "GET";
-            case POST:
-                return "POST";
-            case PUT:
-                return "PUT";
-            case SHISHA_DELETE:
-                return "DELETE";
-            case PATCH:
-                return "PATCH";
-            case HEAD:
-                return "HEAD";
-            case CONNECT:
-                return "CONNECT";
-            case OPTIONS:
-                return "OPTIONS";
-            case TRACE:
-                return "TRACE";
-            default:
-                return "UNKNOWN";
-        }
     }
 
 }

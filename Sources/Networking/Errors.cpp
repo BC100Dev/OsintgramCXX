@@ -1,6 +1,7 @@
 #include <OsintgramCXX/Networking/Errors.hpp>
 #include <typeinfo>
 #include <iostream>
+#include <sstream>
 
 std::any fetchErrorFromInt(const int& var) {
     // do nothing for now (except to potentially segfault our life)

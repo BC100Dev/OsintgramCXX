@@ -43,18 +43,8 @@ namespace OsintgramCXX {
 
     std::string GetRootDirectory() {
         fs::path exePath = GetExecutablePath();
-
-#ifdef __linux__
-        // from "{Root}/bin" to "{Root}"
-        exePath = exePath.parent_path().string();
-#endif
-
-#ifdef _WIN32
-        // we stay in "{Root}" because we don't define a "bin" directory; ignore the change
-        // exePath = exePath.string();
-        exePath = exePath.parent_path().string();
-#endif
-
+        // needed to remove the executable name
+        exePath = exePath.parent_path();
         return exePath.string();
     }
 

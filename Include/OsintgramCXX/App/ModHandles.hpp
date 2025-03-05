@@ -14,7 +14,7 @@
 namespace ModHandles {
 
     //// main command executor
-    //// args: argc, argv, env_size, env_map
+    //// args: cmd, argc, argv, env_size, env_map
     //typedef int (*C_CommandExec)(int, char **, int, char **);
 
     //typedef int (*C_OnLoadEntry)();
@@ -22,7 +22,7 @@ namespace ModHandles {
     //typedef int (*C_OnExitEntry)();
     //typedef void (*C_OnCommandExecute)(char *); // args: cmdLine
 
-    using C_CommandExec = std::function<int(int, char **, int, char **)>;
+    using C_CommandExec = std::function<int(const char*, int, char **, int, char **)>;
 
     using C_OnLoadEntry = std::function<int()>;
 

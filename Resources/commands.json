@@ -5,7 +5,10 @@
             "label": "OsintgramCXX core",
             "description": "Command set for managing OsintgramCXX core functionalities",
             "lib": {
-                "linux": "libOsintgramCXX-core.so",
+                "linux:x64": "libOsintgramCXX-core.so",
+                "linux:arm64": "libOsintgramCXX-core.so",
+                "android:x64": "libOsintgramCXX-core.so",
+                "android:arm64": "libOsintgramCXX-core.so",
                 "win64": "OsintgramCXX-core.dll"
             },
             "handlers": [

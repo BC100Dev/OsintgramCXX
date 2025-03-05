@@ -51,7 +51,14 @@ std::string find_lib(const std::string &file) {
     }
 
     // 2. look for libraries in the system paths
+    // as per tests suggest, this does take quite some time.
+    // as long as the library exists within the executable's range, PWD and LD_LIBRARY_PATH, this shouldn't be a problem
+    // otherwise, have fun
+#if defined(__ANDROID__)
+    std::string sysPaths = "/system/lib:/system/lib32:/system/lib64";
+#else
     std::string sysPaths = "/usr/lib:/usr/lib32:/usr/lib64:/usr/local/lib:/usr/local/lib32:/usr/local/lib64:/lib:/lib32:/lib64";
+#endif
     std::string entry;
 
     while (std::getline(std::stringstream(sysPaths), entry, ':')) {
@@ -224,8 +231,8 @@ void parse_json(const json &j) {
                         if (funcPtr == nullptr)
                             throw std::runtime_error("Command symbol not found, " + sym);
 
-                        ModHandles::C_CommandExec cmdExec = [funcPtr](int a, char **b, int c, char **d) {
-                            return reinterpret_cast<int (*)(int, char **, int, char **)>(funcPtr)(a, b, c, d);
+                        ModHandles::C_CommandExec cmdExec = [funcPtr](const char* _c, int a, char **b, int c, char **d) {
+                            return reinterpret_cast<int (*)(const char*, int, char **, int, char **)>(funcPtr)(_c, a, b, c, d);
                         };
 
                         ModHandles::ShellLibEntry libEntry{};

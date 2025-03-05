@@ -10,7 +10,7 @@
 
 namespace OsintgramCXX::Networking {
 
-    using Headers = std::map<std::string, std::string>;
+    using Headers = std::vector<std::pair<const std::string, const std::string>>;
     using ByteData = std::vector<char>;
     using RawData = std::vector<unsigned char>;
 
@@ -43,17 +43,16 @@ namespace OsintgramCXX::Networking {
         Headers headers;
         HttpVersion version;
         std::string errorData;
-
-        std::string ByteDataToStr();
     };
 
     struct RequestData {
-        RequestMethod method;
+        RequestMethod method = GET;
         std::string url;
         Headers headers;
-        HttpVersion version;
+        HttpVersion version = HTTP_1_1;
         ByteData postData;
         RawData postRaw;
+        std::string ca_path;
 
         long connTimeoutMillis = 30000;
         long readTimeoutMillis = 15000;
@@ -63,8 +62,6 @@ namespace OsintgramCXX::Networking {
     };
 
     ResponseData CreateRequest(const RequestData &request);
-
-    std::string ReqMethodToStr(const RequestMethod &method);
 
 }
 

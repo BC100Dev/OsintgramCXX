@@ -1,4 +1,8 @@
-if (NOT DEFINED OsintgramCXX_CompileTestCode AND OsintgramCXX_CompileTestCode)
+if (NOT DEFINED OsintgramCXX_CompileTestCode)
+    return()
+endif ()
+
+if (OsintgramCXX_CompileTestCode EQUAL ON)
     message(STATUS "Ignore Testing Source Code")
     return()
 endif ()

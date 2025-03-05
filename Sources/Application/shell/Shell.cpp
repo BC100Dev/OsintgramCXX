@@ -111,7 +111,7 @@ int execCommand(const std::string &cmd, const std::vector<std::string> &args, co
 
     int rc = 3;
     try {
-        rc = cmdExecHandle(args.size(), argv, env.size(), env_map);
+        rc = cmdExecHandle(cmd.c_str(), args.size(), argv, env.size(), env_map);
     } catch (const std::runtime_error &err) {
         std::cerr << "Runtime error occured, while executing \"" << cmd << "\": " << err.what() << std::endl;
     } catch (const std::exception &err) {
@@ -281,9 +281,11 @@ namespace OsintgramCXX::ShellFuckery {
         running = false;
 
         if (forceStop && !alreadyForceStopped) {
-#ifdef __linux__
+#if defined(__ANDROID__)
+            pthread_kill(shellThread.native_handle(), SIGKILL);
+#elif !defined(__ANDROID__) && defined(__linux__)
             pthread_cancel(shellThread.native_handle());
-#elif _WIN32
+#elif defined(_WIN32)
             TerminateThread(reinterpret_cast<HANDLE>(shellThread.native_handle()), 0);
 #endif
 
