@@ -41,6 +41,9 @@ void helpCmd() {
         std::cerr << "To add commands, load a native library with the use of 'commands.json' file," << std::endl;
         std::cerr << "and restart the application." << std::endl;
         std::cerr << "Safely exit out of the application by typing 'exit', 'quit' or 'close'" << std::endl;
+
+        // shell beautifying
+        CurrentThread_Sleep(70);
         return;
     }
 
@@ -205,7 +208,11 @@ namespace OsintgramCXX::ShellFuckery {
         while (running) {
             try {
                 std::cout << PS1;
-                std::getline(std::cin, line);
+                if (!std::getline(std::cin, line)) {
+                    std::cerr << "exit initiated" << std::endl;
+                    running = false;
+                    break;
+                }
 
                 line = TrimString(line);
 

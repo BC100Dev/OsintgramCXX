@@ -11,7 +11,9 @@ int help_itself(int argc, char **argv, int envc, char **env_map);
 
 int session_manager(int argc, char **argv, int envc, char **env_map);
 
-int user_manager(int argc, char **argv, int envc, char **env_map);
+int user_manager(const char* cmd, int argc, char **argv, int envc, char **env_map);
+
+int cmd_handle(const char* cmd, int argc, char **argv, int envc, char **env_map);
 
 #ifdef __cplusplus
 };

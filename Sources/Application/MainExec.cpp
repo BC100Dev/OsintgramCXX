@@ -145,7 +145,7 @@ void usage() {
     hPage.setStartSpaceWidth(4);
     hPage.addArg("-h  | --help", "", "Display usage and its help page");
     hPage.addArg("-Sw | --suppress-warnings", "", "Suppress warning messages");
-    hPage.addArg("-E[key=value]", "", "Applies an environment variable to the Osintgram ShellFuckery");
+    hPage.addArg("-E[key=value]", "", "Applies an environment variable to the Osintgram Shell");
     hPage.addArg("@cmdline_file", "",
                  "Adds command line arguments from a specific file (good for multiple environment variables");
 
@@ -396,7 +396,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the ShellFuckery,
+    // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
     // making things ugly in the process
     CurrentThread_Sleep(RandomLong(200, 400));
 

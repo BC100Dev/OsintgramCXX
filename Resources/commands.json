@@ -29,17 +29,22 @@
                 {
                     "cmd": "cachectl",
                     "description": "Manages OsintgramCXX and Instagram Cache (involves Cookies & Auth)",
-                    "exec_symbol": "cache_manager"
+                    "exec_symbol": "cmd_handle"
                 },
                 {
                     "cmd": "userctl",
                     "description": "Manages Instagram Accounts",
-                    "exec_symbol": "user_manager"
+                    "exec_symbol": "cmd_handle"
                 },
                 {
                     "cmd": "sessionctl",
                     "description": "Manages Instagram Target Sessions",
-                    "exec_symbol": "session_manager"
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "test",
+                    "description": "This is a testing command",
+                    "exec_symbol": "cmd_handle"
                 }
             ]
         }
