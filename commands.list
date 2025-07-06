@@ -1,6 +1,0 @@
-  help               List all commands and features
-  write-settings     Write Shell environment variables to the Settings file
-  cachectl           Manages OsintgramCXX and Instagram Cache (involves Cookies & Auth)
-  userctl            Manages Instagram Accounts
-  sessionctl         Manages Instagram Connection Sessions
-  exit               Exits the application

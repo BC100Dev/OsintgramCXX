@@ -9,7 +9,7 @@ Main features to implement:
 [-] Reimplement the Osintgram4j features into C++
 [X] Write Modding Support, with capability of loading C++ symbol names
     -- holy f***ing shit, that took me 3-4 hours...
-[ ] Implement Features from the settings
+[R] Implement Features from the settings
 [ ] Write the documentation for setup and usage
 [-] Implement Instagram APIs (that includes authentication, sadly...)
 [-] Implement 2FA authentication capabilities
@@ -24,7 +24,7 @@ Potential features for the future:
 [-] Write a "setup.sh" script that implements vcpkg into the project CMake
     > Editors Note: Adapted into "prepare.sh"
 [R] Automate the VCPKG_ROOT, removing the unnecessary CLI arguments
-[ ] Implement Multi-Lingual Support
+[?] Implement Multi-Lingual Support
 [ ] Implement Temporary / Reference Accounts
     > This feature will allow users to log into another account from their main Instagram account
 [ ] Include OpenCV for Image Processing
