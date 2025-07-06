@@ -128,8 +128,11 @@ void parse_json(const json &j) {
     if (j["command_sets"].is_array() && !j["command_sets"].empty()) {
         for (const auto &command_set: j["command_sets"]) {
             void *libHandle = nullptr;
+            if (!command_set.contains("label"))
+                throw std::runtime_error("invalid command set (\"invalid\" key is missing)");
 
-            ModHandles::LibraryEntry libEntryData{};
+            OsintgramCXX::LibraryEntry libEntryData{};
+            libEntryData.label = command_set["label"];
 
             std::string objName;
             // construct platform name
@@ -172,51 +175,65 @@ void parse_json(const json &j) {
             libHandle = LoadLibraryA(libPath.c_str());
 #endif
 
-            if (command_set["handlers"].is_array() && !command_set["handlers"].empty()) {
-                for (const auto &handler: command_set["handlers"]) {
-                    if (handler["handler"].is_string() && handler["symbol"].is_string()) {
-                        std::string handlerName = handler["handler"];
-                        std::string symbolName = handler["symbol"];
+            if (command_set["handlers"].is_object() && !command_set["handlers"].empty()) {
+                json h_obj = command_set["handlers"];
+                std::string symbolName;
 
-                        if (handlerName == "OnLoad") {
-                            libEntryData.handler_onLoad = [libHandle, symbolName]() -> int {
-                                using FunctionType = int();
-                                void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
-                                if (!funcPtr) {
-                                    std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
-                                              << get_error_from_extlib() << std::endl;
-                                    return -1;
-                                }
+                if (h_obj.contains("OnLoad")) {
+                    if (!h_obj["OnLoad"].is_string())
+                        throw std::runtime_error("OnLoad is not returning a string");
 
-                                return reinterpret_cast<FunctionType *>(funcPtr)();
-                            };
-                        } else if (handlerName == "OnStop") {
-                            libEntryData.handler_onExit = [libHandle, symbolName]() -> int {
-                                using FunctionType = int();
-                                void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
-                                if (!funcPtr) {
-                                    std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
-                                              << get_error_from_extlib() << std::endl;
-                                    return -1;
-                                }
+                    symbolName = h_obj["OnLoad"];
 
-                                return reinterpret_cast<FunctionType *>(funcPtr)();
-                            };
-                        } else if (handlerName == "OnCommandExec") {
-                            libEntryData.handler_onCmdExec = [libHandle, symbolName](char *cmdLine) {
-                                using FunctionType = void(char *);
-                                void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
-                                if (!funcPtr) {
-                                    std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
-                                              << get_error_from_extlib() << std::endl;
-                                    return;
-                                }
+                    libEntryData.handler_onLoad = [libHandle, symbolName]() -> int {
+                        using FunctionType = int();
+                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                        if (!funcPtr) {
+                            std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
+                                      << get_error_from_extlib() << std::endl;
+                            return -1;
+                        }
 
-                                reinterpret_cast<FunctionType *>(funcPtr)(cmdLine);
-                            };
-                        } else
-                            throw std::runtime_error("Unknown handler type, " + handlerName);
-                    }
+                        return reinterpret_cast<FunctionType *>(funcPtr)();
+                    };
+                }
+
+                if (h_obj.contains("OnStop")) {
+                    if (!h_obj["OnStop"].is_string())
+                        throw std::runtime_error("OnStop is not returning a string");
+
+                    symbolName = h_obj["OnStop"];
+
+                    libEntryData.handler_onExit = [libHandle, symbolName]() -> int {
+                        using FunctionType = int();
+                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                        if (!funcPtr) {
+                            std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
+                                      << get_error_from_extlib() << std::endl;
+                            return -1;
+                        }
+
+                        return reinterpret_cast<FunctionType *>(funcPtr)();
+                    };
+                }
+
+                if (h_obj.contains("OnCommandExec")) {
+                    if (!h_obj["OnCommandExec"].is_string())
+                        throw std::runtime_error("OnCommandExec is not returning a string");
+
+                    symbolName = h_obj["OnCommandExec"];
+
+                    libEntryData.handler_onCmdExec = [libHandle, symbolName](char *cmdLine) {
+                        using FunctionType = void(char *);
+                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                        if (!funcPtr) {
+                            std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
+                                      << get_error_from_extlib() << std::endl;
+                            return;
+                        }
+
+                        reinterpret_cast<FunctionType *>(funcPtr)(cmdLine);
+                    };
                 }
             }
 
@@ -231,32 +248,24 @@ void parse_json(const json &j) {
                         if (funcPtr == nullptr)
                             throw std::runtime_error("Command symbol not found, " + sym);
 
-                        ModHandles::C_CommandExec cmdExec = [funcPtr](const char *_c, int a, char **b, int c,
+                        OsintgramCXX::C_CommandExec cmdExec = [funcPtr](const char *_c, int a, char **b, int c,
                                                                       char **d) {
                             return reinterpret_cast<int (*)(const char *, int, char **, int, char **)>(funcPtr)(_c, a,
                                                                                                                 b, c,
                                                                                                                 d);
                         };
 
-                        ModHandles::ShellLibEntry libEntry{};
-                        OsintgramCXX::ShellCommand cmdEntry{};
+                        OsintgramCXX::ShellLibEntry cmdEntry{};
+                        cmdEntry.cmd = cmdName;
+                        cmdEntry.description = desc;
+                        cmdEntry.execHandler = cmdExec;
 
-                        libEntry.cmd = cmdName;
-                        libEntry.description = desc;
-                        libEntry.execHandler = cmdExec;
-
-                        cmdEntry.commandName = cmdName;
-                        cmdEntry.quickHelpStr = desc;
-                        cmdEntry.libEntry = libEntry;
-
-                        OsintgramCXX::ShellFuckery::add_command(cmdEntry);
-
-                        libEntryData.commands.push_back(libEntry);
+                        libEntryData.commands.push_back(cmdEntry);
                     }
                 }
             }
 
-            ModHandles::loadedLibraries[libHandle] = libEntryData;
+            OsintgramCXX::loadedLibraries[libHandle] = libEntryData;
         }
     }
 }
@@ -290,14 +299,14 @@ void ModLoader_load() {
 
 void ModLoader_start() {
     // this method just calls on the handlers of "OnLoad", threaded.
-    for (const auto &[unused, vec]: ModHandles::loadedLibraries) {
+    for (const auto &[unused, vec]: OsintgramCXX::loadedLibraries) {
         if (vec.handler_onLoad != nullptr)
             vec.handler_onLoad();
     }
 }
 
 void ModLoader_stop() {
-    for (const auto &[handle, vec]: ModHandles::loadedLibraries) {
+    for (const auto &[handle, vec]: OsintgramCXX::loadedLibraries) {
         if (vec.handler_onExit != nullptr)
             vec.handler_onExit();
 
@@ -313,6 +322,6 @@ void ModLoader_stop() {
     }
 }
 
-namespace ModHandles {
+namespace OsintgramCXX {
     std::map<void *, LibraryEntry> loadedLibraries;
 }

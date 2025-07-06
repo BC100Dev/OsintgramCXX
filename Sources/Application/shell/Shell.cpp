@@ -1,4 +1,5 @@
 #include <OsintgramCXX/App/Shell/Shell.hpp>
+#include <OsintgramCXX/App/ModHandles.hpp>
 
 #include <OsintgramCXX/Commons/Utils.hpp>
 #include <OsintgramCXX/Commons/Terminal.hpp>
@@ -15,9 +16,7 @@
 
 #include <csignal>
 #include <pthread.h>
-#include <unistd.h>
 #include <pwd.h>
-#include <sys/types.h>
 
 #elif _WIN32
 
@@ -32,11 +31,12 @@ namespace fs = std::filesystem;
 
 struct CommandExecution {
     bool cmdFound;
+    std::string msg;
     int rc;
 };
 
 void helpCmd() {
-    if (OsintgramCXX::ShellFuckery::shellCommands.empty()) {
+    if (OsintgramCXX::loadedLibraries.empty()) {
         std::cerr << "No commands have been added." << std::endl;
         std::cerr << "To add commands, load a native library with the use of 'commands.json' file," << std::endl;
         std::cerr << "and restart the application." << std::endl;
@@ -47,15 +47,27 @@ void helpCmd() {
         return;
     }
 
-    HelpPage page;
-    page.setSpaceWidth(5);
-    page.setStartSpaceWidth(2);
+    std::cout << "[General]" << std::endl;
+    HelpPage gPage;
+    gPage.setSpaceWidth(5);
+    gPage.setStartSpaceWidth(2);
+    gPage.addArg("help", "", "Shows this help page");
+    gPage.addArg("exit", "", "Exits this application");
+    std::cout << gPage.display() << std::endl;
 
-    for (const auto &cmdVar: OsintgramCXX::ShellFuckery::shellCommands)
-        page.addArg(cmdVar.commandName, "", cmdVar.quickHelpStr);
+    for (const auto &cmdVar: OsintgramCXX::loadedLibraries) {
+        const auto &item = cmdVar.second;
+        std::cout << "[" << item.label << "]" << std::endl;
 
-    page.addArg("exit", "", "Exits the application");
-    page.display(std::cout);
+        HelpPage ePage;
+        ePage.setStartSpaceWidth(2);
+        ePage.setSpaceWidth(5);
+
+        for (const auto& cmdEntry : item.commands)
+            ePage.addArg(cmdEntry.cmd, "", cmdEntry.description);
+
+        std::cout << ePage.display() << std::endl;
+    }
 }
 
 void forceStopShell(int) {
@@ -64,12 +76,13 @@ void forceStopShell(int) {
     std::cin.setstate(std::ios::badbit);
 }
 
-int execCommand(const std::string &cmd, const std::vector<std::string> &args, const ShellEnvironment &env,
+CommandExecution execCommand(const std::string &cmd, const std::vector<std::string> &args, const ShellEnvironment &env,
                 const std::string &cmdLine) {
     bool found = false;
-    ModHandles::C_CommandExec cmdExecHandle = nullptr;
+    OsintgramCXX::C_CommandExec cmdExecHandle = nullptr;
+    CommandExecution execReturn{};
 
-    for (const auto &it: ModHandles::loadedLibraries) {
+    for (const auto &it: OsintgramCXX::loadedLibraries) {
         for (const auto &cmdEntry: it.second.commands) {
             if (cmd == cmdEntry.cmd) {
                 found = true;
@@ -78,16 +91,23 @@ int execCommand(const std::string &cmd, const std::vector<std::string> &args, co
             }
         }
     }
+    
+    if (!found) {
+        execReturn.cmdFound = false;
+        execReturn.msg = cmd + ": not found";
+        execReturn.rc = 1;
+        return execReturn;
+    }
 
     if (cmdExecHandle == nullptr) {
-        std::cerr << "Command \"" << cmd << "\" does not have a handler for execution." << std::endl;
-        return 3;
+        execReturn.cmdFound = false;
+        execReturn.msg = cmd + ": handler for execution is missing";
+        execReturn.rc = 1;
+        
+        return execReturn;
     }
-
-    if (!found) {
-        std::cerr << cmd << ": command not found" << std::endl;
-        return 2;
-    }
+    
+    execReturn.cmdFound = true;
 
     char **argv = new char *[args.size()];
     for (size_t i = 0; i < args.size(); i++) {
@@ -104,7 +124,7 @@ int execCommand(const std::string &cmd, const std::vector<std::string> &args, co
     }
 
     // start the listeners for "OnCommandExec"
-    for (const auto &it: ModHandles::loadedLibraries) {
+    for (const auto &it: OsintgramCXX::loadedLibraries) {
         std::thread t([handler = it.second, &cmdLine]() {
             if (handler.handler_onCmdExec != nullptr)
                 handler.handler_onCmdExec(const_cast<char *>(cmdLine.c_str()));
@@ -112,9 +132,8 @@ int execCommand(const std::string &cmd, const std::vector<std::string> &args, co
         t.detach();
     }
 
-    int rc = 3;
     try {
-        rc = cmdExecHandle(cmd.c_str(), args.size(), argv, env.size(), env_map);
+        execReturn.rc = cmdExecHandle(cmd.c_str(), args.size(), argv, env.size(), env_map);
     } catch (const std::runtime_error &err) {
         std::cerr << "Runtime error occured, while executing \"" << cmd << "\": " << err.what() << std::endl;
     } catch (const std::exception &err) {
@@ -133,7 +152,7 @@ int execCommand(const std::string &cmd, const std::vector<std::string> &args, co
     }
     delete[] argv;
 
-    return rc;
+    return execReturn;
 }
 
 namespace OsintgramCXX::ShellFuckery {
@@ -142,13 +161,8 @@ namespace OsintgramCXX::ShellFuckery {
     bool running = false;
     [[maybe_unused]] bool shellInitialized = false;
     ShellEnvironment environment;
-    std::vector<ShellCommand> shellCommands{};
     std::thread shellThread;
     bool alreadyForceStopped = false;
-
-    void add_command(const ShellCommand &cmd) {
-        shellCommands.push_back(cmd);
-    }
 
     void initializeShell() {
         alreadyForceStopped = false;
@@ -241,25 +255,17 @@ namespace OsintgramCXX::ShellFuckery {
                         cmdArgs.push_back(cmdLine[i]);
                 }
 
-                std::vector<std::string> _cmdArgs = cmdArgs;
+                CommandExecution ret = execCommand(cmdLine[0], cmdArgs, environment, line);
+                if (!ret.cmdFound) {
+                    std::cerr << ret.msg << std::endl;
+                    CurrentThread_Sleep(70);
 
-                bool cmdFound = false;
-
-                for (const auto &cmdEntry: shellCommands) {
-                    if (cmdEntry.commandName == cmdLine[0]) {
-                        int rc = execCommand(cmdLine[0], cmdArgs, environment, line);
-
-                        if (rc != 0)
-                            std::cerr << cmdLine[0] << ": returned " << rc << std::endl;
-
-                        cmdFound = true;
-                        break;
-                    }
+                    continue;
                 }
 
-                if (!cmdFound) {
-                    std::cerr << cmdLine[0] << ": command not found" << std::endl;
-                    CurrentThread_Sleep(90);
+                if (ret.rc != 0) {
+                    std::cerr << cmdLine[0] << ": exit code " << ret.rc << std::endl;
+                    CurrentThread_Sleep(70);
                 }
             } catch (const std::exception &ex) {
                 std::cerr << "ShellError: " << ex.what() << std::endl;
@@ -306,7 +312,6 @@ namespace OsintgramCXX::ShellFuckery {
     void cleanup() {
         PS1 = "";
         environment.clear();
-        shellCommands.clear();
         shellInitialized = false;
     }
 

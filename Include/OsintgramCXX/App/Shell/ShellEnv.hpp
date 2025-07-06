@@ -5,18 +5,23 @@
 #include <functional>
 #include <stdexcept>
 #include <map>
-#include <OsintgramCXX/App/ModHandles.hpp>
 
 namespace OsintgramCXX {
 
     using ShellEnvironment = std::map<std::string, std::string>;
 
-    struct ShellCommand {
+    using C_CommandExec = std::function<int(const char*, int, char **, int, char **)>;
 
-        std::string commandName;
-        std::string quickHelpStr;
-        ModHandles::ShellLibEntry libEntry;
+    using C_OnLoadEntry = std::function<int()>;
 
+    using C_OnExitEntry = std::function<int()>;
+
+    using C_OnCommandExecute = std::function<void(char *)>;
+
+    struct ShellLibEntry {
+        std::string cmd;
+        std::string description;
+        C_CommandExec execHandler;
     };
 
     class ShellException : public std::runtime_error {

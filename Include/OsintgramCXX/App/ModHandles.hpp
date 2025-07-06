@@ -5,13 +5,15 @@
 #include <string>
 #include <optional>
 
+#include <OsintgramCXX/App/Shell/ShellEnv.hpp>
+
 #ifdef __linux__
 
 #include <dlfcn.h>
 
 #endif
 
-namespace ModHandles {
+namespace OsintgramCXX {
 
     //// main command executor
     //// args: cmd, argc, argv, env_size, env_map
@@ -22,21 +24,8 @@ namespace ModHandles {
     //typedef int (*C_OnExitEntry)();
     //typedef void (*C_OnCommandExecute)(char *); // args: cmdLine
 
-    using C_CommandExec = std::function<int(const char*, int, char **, int, char **)>;
-
-    using C_OnLoadEntry = std::function<int()>;
-
-    using C_OnExitEntry = std::function<int()>;
-
-    using C_OnCommandExecute = std::function<void(char *)>;
-
-    struct ShellLibEntry {
-        std::string cmd;
-        std::string description;
-        C_CommandExec execHandler;
-    };
-
     struct LibraryEntry {
+        std::string label;
         C_OnLoadEntry handler_onLoad;
         C_OnExitEntry handler_onExit;
         C_OnCommandExecute handler_onCmdExec;

@@ -9,9 +9,6 @@ namespace OsintgramCXX::ShellFuckery {
     extern bool running;
     [[maybe_unused]] extern bool shellInitialized;
     extern ShellEnvironment environment;
-    extern std::vector<ShellCommand> shellCommands;
-
-    void add_command(const ShellCommand &cmd);
 
     void initializeShell();
 

@@ -2,6 +2,7 @@
     "version": 1,
     "command_sets": [
         {
+            "id": 1000,
             "label": "OsintgramCXX core",
             "description": "Command set for managing OsintgramCXX core functionalities",
             "lib": {
@@ -11,20 +12,11 @@
                 "android:arm64": "libOsintgramCXX-core.so",
                 "win64": "OsintgramCXX-core.dll"
             },
-            "handlers": [
-                {
-                    "handler": "OnLoad",
-                    "symbol": "plugin_handle_start"
-                },
-                {
-                    "handler": "OnStop",
-                    "symbol": "plugin_handle_stop"
-                },
-                {
-                    "handler": "OnCommandExec",
-                    "symbol": "plugin_handle_exec"
-                }
-            ],
+            "handlers": {
+                "OnLoad": "plugin_handle_start",
+                "OnStop": "plugin_handle_stop",
+                "OnCommandExec": "plugin_handle_exec"
+            },
             "cmd_list": [
                 {
                     "cmd": "cachectl",
@@ -40,10 +32,99 @@
                     "cmd": "sessionctl",
                     "description": "Manages Instagram Target Sessions",
                     "exec_symbol": "cmd_handle"
+                }
+            ]
+        },
+        {
+            "id": 1001,
+            "label": "OsintgramCXX Instagram Interactives",
+            "description": "Command Set for Instagram Interaction",
+            "lib": {
+                "linux:x64": "libOsintgramCXX-interactive.so",
+                "linux:arm64": "libOsintgramCXX-interactive.so",
+                "android:x64": "libOsintgramCXX-interactive.so",
+                "android:arm64": "libOsintgramCXX-interactive.so",
+                "win64": "OsintgramCXX-interactive.dll"
+            },
+            "cmd_list": [
+                {
+                    "cmd": "addrs",
+                    "description": "Get all registered addresses by target photos",
+                    "exec_symbol": "cmd_handle"
                 },
                 {
-                    "cmd": "test",
-                    "description": "This is a testing command",
+                    "cmd": "captions",
+                    "description": "Get captions from the photos",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "comments",
+                    "description": "Returns the total number of comments on the posts",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "followers",
+                    "description": "Get a list of the target followers",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "followings",
+                    "description": "Get a list of the target followings",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "hashtags",
+                    "description": "Return a list of all hashtags that the target used within their posts",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "info",
+                    "description": "Show all information about the targets account",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "likes",
+                    "description": "Returns a total number of likes in the targets posts",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "mediatype",
+                    "description": "Shows the count of photos and videos shared by the target themselves",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "photodesc",
+                    "description": "Fetches a list with the description of the content from targets posts",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "photos",
+                    "description": "Download a number of specific count of targets photos to the specific output directory",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "pfp",
+                    "description": "Download the profile picture (attempts to download the HD version, if available)",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "stories",
+                    "description": "Download the currently seen stories that the target has shown online",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "tagged",
+                    "description": "Returns a list of users tagged by the user ID, name and full name",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "u.comments",
+                    "description": "Returns a list of users that commented on targets posts",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "u.tagged",
+                    "description": "Returns a list of users that tagged the target in their posts",
                     "exec_symbol": "cmd_handle"
                 }
             ]
