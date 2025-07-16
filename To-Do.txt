@@ -2,14 +2,15 @@ Legend:
 '-' = In Progress
 '?' = Unknown State
 'X' = Finished
+'F' = Finished with caveats (e.g. not every feature was reimplemented due to certain reasons)
 'H' = Halted
 'R' = Marked for Removal
 
 Main features to implement:
-[-] Reimplement the Osintgram4j features into C++
-[X] Write Modding Support, with capability of loading C++ symbol names
+[F] Reimplement the Osintgram4j features into C++
+[X] Write Modding Support
     -- holy f***ing shit, that took me 3-4 hours...
-[R] Implement Features from the settings
+[-] Implement Features from the settings
 [ ] Write the documentation for setup and usage
 [-] Implement Instagram APIs (that includes authentication, sadly...)
 [-] Implement 2FA authentication capabilities
@@ -17,7 +18,7 @@ Main features to implement:
 [ ] Write a Dockerfile (because we want to avoid that "it works on my machine" bullshit)
 [-] Cross-platform support for Windows
 [-] Implement Configurable Proxies
-[ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, CFG, YAML, XML)
+[ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, YAML, XML)
 [ ] Implement DAR (Data Access Restrictions), depending on the Account status and setup
 
 Potential features for the future:

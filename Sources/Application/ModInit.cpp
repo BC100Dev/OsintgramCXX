@@ -25,6 +25,8 @@ using json = nlohmann::json;
 
 namespace fs = std::filesystem;
 
+std::string currentProcessingLibrary;
+
 std::string find_lib(const std::string &file) {
     fs::path result;
 
@@ -92,7 +94,7 @@ void *get_method_from_handle(void *handle, const char *symbol) {
 #ifdef __linux__
     void *p = dlsym(handle, symbol);
     if (p == nullptr)
-        throw std::runtime_error("dlsym failed: " + std::string(dlerror()));
+        throw std::runtime_error("dlsym failed for " + currentProcessingLibrary + ": " + std::string(dlerror()));
 
     return p;
 #endif
@@ -158,7 +160,8 @@ void parse_json(const json &j) {
 #endif
 
             if (!command_set["lib"].contains(objName)) {
-                std::cerr << "data for this current platform (" << objName << ") does not exist, passing on..." << std::endl;
+                std::cerr << "data for this current platform (" << objName << ") does not exist, passing on..."
+                          << std::endl;
                 continue;
             }
 
@@ -166,6 +169,8 @@ void parse_json(const json &j) {
             std::string libPath = find_lib(libName);
             if (libPath.empty())
                 throw std::runtime_error("Library " + libName + " not found");
+
+            currentProcessingLibrary = libName;
 
 #ifdef __linux__
             libHandle = dlopen(libPath.c_str(), RTLD_NOW);
@@ -185,11 +190,12 @@ void parse_json(const json &j) {
 
                     symbolName = h_obj["OnLoad"];
 
-                    libEntryData.handler_onLoad = [libHandle, symbolName]() -> int {
+                    libEntryData.handler_onLoad = [libHandle, libName, symbolName]() -> int {
                         using FunctionType = int();
                         void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
-                            std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
+                            std::cerr << "[ERROR] Failed to resolve symbol from \"" << libName << "\": " << symbolName
+                                      << " -> "
                                       << get_error_from_extlib() << std::endl;
                             return -1;
                         }
@@ -204,11 +210,12 @@ void parse_json(const json &j) {
 
                     symbolName = h_obj["OnStop"];
 
-                    libEntryData.handler_onExit = [libHandle, symbolName]() -> int {
+                    libEntryData.handler_onExit = [libHandle, libName, symbolName]() -> int {
                         using FunctionType = int();
                         void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
-                            std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
+                            std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
+                                      << " -> "
                                       << get_error_from_extlib() << std::endl;
                             return -1;
                         }
@@ -223,11 +230,12 @@ void parse_json(const json &j) {
 
                     symbolName = h_obj["OnCommandExec"];
 
-                    libEntryData.handler_onCmdExec = [libHandle, symbolName](char *cmdLine) {
+                    libEntryData.handler_onCmdExec = [libHandle, libName, symbolName](char *cmdLine) {
                         using FunctionType = void(char *);
                         void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
-                            std::cerr << "[ERROR] Failed to resolve symbol: " << symbolName << " -> "
+                            std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
+                                      << " -> "
                                       << get_error_from_extlib() << std::endl;
                             return;
                         }
@@ -246,10 +254,10 @@ void parse_json(const json &j) {
 
                         void *funcPtr = get_method_from_handle(libHandle, sym.c_str());
                         if (funcPtr == nullptr)
-                            throw std::runtime_error("Command symbol not found, " + sym);
+                            throw std::runtime_error(std::string("Command symbol for ").append(libName) + " not found, " + sym);
 
                         OsintgramCXX::C_CommandExec cmdExec = [funcPtr](const char *_c, int a, char **b, int c,
-                                                                      char **d) {
+                                                                        char **d) {
                             return reinterpret_cast<int (*)(const char *, int, char **, int, char **)>(funcPtr)(_c, a,
                                                                                                                 b, c,
                                                                                                                 d);
