@@ -6,6 +6,7 @@
 #include <sstream>
 #include <regex>
 #include <iostream>
+#include <filesystem>
 
 #ifdef __linux__
 
@@ -106,6 +107,10 @@ namespace OsintgramCXX {
     std::vector<char> Pause();
 
     void ExitProgram(int code);
+
+    void CreateFile(const std::string& path);
+
+    std::string ExecutableDirectory();
 
 }
 

@@ -11,7 +11,6 @@
 #include <random>
 
 #include <OsintgramCXX/App/Shell/Shell.hpp>
-#include <OsintgramCXX/App/Defaults.hpp>
 #include <OsintgramCXX/App/Properties.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
 #include <OsintgramCXX/App/WineDetect.hpp>
@@ -68,18 +67,7 @@ void exceptionHandler() {
             std::ostringstream sw;
             sw << ex.what();
 
-            Terminal::errPrintln(Terminal::TermColor::RED, "While running the app, the main thread crashed.", false);
-
-            if (typeid(ex) == typeid(std::logic_error))
-                Terminal::errPrintln(Terminal::TermColor::RED,
-                                     "C++ Logic errors cannot be caught, and therefore needs internal code fixing.",
-                                     false);
-            else
-                Terminal::errPrintln(Terminal::TermColor::RED,
-                                     "An exception or something else occurred, and wasn't surrounded with a try-catch.",
-                                     false);
-
-            Terminal::errPrintln(Terminal::TermColor::RED, "Error/Exception Stacktrace:", false);
+            Terminal::errPrintln(Terminal::TermColor::RED, "The application has unexpectedly crashed. Cause of this error:", false);
             Terminal::errPrintln(Terminal::TermColor::RED, sw.str(), true);
         }
     } else
@@ -187,7 +175,7 @@ void init() {
                                         osInfo.dwMinorVersion >= 0 &&
                                         osInfo.dwBuildNumber >= 10240;
 
-                if (!isWin10Supported && !suppressWarnings) {
+                if (!isWin10Supported) {
                     std::cerr << "Warning: You are running an older version than Windows 10." << std::endl;
                     std::cerr << "Certain features like Terminal Color-Coding will not work." << std::endl;
                     std::cerr << "Expect gambled up mess in the Terminal, or stick to alternatives." << std::endl;
@@ -195,26 +183,7 @@ void init() {
                             << "View alternative solutions at \"https://github.com/BC100Dev/OsintgramCXX/blob/master/README.md\""
                             << std::endl;
                 }
-            } else {
-                if (!suppressWarnings)
-                    std::cerr << "Warning: Failed to fetch Windows version (API Call gone wrong: RtlGetVersion)."
-                              << std::endl;
             }
-        }
-    }
-
-    if (Wine::WineExecution()) {
-        if (!suppressWarnings) {
-            std::cerr << "Warning: You are operating under Wine!" << std::endl;
-            std::cerr << "Text-coloring system may not work under Wine." << std::endl;
-
-            Wine::Host host = Wine::WineHost();
-
-            if (host.platform == Wine::LINUX)
-                std::cerr << "Consider using the native executable provided for Linux" << std::endl;
-
-            if (host.platform == Wine::MAC_OS)
-                std::cerr << "Consider using a Windows 10/Linux virtual machine" << std::endl;
         }
     }
 #endif
@@ -241,13 +210,6 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
                 exit(0);
             }
 
-            if (arg == "-Sw" || arg == "--suppress-warnings") {
-                std::cerr << "Suppressing all warnings" << std::endl;
-                std::cerr << "Only apply this warning, when you know, what you are doing." << std::endl;
-
-                suppressWarnings = true;
-            }
-
             if (arg.rfind("-E", 0) == 0 && arg.length() > 2) {
                 std::string keyValue = arg.substr(2);
                 size_t eqPos = keyValue.find('=');
@@ -272,10 +234,10 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
                 processedCmdParamFiles.insert(filePath);
             }
         } else {
-            Target target;
-            target.name = arg;
+            //Target target;
+            //target.name = arg;
 
-            targetList.push_back(target);
+            //targetList.push_back(target);
         }
     }
 }
@@ -305,100 +267,9 @@ int main(int argc, char **argv) {
 
     std::cout << TEXT_BLOCK() << std::endl << std::endl;
 
-    // beautifully hand-crafted masterpiece.
-    // it is, in fact, a fak u in particular code.
-    // make me delete it, i dare ya.
-    if (IsAdmin()) {
-        if (!suppressWarnings) {
-#ifdef __linux__ // yes, I checked for Apple definition because I know that one of yall will literally port it to macOS (if there even is someone)
-            if (RandomInteger(0, 50) == 25) {
-                switch (RandomInteger(0, 4)) {
-                    case 0:
-                        std::cerr << "Look... I know you ain't listening. Just don't run this software as root."
-                                  << std::endl;
-                        break;
-                    case 1:
-                        std::cerr << "Brother, who hurt you? Why are you running this software as root?" << std::endl;
-                        break;
-                    case 2:
-                        std::cerr
-                                << "Is your session a root user, or a normal user? Either way, you clearly rejected security school."
-                                << std::endl;
-                        break;
-                    case 3:
-                        std::cerr
-                                << "We know you like running things as root, but surprise-surprise, it's not safe to use."
-                                << std::endl;
-                        break;
-                    case 4:
-                        std::cerr << "I hope yo system is under a VM. Oh, wait, malware usually reject them.";
-
-                        if (RandomInteger(0, 5) == 4) {
-                            CurrentThread_Sleep(1500);
-                            std::cerr << " Oops!" << std::endl;
-                            return 1;
-                        }
-
-                        std::cerr << std::endl;
-                }
-
-                if (RandomInteger(0, 10000) == 1983)
-                    std::cerr << "It is malware in disguise, I ain't even joking anymore." << std::endl;
-
-                std::cerr << "Run this piece of software as a normal user, will ya?" << std::endl << std::endl;
-            } else {
-                std::cerr << "Warning: You are running this process as root." << std::endl;
-                std::cerr << "Avoid running processes as root, unless you know exactly, what you are running."
-                          << std::endl
-                          << std::endl;
-            }
-#elifdef _WIN32
-            if (RandomInteger(0, 50) == 25) {
-                std::cerr << "Look man... I know you ain't just ran that shit with admin rights." << std::endl;
-
-                if (RandomInteger(0, 10000) == 1983)
-                    std::cerr << "It is malware in disguise, I ain't even joking anymore." << std::endl;
-
-                switch (RandomInteger(0, 3)) {
-                    case 0:
-                        std::cerr << "Like, do you always run software with admin rights?" << std::endl;
-                        break;
-                    case 1:
-                        std::cerr << "You don't really know, what you are doing, are ya?" << std::endl;
-                        break;
-                    case 2:
-                        std::cerr << "I mean, imagine, if I were to act like Malware now." << std::endl;
-
-                        if (RandomInteger(0, 500) == 178) {
-                            CurrentThread_Sleep(700);
-                            std::cerr << "Oh, sorry, I already am, a Malware. OOPS!" << std::endl;
-                            return 1;
-                        }
-
-                        break;
-                    case 3:
-                        std::cerr << "It was never a good idea to run it with admin rights, kiddo." << std::endl;
-                        break;
-                }
-
-                std::cerr << "Just re-run this tool without any administrative privileges." << std::endl << std::endl;
-            } else {
-                std::cerr << "Warning: You are running this process with elevated privileges." << std::endl;
-                std::cerr
-                        << "Avoid running processes with elevated privileges, unless you know exactly, what you are running"
-                        << std::endl << std::endl;
-            }
-#elifdef __APPLE__
-            std::cerr << "hey, just hear me out..." << std::endl;
-            std::cerr << "who are you to run this as root?" << std::endl;
-            std::cerr << "actually, nah, seriously, who is you?? why you using apple isolation software??" << std::endl;
-#endif
-        }
-    }
-
     // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
     // making things ugly in the process
-    CurrentThread_Sleep(RandomLong(200, 400));
+    CurrentThread_Sleep(50);
 
     ShellFuckery::initializeShell();
 

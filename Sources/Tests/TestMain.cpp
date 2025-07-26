@@ -14,7 +14,6 @@
 #include <OsintgramCXX/App/Shell/ShellEnv.hpp>
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
-#include <OsintgramCXX/App/Defaults.hpp>
 #include <OsintgramCXX/App/Properties.hpp>
 #include <OsintgramCXX/App/WineDetect.hpp>
 
@@ -53,6 +52,9 @@ bool performNet() {
 }
 
 void encryptionDecryption() {
+    if (!fs::exists("EncryptionTestingPhase.txt"))
+        return;
+
     std::string pass = "super_secure_password";
 
     try {

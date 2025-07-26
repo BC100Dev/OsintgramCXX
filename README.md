@@ -64,7 +64,7 @@ $ sudo apt install build-essential cmake tar unzip zip curl libssl-dev libcurl4-
 
 For Arch Linux users:
 ```shell
-$ pacman -S base-devel cmake tar unzip zip curl
+$ pacman -S base-devel cmake tar unzip zip curl openssl zlib
 ```
 
 After installing these dependencies, run these two commands (simplified for VCPKG handling):

@@ -1,7 +1,5 @@
 #include "ModInit.hpp"
 
-#include <OsintgramCXX/App/Defaults.hpp>
-#include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/Shell/ShellEnv.hpp>
 
 #include <OsintgramCXX/App/ModHandles.hpp>
@@ -10,6 +8,7 @@
 #include <nlohmann/json.hpp>
 
 #include <filesystem>
+#include <fstream>
 
 #ifdef __linux__
 
@@ -33,13 +32,12 @@ std::string find_lib(const std::string &file) {
     fs::path result;
 
     // 1. look for libraries within the cwd (current working directory) and the executables directory
-    if (fs::exists(OsintgramCXX::GetRootDirectory() + "/" + file))
-        return OsintgramCXX::GetRootDirectory() + "/" + file;
+    if (fs::exists(OsintgramCXX::ExecutableDirectory() + "/" + file))
+        return OsintgramCXX::ExecutableDirectory() + "/" + file;
 
     if (fs::exists(OsintgramCXX::CurrentWorkingDirectory() + "/" + file))
         return OsintgramCXX::CurrentWorkingDirectory() + "/" + file;
 
-    std::vector<std::string> entryPaths;
 #ifdef __linux__
     // 2. look for libraries in the "LD_LIBRARY_PATH" environment
     const char *ldLibPathEnv = getenv("LD_LIBRARY_PATH");
@@ -61,11 +59,14 @@ std::string find_lib(const std::string &file) {
 #if defined(__ANDROID__)
     std::string sysPaths = "/system/lib:/system/lib32:/system/lib64";
 #else
-    std::string sysPaths = "/usr/lib:/usr/lib32:/usr/lib64:/usr/local/lib:/usr/local/lib32:/usr/local/lib64:/lib:/lib32:/lib64";
+    // yes, I added that AnlinxOS path, deal with it :skull:
+    std::string sysPaths = "/usr/lib:/usr/lib32:/usr/lib64:/usr/local/lib:/usr/local/lib32:/usr/local/lib64:/lib:/lib32:/lib64:/System/" + std::string(CPU_ARCHITECTURE);
 #endif
-    std::string entry;
 
-    while (std::getline(std::stringstream(sysPaths), entry, ':')) {
+    std::string entry;
+    std::stringstream ss(sysPaths);
+
+    while (std::getline(ss, entry, ':')) {
         result = fs::path(entry) / fs::path(file);
 
         if (fs::exists(result))
@@ -327,8 +328,8 @@ void init_data() {
     std::vector<std::string> lookupPaths = {
             OsintgramCXX::CurrentWorkingDirectory() + "/Resources/commands.json",
             OsintgramCXX::CurrentWorkingDirectory() + "/commands.json",
-            OsintgramCXX::GetRootDirectory() + "/Resources/commands.json",
-            OsintgramCXX::GetRootDirectory() + "/commands.json",
+            OsintgramCXX::ExecutableDirectory() + "/Resources/commands.json",
+            OsintgramCXX::ExecutableDirectory() + "/commands.json",
 
 #ifdef __linux__
             "/usr/share/OsintgramCXX/commands.json",

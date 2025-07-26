@@ -4,16 +4,23 @@
 #include <filesystem>
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
 
 #define PAUSE_PROMPT_DEFAULT "Press any key to continue..."
 
 #ifdef _WIN32
+
+#include <windows.h>
 #include <conio.h>
+
 #elif __linux__
+
 #include <termios.h>
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <netdb.h>
+#include <fcntl.h>
+
 #endif
 
 namespace OsintgramCXX {
@@ -34,7 +41,7 @@ namespace OsintgramCXX {
         return result;
     }
 
-    bool StringContains(const std::string& str, const std::string& val) {
+    bool StringContains(const std::string &str, const std::string &val) {
         return str.find(val) != std::string::npos;
     }
 
@@ -48,7 +55,7 @@ namespace OsintgramCXX {
         return (start == std::string::npos || end == std::string::npos) ? "" : str.substr(start, end - start + 1);
     }
 
-    std::vector<std::string> SplitString(const std::string& str, const std::string& delim, int limit) {
+    std::vector<std::string> SplitString(const std::string &str, const std::string &delim, int limit) {
         std::vector<std::string> tokens;
         size_t startIndex = 0;
         size_t delimPos = 0;
@@ -88,17 +95,17 @@ namespace OsintgramCXX {
     }
 
     // don't forget to pull up that Regex skill without googling it! (evil laughter)
-    std::string ReplaceAll(const std::string& str, const std::string& pattern, const std::string& replacement) {
+    std::string ReplaceAll(const std::string &str, const std::string &pattern, const std::string &replacement) {
         try {
             std::regex regexPattern(pattern);
             return std::regex_replace(str, regexPattern, replacement);
-        } catch (const std::regex_error& ex) {
+        } catch (const std::regex_error &ex) {
             std::cerr << "Utils.hpp# ReplaceAll - Regex Error: " << ex.what() << std::endl;
             return str;
         }
     }
 
-    std::string ReplaceFirst(const std::string& str, const std::string& from, const std::string& to) {
+    std::string ReplaceFirst(const std::string &str, const std::string &from, const std::string &to) {
         std::string result = str;
         size_t pos = result.find(from);
         if (pos != std::string::npos)
@@ -107,7 +114,7 @@ namespace OsintgramCXX {
         return result;
     }
 
-    std::string Replace(const std::string& str, const std::string& from, const std::string& to) {
+    std::string Replace(const std::string &str, const std::string &from, const std::string &to) {
         std::string result = str;
         size_t pos = 0;
         while ((pos = result.find(from, pos)) != std::string::npos) {
@@ -285,7 +292,7 @@ namespace OsintgramCXX {
 
         long rnd = dis(gen);
         rnd *= RandomInteger(10000, 55000) + RandomLong(5000, 500000) + (RandomLong(500, 1000) * RandomLong(2, 100000))
-                * 99999;
+                                                                        * 99999;
         return rnd;
     }
 
@@ -297,11 +304,11 @@ namespace OsintgramCXX {
         return Pause(PAUSE_PROMPT_DEFAULT, 1);
     }
 
-    std::vector<char> Pause(const std::string& prompt) {
+    std::vector<char> Pause(const std::string &prompt) {
         return Pause(prompt, 1);
     }
 
-    std::vector<char> Pause(const std::string& prompt, const ssize_t& count) {
+    std::vector<char> Pause(const std::string &prompt, const ssize_t &count) {
         std::cout << prompt;
         std::vector<char> chArr(count);
 
@@ -337,24 +344,51 @@ namespace OsintgramCXX {
         std::exit(code);
     }
 
-}
+    void CreateFile(const std::string &path) {
+        if (std::filesystem::exists(path))
+            return;
 
-namespace OsintgramCXX::SpecificUtils {
+#ifdef _WIN32
+        HANDLE hFile = ::CreateFileA(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (hFile == INVALID_HANDLE_VALUE) {
+            std::string error;
 
-    std::string GetUserDataDirectory() {
-        return "";
+            {
+                std::stringstream ss;
+                ss << "Could not create file, error 0x" << std::hex << GetLastError();
+
+                error = ss.str();
+            }
+
+            throw std::runtime_error(error);
+        }
+
+        CloseHandle(hFile);
+#else
+        int fd = open(path.c_str(), O_CREAT, 0664);
+        if (fd == -1) {
+            fd = open(path.c_str(), O_WRONLY | O_CREAT, 0664);
+
+            if (fd == -1)
+                throw std::runtime_error("Could not create file, error " + std::to_string(errno));
+        }
+
+        close(fd);
+#endif
     }
 
-    std::string GetUserCacheDirectory() {
-        return "";
-    }
-
-    std::string GetUserConfigDirectory() {
-        return "";
-    }
-
-    std::string GetExecutableDirectory() {
-        return "";
+    std::string ExecutableDirectory() {
+#ifdef _WIN32
+        char buffer[MAX_PATH];
+        GetModuleFileName(nullptr, buffer, MAX_PATH);
+        std::filesystem::path exePath = std::string(buffer);
+        return exePath.string();
+#else
+        char result[PATH_MAX];
+        ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+        std::filesystem::path exePath = std::string(result, (count > 0) ? count : 0);
+        return exePath.parent_path().string();
+#endif
     }
 
 }

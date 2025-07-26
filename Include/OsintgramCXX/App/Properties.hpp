@@ -10,7 +10,6 @@
 #include <filesystem>
 #include <cstdlib>
 
-#include <OsintgramCXX/App/Defaults.hpp>
 #include <OsintgramCXX/Commons/Utils.hpp>
 
 namespace fs = std::filesystem;
@@ -26,7 +25,7 @@ namespace OsintgramCXX {
         }
 
         void LoadSettings() {
-            std::string rootSettingsPath = GetRootDirectory();
+            std::string rootSettingsPath = ExecutableDirectory();
             std::string userEnvName;
 
 #ifdef __linux__
