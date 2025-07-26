@@ -37,6 +37,11 @@
                     "cmd": "net",
                     "description": "Manage network proxies",
                     "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "dsi-updater",
+                    "description": "Updates the Device Spoofing Information (dsi) contents for Instagram APIs",
+                    "exec_symbol": "cmd_handle"
                 }
             ]
         },

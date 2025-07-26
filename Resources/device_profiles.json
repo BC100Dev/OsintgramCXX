@@ -1,0 +1,522 @@
+[
+    {
+        "android_api": 25,
+        "android_version": "7.1.1",
+        "display_dpi": "440dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "Mi Note 3",
+        "codename": "jason",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 23,
+        "android_version": "6.0.1",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "Redmi Note 3",
+        "codename": "kenzo",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 23,
+        "android_version": "6.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "Redmi Note 4",
+        "codename": "nikel",
+        "cpu_label": "mt6797"
+    },
+    {
+        "android_api": 24,
+        "android_version": "7.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi/xiaomi",
+        "product": "Redmi Note 4",
+        "codename": "mido",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 23,
+        "android_version": "6.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "Redmi Note 4X",
+        "codename": "nikel",
+        "cpu_label": "mt6797"
+    },
+    {
+        "android_api": 27,
+        "android_version": "8.1.0",
+        "display_dpi": "440dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2030
+        },
+        "manufacturer": "Xiaomi/xiaomi",
+        "product": "Redmi Note 5",
+        "codename": "whyred",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 23,
+        "android_version": "6.0.1",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "Redmi 4",
+        "codename": "markw",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 27,
+        "android_version": "8.1.0",
+        "display_dpi": "440dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2030
+        },
+        "manufacturer": "Xiaomi/xiaomi",
+        "product": "Redmi 5 Plus",
+        "codename": "vince",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 25,
+        "android_version": "7.1.2",
+        "display_dpi": "440dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2030
+        },
+        "manufacturer": "Xiaomi/xiaomi",
+        "product": "Redmi 5 Plus",
+        "codename": "vince",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "MI 5",
+        "codename": "gemini",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 27,
+        "android_version": "8.1.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi/xiaomi",
+        "product": "Mi A1",
+        "codename": "tissot_sprout",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "MI 6",
+        "codename": "sagit",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 25,
+        "android_version": "7.1.1",
+        "display_dpi": "440dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "MI MAX 2",
+        "codename": "oxygen",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 24,
+        "android_version": "7.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "Xiaomi",
+        "product": "MI 5s",
+        "codename": "capricorn",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "samsung",
+        "product": "SM-A520F",
+        "codename": "a5y17lte",
+        "cpu_label": "samsungexynos7880"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2076
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G950F",
+        "codename": "dreamlte",
+        "cpu_label": "samsungexynos8895"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "640dpi",
+        "display_size": {
+            "width": 1440,
+            "height": 2768
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G950F",
+        "codename": "dreamlte",
+        "cpu_label": "samsungexynos8895"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2094
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G955F",
+        "codename": "dream2lte",
+        "cpu_label": "samsungexynos8895"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "560dpi",
+        "display_size": {
+            "width": 1440,
+            "height": 2792
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G955F",
+        "codename": "dream2lte",
+        "cpu_label": "samsungexynos8895"
+    },
+    {
+        "android_api": 24,
+        "android_version": "7.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "samsung",
+        "product": "SM-A510F",
+        "codename": "a5xelte",
+        "cpu_label": "samsungexynos7580"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G930F",
+        "codename": "herolte",
+        "cpu_label": "samsungexynos8890"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G935F",
+        "codename": "hero2lte",
+        "cpu_label": "samsungexynos8890"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2094
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G965F",
+        "codename": "star2lte",
+        "cpu_label": "samsungexynos9810"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2076
+        },
+        "manufacturer": "samsung",
+        "product": "SM-A530F",
+        "codename": "jackpotlte",
+        "cpu_label": "samsungexynos7885"
+    },
+    {
+        "android_api": 24,
+        "android_version": "7.0",
+        "display_dpi": "640dpi",
+        "display_size": {
+            "width": 1440,
+            "height": 2560
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G925F",
+        "codename": "zerolte",
+        "cpu_label": "samsungexynos7420"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "samsung",
+        "product": "SM-A720F",
+        "codename": "a7y17lte",
+        "cpu_label": "samsungexynos7880"
+    },
+    {
+        "android_api": 24,
+        "android_version": "7.0",
+        "display_dpi": "640dpi",
+        "display_size": {
+            "width": 1440,
+            "height": 2560
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G920F",
+        "codename": "zeroflte",
+        "cpu_label": "samsungexynos7420"
+    },
+    {
+        "android_api": 24,
+        "android_version": "7.0",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "samsung",
+        "product": "SM-J730FM",
+        "codename": "j7y17lte",
+        "cpu_label": "samsungexynos7870"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2076
+        },
+        "manufacturer": "samsung",
+        "product": "SM-G960F",
+        "codename": "starlte",
+        "cpu_label": "samsungexynos9810"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2094
+        },
+        "manufacturer": "samsung",
+        "product": "SM-N950F",
+        "codename": "greatlte",
+        "cpu_label": "samsungexynos8895"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2094
+        },
+        "manufacturer": "samsung",
+        "product": "SM-A730F",
+        "codename": "jackpot2lte",
+        "cpu_label": "samsungexynos7885"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2094
+        },
+        "manufacturer": "samsung",
+        "product": "SM-A605FN",
+        "codename": "a6plte",
+        "cpu_label": "qcom"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "HUAWEI/HONOR",
+        "product": "STF-L09",
+        "codename": "HWSTF",
+        "cpu_label": "hi3660"
+    },
+    {
+        "android_api": 27,
+        "android_version": "8.1.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2280
+        },
+        "manufacturer": "HUAWEI/HONOR",
+        "product": "COL-L29",
+        "codename": "HWCOL",
+        "cpu_label": "kirin970"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2032
+        },
+        "manufacturer": "HUAWEI/HONOR",
+        "product": "LLD-L31",
+        "codename": "HWLLD-H",
+        "cpu_label": "hi6250"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2150
+        },
+        "manufacturer": "HUAWEI",
+        "product": "ANE-LX1",
+        "codename": "HWANE",
+        "cpu_label": "hi6250"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2032
+        },
+        "manufacturer": "HUAWEI",
+        "product": "FIG-LX1",
+        "codename": "HWFIG-H",
+        "cpu_label": "hi6250"
+    },
+    {
+        "android_api": 27,
+        "android_version": "8.1.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2150
+        },
+        "manufacturer": "HUAWEI/HONOR",
+        "product": "COL-L29",
+        "codename": "HWCOL",
+        "cpu_label": "kirin970"
+    },
+    {
+        "android_api": 26,
+        "android_version": "8.0.0",
+        "display_dpi": "480dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 2038
+        },
+        "manufacturer": "HUAWEI/HONOR",
+        "product": "BND-L21",
+        "codename": "HWBND-H",
+        "cpu_label": "hi6250"
+    },
+    {
+        "android_api": 23,
+        "android_version": "6.0.1",
+        "display_dpi": "420dpi",
+        "display_size": {
+            "width": 1080,
+            "height": 1920
+        },
+        "manufacturer": "LeMobile/LeEco",
+        "product": "Le X527",
+        "codename": "le_s2_ww",
+        "cpu_label": "qcom"
+    }
+]

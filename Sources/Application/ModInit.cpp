@@ -139,6 +139,9 @@ std::string get_error_from_extlib() {
 }
 
 void parse_json(const json &j) {
+    if (!j.is_object() || !j.contains("command_sets"))
+        throw std::runtime_error("Unexpected JSON content");
+
     if (j["command_sets"].is_array() && !j["command_sets"].empty()) {
         for (const auto &command_set: j["command_sets"]) {
             void *libHandle = nullptr;
@@ -319,9 +322,6 @@ void init_data() {
     const char *c_localAppData = std::getenv("LOCALAPPDATA");
     const char *c_public = std::getenv("PUBLIC");
     const char *c_userProfile = std::getenv("USERPROFILE");
-#endif
-
-#ifdef _WIN32
 #endif
 
     std::vector<std::string> lookupPaths = {

@@ -59,7 +59,7 @@ your distribution. For Debian (Termux included), you will be using `apt`. Your f
 command will be:
 
 ```shell
-$ sudo apt install build-essential cmake tar unzip zip curl
+$ sudo apt install build-essential cmake tar unzip zip curl libssl-dev libcurl4-openssl-dev
 ```
 
 For Arch Linux users:

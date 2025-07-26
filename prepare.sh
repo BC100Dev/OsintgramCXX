@@ -6,7 +6,7 @@ BUILD_DIRECTORY="${2:-$(pwd)/Build/}"
 function missing_tools() {
     echo "One or more tools are missing."
     echo "Using your package manager, install these following tools (example with apt):"
-    echo "$ sudo apt install git curl zip unzip tar cmake"
+    echo "$ sudo apt install git curl zip unzip tar cmake libssl-dev libcurl4-openssl-dev"
     echo ""
     echo "You may have to adjust the packages tailored for your Linux OS,"
     echo "like for Arch Linux (using the pacman command):"

@@ -1,6 +1,3 @@
-## install files
-# do nothing for now
-
 install(TARGETS
         OsintgramCXX-core
         OsintgramCXX
