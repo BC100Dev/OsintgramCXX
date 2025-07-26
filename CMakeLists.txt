@@ -21,3 +21,8 @@ foreach (Private_CM_Module ${Private_CM_Modules})
         message(STATUS "Project Index Ignore: ${Private_CM_Module}")
     endif ()
 endforeach ()
+
+file(GLOB CM_POSTCONF_FILES "${CMAKE_CURRENT_SOURCE_DIR}/CM_Config/PostConfig/*.cmake")
+foreach (CM_POSTCONF_FILE "${CM_POSTCONF_FILES}")
+    include("${CM_POSTCONF_FILE}")
+endforeach ()

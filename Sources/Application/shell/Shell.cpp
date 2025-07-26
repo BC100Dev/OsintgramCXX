@@ -234,8 +234,10 @@ namespace OsintgramCXX::ShellFuckery {
                 if (line.empty())
                     continue;
 
-                if (line[0] == '&')
+                if (line[0] == '&') {
                     modEnviron(line);
+                    continue;
+                }
 
                 if (line == "exit" || line == "quit" || line == "close") {
                     stopShell(false);

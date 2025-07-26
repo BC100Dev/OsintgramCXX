@@ -28,6 +28,21 @@
 #define MAX_PATH_LIMIT MAX_PATH
 #endif
 
+#ifdef __amd64__
+#define SYSTEM_ARCHITECTURE "amd64"
+#define CPU_ARCHITECTURE "x64"
+#endif
+
+#ifdef __aarch64__
+#define SYSTEM_ARCHITECTURE "aarch64"
+#define CPU_ARCHITECTURE "arm64"
+#endif
+
+#ifdef __i386__
+#define SYSTEM_ARCHITECTURE "i386"
+#define CPU_ARCHITECTURE "x32"
+#endif
+
 namespace OsintgramCXX {
 
     std::string ToLowercase(const std::string &str);

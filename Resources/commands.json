@@ -32,6 +32,11 @@
                     "cmd": "sessionctl",
                     "description": "Manages Instagram Target Sessions",
                     "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "net",
+                    "description": "Manage network proxies",
+                    "exec_symbol": "cmd_handle"
                 }
             ]
         },

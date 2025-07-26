@@ -5,5 +5,5 @@ target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} OsintgramCX
 
 if (APP_SYSTEM_TARGET STREQUAL "Linux")
     set_target_properties(OsintgramCXX PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-    set_target_properties(OsintgramCXX PROPERTIES INSTALL_RPATH '$ORIGIN:$ORIGIN/libs:$ORIGIN/lib')
+    set_target_properties(OsintgramCXX PROPERTIES INSTALL_RPATH '$ORIGIN:$ORIGIN/libs:$ORIGIN/lib:$ORIGIN/../lib')
 endif ()

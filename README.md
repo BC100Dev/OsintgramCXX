@@ -7,45 +7,44 @@
    ,@@@@&@@@&.     *@@@@@@@@@@.  |   \#@@@@&@@@/       .@@,          *@@,     
 ```
 
-Remember, how the beloved Osintgram project by [Datalux](https://github.com/Datalux)
-fell apart due to Instagram's API changes and lack of updates? Well, you can stop
-worrying. OsintgramCXX aims to fix the issues, and make [the original
-Project](https://github.com/Datalux/Osintgram) look like it was never broken. It's
-a complete rewrite in C++, bringing back stability, along with new features.
+Ever since the development on [the original Project](https://github.com/Datalux/Osintgram)
+has stopped and the Instagram API being changed constantly, I have decided to take care
+of this project and rewrite most to all components by myself. Well... except for the
+Networking part, me and Networking aren't the best friends... just yet. Wait, until I
+finish one of the most insane projects known to man. A hint, it's on my GitHub profile.
 
 ---
 
-## Use cases...?
-No use cases yet. Matter of fact, this project is still heavily under development.
-Keep an eye on the discussions tab, as I will be doing Announcements, when a new
-milestone will be reached.
+## Use cases
+No use cases just yet. Matter of fact, this project is still in active development, and I
+am not planning to abandon this project, just like [Datalux](https://github.com/Datalux)
+did. However, I will be doing Announcements and Polls, in case I would be disclosing more
+information.
 
-Oh, and when a project is under development, and features like not being able to log
-into your Instagram account is unclear, then do note that features like these are not
-fully adjusted yet that it is being used in general use case. And yes, people do
-start to piss me off on how to use it. I am tired on telling that this tool is not
-ready for public use yet.
-
-Also, since this README is straight up copy-pasted from Osintgram4j, please do note
-that I didn't want to rewrite literally everything, since most of these contents here
-are just straight up the same thing, but adjusted for the CXX (C++) version.
+Alongside with that, since people were asking me about how to use this tool (you may see
+an [example here](https://github.com/BC100Dev/osintgram4j/issues/16) from the previous
+version). No offense to people waiting eagerly for the tool to come out, but since actual
+development (without AI) does take some time, this won't be a "quick coding session". This
+does take time, but I will be updating you guys on any updates.
 
 ---
 
 ## Disclaimer & Privacy Policy
-OsintgramCXX, like any other software, is intended for ethical and legal use only.
-Other developers, myself included, do not support unethical activities like hacking
-or other malicious actions. Always follow relevant laws and the platforms Terms of
-Service.
+OsintgramCXX, along with any other software, is merely intended for ethical and legal use
+only. By the definition of OSINT, the use of this tool is to collect publicly available
+information. This means that commands from the original version (like fetching E-Mail
+addresses and phone numbers) are not copied over for legal reasons.
 
-By using OsintgramCXX, you acknowledge:
-- **Responsibility**: You are accountable for your own actions.
-- **Ethical Use**: Never misuse this tool or violate Instagram's policies.
-- **No Liability**: We, the developers, are not liable for consequences arising from
-  misuse.
+Other developers, myself included, do not support unethical activities like black-hat
+hacking (the unlawful version of hacking) and other malicious actions. Always follow
+relevant laws and the Terms of Service of the perspective platform.
 
-Don't forget, use OsintgramCXX responsibly, respect privacy of others, and always
-act ethically.
+By using this tool, you acknowledge that:
+- **Responsibility**: You are accountable for the actions you take
+- **Ethical Use**: You do not misuse this tool to your advantage in harassing people
+- **Actions getting logged**: Instagram will log each action you take using this tool
+- **Liability**: we, the developers, are not liable for the consequences you take by
+  potentially misuing this tool.
 
 ---
 
@@ -80,21 +79,8 @@ This will download the sources of OsintgramCXX, along with preparing the environ
 building. After the execution of `./prepare.sh`, do the final blow with this command:
 
 ```shell
-$ cmake --build out
+$ cmake --build Build
 ```
-
-This will build the tool itself, and have everything prepared for the execution. Now,
-after the build is finished, you can go into the `out` directory and run `./OsintgramCXX`
-in itself. However, if you wish to install it directly, you can do so by running:
-
-```shell
-$ cmake --install out --prefix /custom/install/path
-```
-
-This takes in the `--install out` directory, in which the build has been finished, and
-places them in `/usr/local` (Linux / macOS) or `C:\Program Files` on Windows by default.
-Modifying the installation path is possible by specifying `--prefix /custom/install/path`
-flags.
 
 ---
 

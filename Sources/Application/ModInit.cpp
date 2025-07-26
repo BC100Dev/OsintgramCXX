@@ -18,7 +18,9 @@
 #endif
 
 #ifdef _WIN32
+
 #include <windows.h>
+
 #endif
 
 using json = nlohmann::json;
@@ -69,12 +71,24 @@ std::string find_lib(const std::string &file) {
         if (fs::exists(result))
             return result.string();
     }
+
+    // 4. Examine the AnlinxOS directories (yes, that thing is one of my projects, and yes, it violates
+    // most of the Linux FHS). See https://github.com/BC100Dev/AnlinxOS for technical info.
+    std::vector<std::string> anlinxOS_paths = {
+            "/Data/base/" + std::to_string(getuid()) + "/" + std::string(CPU_ARCHITECTURE) + "/" + file,
+            "/Data/base/shared/" + std::string(CPU_ARCHITECTURE) + "/" + file,
+            "/System/" + std::string(CPU_ARCHITECTURE) + "/" + file
+    };
+    for (const auto& it: anlinxOS_paths) {
+        if (fs::exists(it))
+            return it;
+    }
 #endif
 
 #ifdef _WIN32
     // windows, at least you aren't this hard...
     // right?
-    const char* pathEnv = getenv("PATH");
+    const char *pathEnv = getenv("PATH");
     if (pathEnv) {
         std::string pathEntry;
 
@@ -100,7 +114,7 @@ void *get_method_from_handle(void *handle, const char *symbol) {
 #endif
 
 #ifdef _WIN32
-    return (void*) GetProcAddress((HMODULE) handle, symbol);
+    return (void *) GetProcAddress((HMODULE) handle, symbol);
 #else
     // for you macOS users :skull:
     return nullptr;
@@ -110,20 +124,18 @@ void *get_method_from_handle(void *handle, const char *symbol) {
 std::string get_error_from_extlib() {
 #ifdef __linux__
     return dlerror();
-#endif
-
-#ifdef _WIN32
+#elif defined(_WIN32)
     char buf[512] = {0};
     int len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                   NULL, GetLastError(), 0, buf, sizeof(buf), NULL);
+                             NULL, GetLastError(), 0, buf, sizeof(buf), NULL);
     if (len == 0)
         return "[UNKNOWN_ERROR]";
 
     buf[len] = '\0';
     return buf;
-#endif
-
+#else
     return "[UNSPECIFIED]";
+#endif
 }
 
 void parse_json(const json &j) {
@@ -296,30 +308,73 @@ void init_data() {
         if (OsintgramCXX::StringContains(_e, delim)) {
             jsonFiles = OsintgramCXX::SplitString(_e, delim);
         }
-    } else {
-        if (fs::exists(OsintgramCXX::GetRootDirectory() + "/commands.json"))
-            jsonFiles.push_back(OsintgramCXX::GetRootDirectory() + "/commands.json");
     }
 
-    if (fs::exists(OsintgramCXX::CurrentWorkingDirectory() + "/Resources/commands.json"))
-        jsonFiles.push_back(OsintgramCXX::CurrentWorkingDirectory() + "/Resources/commands.json");
+#ifdef __linux__
+    const char *c_home = std::getenv("HOME");
+#endif
 
-    if (fs::exists(OsintgramCXX::GetRootDirectory() + "/Resources/commands.json"))
-        jsonFiles.push_back(OsintgramCXX::GetRootDirectory() + "/Resources/commands.json");
-    
-    for (const auto& it : jsonFiles) {
-        if (!fs::exists(it)) {
-            std::cerr << "File \"" << it << "\" does not exist, continuing..." << std::endl;
-            continue;
-        }
-        
+#ifdef _WIN32
+    const char *c_appData = std::getenv("APPDATA");
+    const char *c_localAppData = std::getenv("LOCALAPPDATA");
+    const char *c_public = std::getenv("PUBLIC");
+    const char *c_userProfile = std::getenv("USERPROFILE");
+#endif
+
+#ifdef _WIN32
+#endif
+
+    std::vector<std::string> lookupPaths = {
+            OsintgramCXX::CurrentWorkingDirectory() + "/Resources/commands.json",
+            OsintgramCXX::CurrentWorkingDirectory() + "/commands.json",
+            OsintgramCXX::GetRootDirectory() + "/Resources/commands.json",
+            OsintgramCXX::GetRootDirectory() + "/commands.json",
+
+#ifdef __linux__
+            "/usr/share/OsintgramCXX/commands.json",
+            "/usr/local/share/OsintgramCXX/commands.json",
+            std::string(c_home ? c_home : "/home/" + OsintgramCXX::CurrentUsername()) +
+            "/.local/share/OsintgramCXX/commands.json",
+            "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX/commands.json",
+            "/Data/base/shared/OsintgramCXX/commands.json",
+#endif
+
+#ifdef _WIN32
+            std::string(c_appData ? c_appData : (c_userProfile ? c_userProfile : "C:\\Users\\" +
+                                                                                 OsintgramCXX::CurrentUsername() +
+                                                                                 "\\AppData\\Roaming")) +
+            "\\OsintgramCXX\\commands.json",
+
+            std::string(c_localAppData ? c_localAppData : (c_userProfile ? c_userProfile : "C:\\Users\\" +
+                                                                                           OsintgramCXX::CurrentUsername() +
+                                                                                           "\\AppData\\Local")) +
+            "\\OsintgramCXX\\commands.json",
+
+            std::string(c_public ? c_public : "C:\\Users\\Public") + "\\OsintgramCXX\\commands.json",
+
+            std::string(c_userProfile ? c_userProfile : "C:\\Users\\" + OsintgramCXX::CurrentUsername()) +
+            "\\OsintgramCXX\\commands.json",
+#endif
+    };
+
+    for (const auto &it: lookupPaths) {
+        if (fs::exists(it))
+            jsonFiles.emplace_back(it);
+    }
+
+    if (jsonFiles.empty()) {
+        std::cerr << "No files under the name of commands.json found." << std::endl;
+        return;
+    }
+
+    for (const auto &it: jsonFiles) {
         json j;
         std::ifstream in(it);
         if (!in.is_open()) {
             std::cerr << "Could not open command list file \"" << it << "\", continuing..." << std::endl;
             continue;
         }
-        
+
         in >> j;
         parse_json(j);
     }
