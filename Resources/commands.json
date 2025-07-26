@@ -114,7 +114,7 @@
                 },
                 {
                     "cmd": "tagged",
-                    "description": "Returns a list of users tagged by the user ID, name and full name",
+                    "description": "Returns a list of users tagged by the user ID, name and display name",
                     "exec_symbol": "cmd_handle"
                 },
                 {

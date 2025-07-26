@@ -60,25 +60,29 @@ void encryptionDecryption() {
         EncryptionData encData = OsintgramCXX::FileEncryption::encrypt("EncryptionTestingPhase.txt", pass);
         std::cout << "Encryption passed" << std::endl;
 
-        std::ofstream off("Data.enc");
-        if (off.is_open() && off.good()) {
-            off.write(reinterpret_cast<const char *>(encData.uCharData.data()), encData.uCharData.size());
-            off.close();
-        } else {
-            std::cerr << "Write unsuccessful" << std::endl;
-            return;
+        {
+            std::ofstream off("Data.enc");
+            if (off.is_open() && off.good()) {
+                off.write(reinterpret_cast<const char *>(encData.uCharData.data()), encData.uCharData.size());
+                off.close();
+            } else {
+                std::cerr << "Write unsuccessful" << std::endl;
+                return;
+            }
         }
 
         std::cout << "Encrypted data written\nAttempt decryption..." << std::endl;
         EncryptionData decData = OsintgramCXX::FileEncryption::decrypt("Data.enc", pass);
         std::cout << "Decryption passed" << std::endl;
 
-        std::ofstream off2("Data.dec");
-        if (off2.is_open() && off2.good()) {
-            off2.write(reinterpret_cast<const char *>(decData.uCharData.data()), decData.uCharData.size());
-            off2.close();
-        } else {
-            std::cerr << "Decryption write unsuccessful" << std::endl;
+        {
+            std::ofstream off("Data.dec");
+            if (off.is_open() && off.good()) {
+                off.write(reinterpret_cast<const char *>(decData.uCharData.data()), decData.uCharData.size());
+                off.close();
+            } else {
+                std::cerr << "Decryption write unsuccessful" << std::endl;
+            }
         }
 
         std::cout << "Decrypted data written" << std::endl;

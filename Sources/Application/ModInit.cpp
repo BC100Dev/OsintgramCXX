@@ -254,7 +254,8 @@ void parse_json(const json &j) {
 
                         void *funcPtr = get_method_from_handle(libHandle, sym.c_str());
                         if (funcPtr == nullptr)
-                            throw std::runtime_error(std::string("Command symbol for ").append(libName) + " not found, " + sym);
+                            throw std::runtime_error(
+                                    std::string("Command symbol for ").append(libName) + " not found, " + sym);
 
                         OsintgramCXX::C_CommandExec cmdExec = [funcPtr](const char *_c, int a, char **b, int c,
                                                                         char **d) {
@@ -279,26 +280,49 @@ void parse_json(const json &j) {
 }
 
 void init_data() {
-    std::string jsonFile;
+    std::vector<std::string> jsonFiles;
 
     const char *cJsonFile = getenv("OsintgramCXX_JsonCommandList");
-    if (cJsonFile)
-        jsonFile = cJsonFile;
-    else
-        jsonFile = OsintgramCXX::GetRootDirectory() + "/commands.json";
+    if (cJsonFile) {
+        std::string _e = cJsonFile;
+        std::string delim;
 
-    if (!fs::exists(jsonFile)) {
-        jsonFile = OsintgramCXX::GetRootDirectory() + "/Resources/commands.json";
+#ifdef _WIN32
+        delim = ";";
+#else
+        delim = ":";
+#endif
 
-        if (!fs::exists(jsonFile))
-            throw std::runtime_error("Could not find commands.json");
+        if (OsintgramCXX::StringContains(_e, delim)) {
+            jsonFiles = OsintgramCXX::SplitString(_e, delim);
+        }
+    } else {
+        if (fs::exists(OsintgramCXX::GetRootDirectory() + "/commands.json"))
+            jsonFiles.push_back(OsintgramCXX::GetRootDirectory() + "/commands.json");
     }
 
-    json j;
-    std::ifstream in(jsonFile);
-    in >> j;
+    if (fs::exists(OsintgramCXX::CurrentWorkingDirectory() + "/Resources/commands.json"))
+        jsonFiles.push_back(OsintgramCXX::CurrentWorkingDirectory() + "/Resources/commands.json");
 
-    parse_json(j);
+    if (fs::exists(OsintgramCXX::GetRootDirectory() + "/Resources/commands.json"))
+        jsonFiles.push_back(OsintgramCXX::GetRootDirectory() + "/Resources/commands.json");
+    
+    for (const auto& it : jsonFiles) {
+        if (!fs::exists(it)) {
+            std::cerr << "File \"" << it << "\" does not exist, continuing..." << std::endl;
+            continue;
+        }
+        
+        json j;
+        std::ifstream in(it);
+        if (!in.is_open()) {
+            std::cerr << "Could not open command list file \"" << it << "\", continuing..." << std::endl;
+            continue;
+        }
+        
+        in >> j;
+        parse_json(j);
+    }
 }
 
 void ModLoader_load() {

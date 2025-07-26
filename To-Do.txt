@@ -8,6 +8,7 @@ Legend:
 
 Main features to implement:
 [F] Reimplement the Osintgram4j features into C++
+    > yall knw that certain Java features are allergic to C++
 [X] Write Modding Support
     -- holy f***ing shit, that took me 3-4 hours...
 [-] Implement Features from the settings
@@ -19,7 +20,8 @@ Main features to implement:
 [-] Cross-platform support for Windows
 [-] Implement Configurable Proxies
 [ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, YAML, XML)
-[ ] Implement DAR (Data Access Restrictions), depending on the Account status and setup
+[R] Implement DAR (Data Access Restrictions), depending on the Account status and setup
+    > Legality matters (no E-Mail & Ph.Number scraping like the original)
 
 Potential features for the future:
 [-] Write a "setup.sh" script that implements vcpkg into the project CMake

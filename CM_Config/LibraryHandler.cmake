@@ -13,7 +13,7 @@ find_package(ZLIB REQUIRED)
 list(APPEND OsintgramCXX_LINK_DEPS CURL::libcurl ZLIB::ZLIB)
 list(APPEND OsintgramCXX_LINK_OpenSSL OpenSSL::SSL OpenSSL::Crypto)
 
-if (DEFINED APP_TARGETS_ANDROID)
+if (DEFINED APP_TARGETS_ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND OsintgramCXX_LINK_DEPS "-static-libstdc++")
 endif ()
 
