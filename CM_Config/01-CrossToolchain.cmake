@@ -2,6 +2,8 @@
 if (CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Target build is Android")
     set(APP_TARGETS_ANDROID ON)
+else()
+    set(APP_TARGETS_ANDROID OFF)
 endif ()
 
 # Global Cross-Toolchains

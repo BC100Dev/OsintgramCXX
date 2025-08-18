@@ -8,9 +8,9 @@ Legend:
 
 Main features to implement:
 [F] Reimplement the Osintgram4j features into C++
-    > yall knw that certain Java features are allergic to C++
+  > yall knw that certain Java features are allergic to C++
 [X] Write Modding Support
-    -- holy f***ing shit, that took me 3-4 hours...
+  > holy f***ing shit, that took me 3-4 hours...
 [-] Implement Features from the settings
 [ ] Write the documentation for setup and usage
 [-] Implement Instagram APIs (that includes authentication, sadly...)
@@ -20,17 +20,15 @@ Main features to implement:
 [-] Cross-platform support for Windows
 [-] Implement Configurable Proxies
 [ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, YAML, XML)
-[R] Implement DAR (Data Access Restrictions), depending on the Account status and setup
-    > Legality matters (no E-Mail & Ph.Number scraping like the original)
+[ ] Implement Temporary / Reference Accounts
+  > This feature will allow users to log into another account from their main Instagram account
 
 Potential features for the future:
 [-] Write a "setup.sh" script that implements vcpkg into the project CMake
     > Editors Note: Adapted into "prepare.sh"
 [R] Automate the VCPKG_ROOT, removing the unnecessary CLI arguments
 [?] Implement Multi-Lingual Support
-[ ] Implement Temporary / Reference Accounts
-    > This feature will allow users to log into another account from their main Instagram account
 [ ] Include OpenCV for Image Processing
-    > This alone already has issues on Arch Linux with the D-Bus library, when building, therefore, may or may not be implemented.
+  > This alone already has issues on Arch Linux with the D-Bus library, when building, therefore, may or may not be implemented.
 
 Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.

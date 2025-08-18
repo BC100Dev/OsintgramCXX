@@ -6,3 +6,7 @@ else ()
 endif ()
 
 set(OsintgramCXX_LINK_DEPS "")
+
+if (CMAKE_BUILD_TYPE STREQUAL "")
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif ()

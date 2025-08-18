@@ -27,4 +27,6 @@ int session_func(const std::vector<std::string>& args, const std::map<std::strin
 
 int user_func(const std::vector<std::string>& args, const std::map<std::string, std::string>& env);
 
+int env_func(const std::vector<std::string>& args, const std::map<std::string, std::string>& env);
+
 #endif //OSINTGRAMCXX_FUNCHEADERS_HPP

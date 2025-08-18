@@ -112,6 +112,8 @@ namespace OsintgramCXX {
 
     std::string ExecutableDirectory();
 
+    long long nanoTime();
+
 }
 
 #endif //OSINTGRAMCXX_UTILS_HPP

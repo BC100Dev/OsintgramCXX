@@ -27,24 +27,47 @@ version). No offense to people waiting eagerly for the tool to come out, but sin
 development (without AI) does take some time, this won't be a "quick coding session". This
 does take time, but I will be updating you guys on any updates.
 
+However, what I can describe on what features are implemented (or will be) in here are these:
+- **Modding Support**: Add your own Hooks and Commands to OsintgramCXX itself (requires C/C++
+  coding skills)
+- **DSI** (Device Spoofing Information): Spoofs a device for network calls to Instagram (what
+  is an OSINT tool for the community without spoofing some shit)
+- **Manual Interaction**: Using this tool means that you have more control than having most
+  actions automated (e.g. automated login)
+- **Proxies & Proxychains**: Allows you to connect to multiple Proxies at once, allowing a
+  connection through several servers
+- **Multi-Session Interaction**: Target multiple profiles at once without having to automate
+  more things
+
+Does the original version of this tool have most of those things prebuilt already? I don't
+think so. Let me cook and you won't be disappointed.
+
 ---
 
 ## Disclaimer & Privacy Policy
 OsintgramCXX, along with any other software, is merely intended for ethical and legal use
 only. By the definition of OSINT, the use of this tool is to collect publicly available
 information. This means that commands from the original version (like fetching E-Mail
-addresses and phone numbers) are not copied over for legal reasons.
+addresses and phone numbers) are not copied over for legal reasons. By default, Instagram
+does NOT expose sensitive information to the public, unless the person associated with the
+account shares information. That information may include a publicly-known business E-Mail
+address, business phone number or possibly even the physical business address tied to the
+person / business.
 
 Other developers, myself included, do not support unethical activities like black-hat
 hacking (the unlawful version of hacking) and other malicious actions. Always follow
-relevant laws and the Terms of Service of the perspective platform.
+relevant laws and the Terms of Service of the perspective platform. Developers can still
+be held accountable by designing such tools in the first place, so deploy this tool under
+legal and good intentions. We do not want a lawsuit, neither any cease of desist letters.
 
 By using this tool, you acknowledge that:
 - **Responsibility**: You are accountable for the actions you take
 - **Ethical Use**: You do not misuse this tool to your advantage in harassing people
 - **Actions getting logged**: Instagram will log each action you take using this tool
 - **Liability**: we, the developers, are not liable for the consequences you take by
-  potentially misuing this tool.
+  potentially misusing this tool.
+- **Terms and Imprint**: using this tool, you also break the Instagram's [Terms of Service
+  / Imprint](https://help.instagram.com/581066165581870/?locale=en_US)
 
 ---
 

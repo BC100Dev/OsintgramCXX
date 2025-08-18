@@ -5,12 +5,13 @@
             "id": 1000,
             "label": "OsintgramCXX core",
             "description": "Command set for managing OsintgramCXX core functionalities",
+            "author": "BC100Dev",
             "lib": {
                 "linux:x64": "libOsintgramCXX-core.so",
                 "linux:arm64": "libOsintgramCXX-core.so",
                 "android:x64": "libOsintgramCXX-core.so",
                 "android:arm64": "libOsintgramCXX-core.so",
-                "win64": "OsintgramCXX-core.dll"
+                "windows:x64": "OsintgramCXX-core.dll"
             },
             "handlers": {
                 "OnLoad": "plugin_handle_start",
@@ -18,6 +19,11 @@
                 "OnCommandExec": "plugin_handle_exec"
             },
             "cmd_list": [
+                {
+                    "cmd": "env",
+                    "description": "Prints out the environment variables",
+                    "exec_symbol": "cmd_handle"
+                },
                 {
                     "cmd": "cachectl",
                     "description": "Manages OsintgramCXX and Instagram Cache (involves Cookies & Auth)",
@@ -35,12 +41,12 @@
                 },
                 {
                     "cmd": "net",
-                    "description": "Manage network proxies",
+                    "description": "Manage network configurations",
                     "exec_symbol": "cmd_handle"
                 },
                 {
-                    "cmd": "dsi-updater",
-                    "description": "Updates the Device Spoofing Information (dsi) contents for Instagram APIs",
+                    "cmd": "dsi",
+                    "description": "Manages the Device Spoofing Information (DSI) for the effective Instagram APIs",
                     "exec_symbol": "cmd_handle"
                 }
             ]
@@ -49,12 +55,13 @@
             "id": 1001,
             "label": "OsintgramCXX Instagram Interactives",
             "description": "Command Set for Instagram Interaction",
+            "author": "BC100Dev",
             "lib": {
                 "linux:x64": "libOsintgramCXX-interactive.so",
                 "linux:arm64": "libOsintgramCXX-interactive.so",
                 "android:x64": "libOsintgramCXX-interactive.so",
                 "android:arm64": "libOsintgramCXX-interactive.so",
-                "win64": "OsintgramCXX-interactive.dll"
+                "windows:x64": "OsintgramCXX-interactive.dll"
             },
             "cmd_list": [
                 {

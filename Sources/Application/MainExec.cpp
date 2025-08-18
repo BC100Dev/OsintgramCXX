@@ -11,10 +11,7 @@
 #include <random>
 
 #include <OsintgramCXX/App/Shell/Shell.hpp>
-#include <OsintgramCXX/App/Properties.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
-#include <OsintgramCXX/App/WineDetect.hpp>
-#include <OsintgramCXX/App/ModHandles.hpp>
 
 #include <OsintgramCXX/Commons/HelpPage.hpp>
 #include <OsintgramCXX/Commons/Terminal.hpp>
@@ -27,20 +24,26 @@
 
 #include <windows.h>
 
-#else
+#elif defined(__linux__)
 
 #include <unistd.h>
 #include <climits>
+#include <cerrno>
 #include <cstring>
 
-#include <linux/vt.h>
+#endif
+
+#if defined(__linux__) && !defined(__ANDROID__)
+
+#include <sys/capability.h>
 
 #endif
 
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
 
-std::set<std::string> processedCmdParamFiles;
+bool quickStop = false;
+std::string chrootPath;
 
 void WinSetColorMode() {
 #ifdef _WIN32
@@ -55,8 +58,6 @@ void WinSetColorMode() {
 #endif
 }
 
-void parseFileArgs(const std::string &filePath);
-
 void exceptionHandler() {
     std::exception_ptr exPtr = std::current_exception();
 
@@ -67,13 +68,14 @@ void exceptionHandler() {
             std::ostringstream sw;
             sw << ex.what();
 
-            Terminal::errPrintln(Terminal::TermColor::RED, "The application has unexpectedly crashed. Cause of this error:", false);
+            Terminal::errPrintln(Terminal::TermColor::RED,
+                                 "The application has unexpectedly crashed. Cause of this error:", false);
             Terminal::errPrintln(Terminal::TermColor::RED, sw.str(), true);
         }
     } else
         Terminal::errPrintln(Terminal::TermColor::RED, "Unknown Termination captured", true);
 
-    std::abort();
+    std::raise(SIGSEGV);
 }
 
 void usage() {
@@ -115,14 +117,14 @@ void usage() {
             cmd.append(fileName);
     }
 
-    // omit TITLE_BLOCK()
-    // omit DISPLAY()
-
     std::cout << "usage:" << std::endl;
 
     char userChar = '$';
 #ifdef __linux__
     if (getuid() == 0 || geteuid() == 0)
+        userChar = '#';
+#elif defined(_WIN32)
+    if (IsAdmin())
         userChar = '#';
 #endif
 
@@ -131,11 +133,15 @@ void usage() {
     HelpPage hPage;
     hPage.setSpaceWidth(3);
     hPage.setStartSpaceWidth(4);
+    hPage.setDescSeparator("=");
     hPage.addArg("-h  | --help", "", "Display usage and its help page");
-    hPage.addArg("-Sw | --suppress-warnings", "", "Suppress warning messages");
     hPage.addArg("-E[key=value]", "", "Applies an environment variable to the Osintgram Shell");
-    hPage.addArg("@cmdline_file", "",
-                 "Adds command line arguments from a specific file (good for multiple environment variables");
+    hPage.addArg("--test-exec-time", "", "Tests the execution time (does not start up the Shell");
+
+#ifdef __linux__
+    hPage.addArg("--sandbox", "PATH",
+                 "Isolates the data saved by this tool from the entire disk (Linux exclusive, increases security factors)");
+#endif
 
     std::string str = hPage.display();
     str = str.substr(0, str.length() - 1);
@@ -149,7 +155,7 @@ void usage() {
 
 #ifdef __linux__
 
-void sigHandle(int signal) {
+void sigHandle(int) {
     if (ShellFuckery::running)
         ShellFuckery::stopShell(true);
 
@@ -202,7 +208,7 @@ void init() {
 void initSettings() {
 }
 
-void appParseArgs(const std::vector<std::string> &args, const std::string &fileCall) {
+void parseArgs(const std::vector<std::string> &args) {
     for (const std::string &arg: args) {
         if (arg[0] == '-') {
             if (arg == "-h" || arg == "--help") {
@@ -221,18 +227,19 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
 
                 ShellFuckery::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
-        } else if (arg[0] == '@') {
-            std::string filePath = arg.substr(1);
 
-            if (!fileCall.empty()) {
-                std::cerr << "Calling \"" << filePath << "\" from \"" << fileCall << "\": not allowed" << std::endl;
-                std::exit(1);
+            if (arg.rfind("--sandbox", 0) == 0 && arg.length() > 2) {
+                size_t eqPos = arg.find('=');
+                if (eqPos == std::string::npos) {
+                    std::cerr << "Invalid format for --sandbox argument: " << arg << std::endl;
+                    continue;
+                }
+
+                chrootPath = arg.substr(eqPos + 1);
             }
 
-            if (processedCmdParamFiles.find(filePath) == processedCmdParamFiles.end()) {
-                parseFileArgs(filePath);
-                processedCmdParamFiles.insert(filePath);
-            }
+            if (arg == "--test-exec-time")
+                quickStop = true;
         } else {
             //Target target;
             //target.name = arg;
@@ -242,26 +249,24 @@ void appParseArgs(const std::vector<std::string> &args, const std::string &fileC
     }
 }
 
-void initParseArgs(int argc, char **argv) {
-    std::vector<std::string> _args;
-    _args.reserve(argc);
-
-    for (int i = 1; i < argc; i++) {
-        _args.emplace_back(argv[i]);
-    }
-
-    appParseArgs(_args, "");
-}
-
 int main(int argc, char **argv) {
+    long long startTime = nanoTime();
+
     std::set_terminate(exceptionHandler);
 
     // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
     WinSetColorMode();
     initSettings();
 
-    if (argc > 1)
-        initParseArgs(argc, argv);
+    if (argc > 1) {
+        std::vector<std::string> args;
+        args.reserve(argc - 1);
+
+        for (int i = 1; i < argc; i++)
+            args.emplace_back(argv[i]);
+
+        parseArgs(args);
+    }
 
     init();
 
@@ -269,47 +274,68 @@ int main(int argc, char **argv) {
 
     // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
     // making things ugly in the process
-    CurrentThread_Sleep(50);
+    CurrentThread_Sleep(25);
 
     ShellFuckery::initializeShell();
-
     ModLoader_load();
+
+#if defined(__linux__)
+    if (!chrootPath.empty()) {
+        if (!fs::exists(chrootPath)) {
+            try {
+                fs::create_directories(chrootPath);
+            } catch (const fs::filesystem_error& err) {
+                std::cerr << "Failed to create a directory at " << chrootPath << std::endl;
+                std::cerr << "Error caused: " << err.what() << std::endl;
+                return 1;
+            }
+        }
+
+        if (fs::exists(chrootPath) && !fs::is_directory(chrootPath)) {
+            std::cerr << "Unable to setup a secure environment (" << chrootPath << " is not a directory)" << std::endl;
+            return 1;
+        }
+
+        bool capAvail = false;
+#ifndef __ANDROID__
+        cap_t caps = cap_get_proc();
+        if (!caps) {
+            std::cerr << "Unable to fetch executable capabilities" << std::endl;
+            return 1;
+        }
+
+        cap_flag_value_t cap_value;
+        if (cap_get_flag(caps, CAP_SYS_CHROOT, CAP_EFFECTIVE, &cap_value) == -1) {
+            std::cerr << "Failed to fetch chroot capabilities for the executable" << std::endl;
+            cap_free(caps);
+            return 1;
+        }
+
+        capAvail = cap_value == CAP_SET;
+        cap_free(caps);
+#endif
+
+        if (getuid() == 0 || capAvail) {
+            if (chroot(chrootPath.c_str()) != 0) {
+                std::cerr << "Unable to switch root directory, error: " << std::strerror(errno) << std::endl;
+                return 1;
+            }
+        }
+    }
+#endif
+
     ModLoader_start();
 
-    ShellFuckery::launchShell();
+    if (!quickStop)
+        ShellFuckery::launchShell();
 
     ModLoader_stop();
 
+    long long endTime = nanoTime();
+    if (quickStop) {
+        double elapsedTime = ((long long) endTime - startTime) / 1'000'000'000.0;
+        printf("Total elapsed time: %.3f seconds\n", elapsedTime);
+    }
+
     return 0;
-}
-
-void parseFileArgs(const std::string &filePath) {
-    std::cout << "Passing down arguments from " << filePath << std::endl;
-
-    if (!fs::exists(filePath)) {
-        std::cerr << "cmdline parameter file not found: \"" << filePath << "\"" << std::endl;
-        std::exit(1);
-    }
-
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        std::cerr << "Error: unable to open file " << filePath << std::endl;
-        std::exit(1);
-    }
-
-    std::string line;
-    std::vector<std::string> args;
-
-    while (std::getline(file, line)) {
-        std::string processLine = TrimString(line);
-        if (processLine.empty())
-            continue;
-
-        if (processLine[0] == '#')
-            continue;
-
-        args.push_back(line);
-    }
-
-    appParseArgs(args, filePath);
 }

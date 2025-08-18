@@ -28,15 +28,41 @@ namespace fs = std::filesystem;
 
 std::string currentProcessingLibrary;
 
+#ifdef __linux__
+const char *c_home = std::getenv("HOME");
+#endif
+
+#ifdef _WIN32
+const char *c_userProfile = std::getenv("USERPROFILE");
+#endif
+
+std::vector<std::string> lookupPaths = {
+        OsintgramCXX::CurrentWorkingDirectory() + "/Resources",
+        OsintgramCXX::CurrentWorkingDirectory(),
+        OsintgramCXX::ExecutableDirectory() + "/Resources",
+        OsintgramCXX::ExecutableDirectory(),
+
+#ifdef __linux__
+        "/etc/OsintgramCXX",
+        std::string(c_home ? c_home : "/home/" + OsintgramCXX::CurrentUsername()) + "/.config/OsintgramCXX",
+        "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX",
+        "/Data/base/shared/OsintgramCXX",
+#endif
+
+#ifdef _WIN32
+        std::string(c_userProfile ? c_userProfile : R"(C:\Users\)" + OsintgramCXX::CurrentUsername()) +
+        R"(\AppData\Local\OsintgramCXX)"
+#endif
+};
+
+fs::path locate_json(const std::string &filename);
+
 std::string find_lib(const std::string &file) {
     fs::path result;
 
     // 1. look for libraries within the cwd (current working directory) and the executables directory
     if (fs::exists(OsintgramCXX::ExecutableDirectory() + "/" + file))
         return OsintgramCXX::ExecutableDirectory() + "/" + file;
-
-    if (fs::exists(OsintgramCXX::CurrentWorkingDirectory() + "/" + file))
-        return OsintgramCXX::CurrentWorkingDirectory() + "/" + file;
 
 #ifdef __linux__
     // 2. look for libraries in the "LD_LIBRARY_PATH" environment
@@ -57,10 +83,12 @@ std::string find_lib(const std::string &file) {
     // as long as the library exists within the executable's range, PWD and LD_LIBRARY_PATH, this shouldn't be a problem
     // otherwise, have fun
 #if defined(__ANDROID__)
-    std::string sysPaths = "/system/lib:/system/lib32:/system/lib64";
+    std::string sysPaths = "/data/data/com.termux/files/usr/lib:/system/lib:/system/lib32:/system/lib64";
 #else
     // yes, I added that AnlinxOS path, deal with it :skull:
-    std::string sysPaths = "/usr/lib:/usr/lib32:/usr/lib64:/usr/local/lib:/usr/local/lib32:/usr/local/lib64:/lib:/lib32:/lib64:/System/" + std::string(CPU_ARCHITECTURE);
+    std::string sysPaths =
+            "/usr/lib:/usr/lib32:/usr/lib64:/usr/local/lib:/usr/local/lib32:/usr/local/lib64:/lib:/lib32:/lib64:/System/" +
+            std::string(CPU_ARCHITECTURE);
 #endif
 
     std::string entry;
@@ -73,14 +101,17 @@ std::string find_lib(const std::string &file) {
             return result.string();
     }
 
-    // 4. Examine the AnlinxOS directories (yes, that thing is one of my projects, and yes, it violates
-    // most of the Linux FHS). See https://github.com/BC100Dev/AnlinxOS for technical info.
-    std::vector<std::string> anlinxOS_paths = {
-            "/Data/base/" + std::to_string(getuid()) + "/" + std::string(CPU_ARCHITECTURE) + "/" + file,
-            "/Data/base/shared/" + std::string(CPU_ARCHITECTURE) + "/" + file,
-            "/System/" + std::string(CPU_ARCHITECTURE) + "/" + file
+    // 4. Persistent / User Storage paths
+    std::vector<std::string> storagePaths = {
+            std::string(c_home ? c_home : "/home/" + OsintgramCXX::CurrentUsername()) + "/.config/OsintgramCXX/mods.d",
+            "/etc/OsintgramCXX/mods.d",
+            "/etc/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE),
+            "/usr/share/OsintgramCXX/mods.d",
+            "/usr/share/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE),
+            "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE),
+            "/Data/base/shared/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE)
     };
-    for (const auto& it: anlinxOS_paths) {
+    for (const auto &it: storagePaths) {
         if (fs::exists(it))
             return it;
     }
@@ -92,10 +123,26 @@ std::string find_lib(const std::string &file) {
     const char *pathEnv = getenv("PATH");
     if (pathEnv) {
         std::string pathEntry;
+        std::istringstream ss(pathEnv);
 
-        while (std::getline(std::istringstream(pathEnv), pathEntry, ';')) {
+        while (std::getline(ss, pathEntry, ';')) {
             result = pathEntry / fs::path(file);
 
+            if (fs::exists(result))
+                return result.string();
+        }
+    }
+
+    if (c_userProfile) {
+        std::string userProfile = std::string(c_userProfile);
+        std::vector<std::string> winPaths = {
+                userProfile + R"(\AppData\Local\OsintgramCXX)",
+                userProfile + R"(\AppData\Local\OsintgramCXX\mods.d)",
+                userProfile + R"(\AppData\Local\OsintgramCXX\mods.d\)" + std::string(CPU_ARCHITECTURE)
+        };
+
+        for (const auto& it : winPaths) {
+            result = fs::path(it) / file;
             if (fs::exists(result))
                 return result.string();
         }
@@ -122,13 +169,13 @@ void *get_method_from_handle(void *handle, const char *symbol) {
 #endif
 }
 
-std::string get_error_from_extlib() {
+std::string get_error_from_lib() {
 #ifdef __linux__
     return dlerror();
 #elif defined(_WIN32)
     char buf[512] = {0};
-    int len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                             NULL, GetLastError(), 0, buf, sizeof(buf), NULL);
+    unsigned long len = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                       nullptr, GetLastError(), 0, buf, sizeof(buf), nullptr);
     if (len == 0)
         return "[UNKNOWN_ERROR]";
 
@@ -145,6 +192,28 @@ void parse_json(const json &j) {
 
     if (j["command_sets"].is_array() && !j["command_sets"].empty()) {
         for (const auto &command_set: j["command_sets"]) {
+            if (command_set.is_string() && !std::string(command_set).empty()) {
+                fs::path jsonFile = locate_json(command_set);
+                if (fs::exists(jsonFile)) {
+                    std::string data;
+
+                    // we use scope block to make the file closing happen as soon as the scope block is finished
+                    {
+                        std::ifstream in(jsonFile);
+                        if (in.is_open()) {
+                            std::stringstream ss;
+                            ss << in.rdbuf();
+
+                            data = ss.str();
+                        }
+                    }
+
+                    parse_json(json::parse(data));
+                }
+
+                return;
+            }
+
             void *libHandle = nullptr;
             if (!command_set.contains("label"))
                 throw std::runtime_error("invalid command set (\"invalid\" key is missing)");
@@ -163,7 +232,7 @@ void parse_json(const json &j) {
 #endif
 
 #ifdef _WIN64
-            objName = "win64:";
+            objName = "windows:";
 #endif
 
             // construct architecture
@@ -212,7 +281,7 @@ void parse_json(const json &j) {
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from \"" << libName << "\": " << symbolName
                                       << " -> "
-                                      << get_error_from_extlib() << std::endl;
+                                      << get_error_from_lib() << std::endl;
                             return -1;
                         }
 
@@ -232,7 +301,7 @@ void parse_json(const json &j) {
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
                                       << " -> "
-                                      << get_error_from_extlib() << std::endl;
+                                      << get_error_from_lib() << std::endl;
                             return -1;
                         }
 
@@ -252,7 +321,7 @@ void parse_json(const json &j) {
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
                                       << " -> "
-                                      << get_error_from_extlib() << std::endl;
+                                      << get_error_from_lib() << std::endl;
                             return;
                         }
 
@@ -295,6 +364,15 @@ void parse_json(const json &j) {
     }
 }
 
+fs::path locate_json(const std::string &filename) {
+    for (const auto &it: lookupPaths) {
+        if (fs::exists(fs::path(it) / filename))
+            return fs::path(fs::path(it) / filename);
+    }
+
+    return "";
+}
+
 void init_data() {
     std::vector<std::string> jsonFiles;
 
@@ -314,53 +392,10 @@ void init_data() {
         }
     }
 
-#ifdef __linux__
-    const char *c_home = std::getenv("HOME");
-#endif
-
-#ifdef _WIN32
-    const char *c_appData = std::getenv("APPDATA");
-    const char *c_localAppData = std::getenv("LOCALAPPDATA");
-    const char *c_public = std::getenv("PUBLIC");
-    const char *c_userProfile = std::getenv("USERPROFILE");
-#endif
-
-    std::vector<std::string> lookupPaths = {
-            OsintgramCXX::CurrentWorkingDirectory() + "/Resources/commands.json",
-            OsintgramCXX::CurrentWorkingDirectory() + "/commands.json",
-            OsintgramCXX::ExecutableDirectory() + "/Resources/commands.json",
-            OsintgramCXX::ExecutableDirectory() + "/commands.json",
-
-#ifdef __linux__
-            "/usr/share/OsintgramCXX/commands.json",
-            "/usr/local/share/OsintgramCXX/commands.json",
-            std::string(c_home ? c_home : "/home/" + OsintgramCXX::CurrentUsername()) +
-            "/.local/share/OsintgramCXX/commands.json",
-            "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX/commands.json",
-            "/Data/base/shared/OsintgramCXX/commands.json",
-#endif
-
-#ifdef _WIN32
-            std::string(c_appData ? c_appData : (c_userProfile ? c_userProfile : "C:\\Users\\" +
-                                                                                 OsintgramCXX::CurrentUsername() +
-                                                                                 "\\AppData\\Roaming")) +
-            "\\OsintgramCXX\\commands.json",
-
-            std::string(c_localAppData ? c_localAppData : (c_userProfile ? c_userProfile : "C:\\Users\\" +
-                                                                                           OsintgramCXX::CurrentUsername() +
-                                                                                           "\\AppData\\Local")) +
-            "\\OsintgramCXX\\commands.json",
-
-            std::string(c_public ? c_public : "C:\\Users\\Public") + "\\OsintgramCXX\\commands.json",
-
-            std::string(c_userProfile ? c_userProfile : "C:\\Users\\" + OsintgramCXX::CurrentUsername()) +
-            "\\OsintgramCXX\\commands.json",
-#endif
-    };
-
     for (const auto &it: lookupPaths) {
-        if (fs::exists(it))
-            jsonFiles.emplace_back(it);
+        std::string path = it + "/commands.json";
+        if (fs::exists(path))
+            jsonFiles.emplace_back(path);
     }
 
     if (jsonFiles.empty()) {

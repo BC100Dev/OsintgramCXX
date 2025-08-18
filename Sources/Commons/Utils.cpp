@@ -382,13 +382,17 @@ namespace OsintgramCXX {
         char buffer[MAX_PATH];
         GetModuleFileName(nullptr, buffer, MAX_PATH);
         std::filesystem::path exePath = std::string(buffer);
-        return exePath.string();
+        return exePath.parent_path().string();
 #else
         char result[PATH_MAX];
         ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
         std::filesystem::path exePath = std::string(result, (count > 0) ? count : 0);
         return exePath.parent_path().string();
 #endif
+    }
+
+    long long nanoTime() {
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     }
 
 }
