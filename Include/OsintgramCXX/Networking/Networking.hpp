@@ -7,6 +7,7 @@
 #include <sstream>
 #include <optional>
 #include <curl/curl.h>
+#include <iostream>
 
 namespace OsintgramCXX::Networking {
 
@@ -15,18 +16,15 @@ namespace OsintgramCXX::Networking {
     using RawData = std::vector<unsigned char>;
 
     enum RequestMethod {
-        GET = 0,
-        POST = 1,
-        PATCH = 2,
-        HEAD = 3,
-        PUT = 4,
-
-        // We shisha deleted the Windows macro conflict because as usual, compiling for Windows
-        // must be an ass
-        SHISHA_DELETE = 5,
-        CONNECT = 6,
-        OPTIONS = 7,
-        TRACE = 8
+        REQ_GET = 0,
+        REQ_POST = 1,
+        REQ_PATCH = 2,
+        REQ_HEAD = 3,
+        REQ_PUT = 4,
+        REQ_DELETE = 5,
+        REQ_CONNECT = 6,
+        REQ_OPTIONS = 7,
+        REQ_TRACE = 8
     };
 
     enum HttpVersion {
@@ -46,7 +44,7 @@ namespace OsintgramCXX::Networking {
     };
 
     struct RequestData {
-        RequestMethod method = GET;
+        RequestMethod method = REQ_GET;
         std::string url;
         Headers headers;
         HttpVersion version = HTTP_1_1;
@@ -62,6 +60,11 @@ namespace OsintgramCXX::Networking {
     };
 
     ResponseData CreateRequest(const RequestData &request);
+
+    class NetworkError : public std::runtime_error {
+    public:
+        explicit NetworkError(const std::string& what) : std::runtime_error(what) {}
+    };
 
 }
 

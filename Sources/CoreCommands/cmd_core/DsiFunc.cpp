@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 void update() {
     RequestData req;
     req.url = "https://raw.githubusercontent.com/BC100Dev/OsintgramCXX/refs/heads/master/Resources/device_profiles.json";
-    req.method = GET;
+    req.method = REQ_GET;
     req.headers.emplace_back("User-Agent", "GitHub (OsintgramCXX, v1.0)");
 
     std::string jsonData;

@@ -19,23 +19,23 @@ namespace OsintgramCXX::Networking {
 
     std::string ReqMethodToStr(const RequestMethod &method) {
         switch (method) {
-            case GET:
+            case REQ_GET:
                 return "GET";
-            case POST:
+            case REQ_POST:
                 return "POST";
-            case PUT:
+            case REQ_PUT:
                 return "PUT";
-            case SHISHA_DELETE:
+            case REQ_DELETE:
                 return "DELETE";
-            case PATCH:
+            case REQ_PATCH:
                 return "PATCH";
-            case HEAD:
+            case REQ_HEAD:
                 return "HEAD";
-            case CONNECT:
+            case REQ_CONNECT:
                 return "CONNECT";
-            case OPTIONS:
+            case REQ_OPTIONS:
                 return "OPTIONS";
-            case TRACE:
+            case REQ_TRACE:
                 return "TRACE";
             default:
                 return "UNKNOWN";
@@ -107,47 +107,46 @@ namespace OsintgramCXX::Networking {
         CURL *curl = curl_easy_init();
         ResponseData response;
 
-        if (!curl) {
-            response.errorData = "Could not initialize a CURL session";
-            return response;
-        }
+        if (!curl)
+            throw NetworkError("Could not initialize a Network Request Session");
 
         try {
             curl_easy_setopt(curl, CURLOPT_URL, request.url.c_str());
 
             switch (request.method) {
-                case GET:
+                case REQ_GET:
                     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
                     break;
-                case POST:
+                case REQ_POST:
                     curl_easy_setopt(curl, CURLOPT_POST, 1L);
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.postData.data());
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, request.postData.size());
                     break;
-                case PUT:
+                case REQ_PUT:
                     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.postData.data());
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, request.postData.size());
                     break;
-                case SHISHA_DELETE:
+                case REQ_DELETE:
                     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
                     break;
-                case PATCH:
+                case REQ_PATCH:
                     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.postData.data());
                     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, request.postData.size());
                     break;
-                case HEAD:
-                    curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+                case REQ_HEAD:
+                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
                     break;
-                case OPTIONS:
+                case REQ_OPTIONS:
                     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "OPTIONS");
                     break;
-                case CONNECT:
-                case TRACE:
-                    response.errorData = ReqMethodToStr(request.method) + " not implemented";
+                case REQ_CONNECT:
+                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "CONNECT");
+                    break;
+                case REQ_TRACE:
                     CleanCurl(curl);
-                    return response;
+                    throw NetworkError(ReqMethodToStr(request.method) + " not implemented");
             }
 
             // CA store check (if given)
@@ -192,9 +191,8 @@ namespace OsintgramCXX::Networking {
 
             CURLcode res = curl_easy_perform(curl);
             if (res != CURLE_OK) {
-                response.errorData = "curl_easy_perform() failed: " + std::string(curl_easy_strerror(res));
                 CleanCurl(curl);
-                return response;
+                throw NetworkError("curl_easy_perform() failed, error " + std::string(curl_easy_strerror(res)));
             }
 
             long httpVer;
