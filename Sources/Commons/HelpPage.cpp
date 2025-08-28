@@ -43,14 +43,14 @@ std::string HelpPage::display() const {
         maxItemLength = std::max(maxItemLength, static_cast<int>(argLine.length()));
     }
 
-    for (const auto &item: argItemList) {
+    for (const auto& item : argItemList) {
         std::string argLine = item.arg + (item.equalDesc.empty() ? "" : descSep + item.equalDesc);
         if (startSpaceWidth > 0)
             oss << std::string(startSpaceWidth, ' ');
 
         oss << argLine
             << std::string(maxItemLength - argLine.length() + spaceWidth, ' ')
-            << item.description + "\n";
+            << item.description << "\n";
     }
 
     return oss.str();

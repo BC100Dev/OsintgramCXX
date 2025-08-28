@@ -15,7 +15,6 @@
 #ifdef __linux__
 
 #include <csignal>
-#include <pthread.h>
 #include <pwd.h>
 
 #elif _WIN32
@@ -35,6 +34,8 @@ struct CommandExecution {
     int rc;
 };
 
+bool timeMeasuringSystem = false;
+
 void helpCmd() {
     if (OsintgramCXX::loadedLibraries.empty()) {
         std::cerr << "No commands have been added." << std::endl;
@@ -47,26 +48,26 @@ void helpCmd() {
         return;
     }
 
-    std::cout << "[General]" << std::endl;
+    Terminal::println(std::cout, Terminal::TermColor::RED, "[General]", true);
     HelpPage gPage;
     gPage.setSpaceWidth(5);
     gPage.setStartSpaceWidth(2);
     gPage.addArg("help", "", "Shows this help page");
     gPage.addArg("exit", "", "Exits this application");
-    std::cout << gPage.display() << std::endl;
+    Terminal::println(std::cout, Terminal::TermColor::CYAN, gPage.display(), true);
 
     for (const auto &cmdVar: OsintgramCXX::loadedLibraries) {
         const auto &item = cmdVar.second;
-        std::cout << "[" << item.label << "]" << std::endl;
+        Terminal::println(std::cout, Terminal::TermColor::RED, "[" + item.label + "]", true);
 
         HelpPage ePage;
         ePage.setStartSpaceWidth(2);
         ePage.setSpaceWidth(5);
 
-        for (const auto& cmdEntry : item.commands)
+        for (const auto &cmdEntry: item.commands)
             ePage.addArg(cmdEntry.cmd, "", cmdEntry.description);
 
-        std::cout << ePage.display() << std::endl;
+        Terminal::println(std::cout, Terminal::TermColor::CYAN, ePage.display(), true);
     }
 }
 
@@ -77,7 +78,11 @@ void forceStopShell(int) {
 }
 
 CommandExecution execCommand(const std::string &cmd, const std::vector<std::string> &args, const ShellEnvironment &env,
-                const std::string &cmdLine) {
+                             const std::string &cmdLine) {
+    long long startTime;
+    if (timeMeasuringSystem)
+        startTime = OsintgramCXX::nanoTime();
+
     bool found = false;
     OsintgramCXX::C_CommandExec cmdExecHandle = nullptr;
     CommandExecution execReturn{};
@@ -91,7 +96,7 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
             }
         }
     }
-    
+
     if (!found) {
         execReturn.cmdFound = false;
         execReturn.msg = cmd + ": not found";
@@ -103,10 +108,10 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
         execReturn.cmdFound = false;
         execReturn.msg = cmd + ": handler for execution is missing";
         execReturn.rc = 1;
-        
+
         return execReturn;
     }
-    
+
     execReturn.cmdFound = true;
 
     char **argv = new char *[args.size()];
@@ -152,6 +157,15 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
     }
     delete[] argv;
 
+    if (timeMeasuringSystem) {
+        long long endTime = OsintgramCXX::nanoTime();
+        long long duration = endTime - startTime;
+        long long sec = duration / 1'000'000'000;
+        long long millis = (duration / 1'000'000) % 1'000;
+
+        std::cout << cmd << ": took " << sec << "." << std::setfill('0') << std::setw(3) << millis << " s" << std::endl;
+    }
+
     return execReturn;
 }
 
@@ -195,17 +209,23 @@ namespace OsintgramCXX::ShellFuckery {
                 return;
             }
 
+            if (opt[0] == "ENABLETIMEMEASURINGSYSTEM") {
+                timeMeasuringSystem = opt[1] == "true" || opt[1] == "enabled" || opt[1] == "yes" || opt[1] == "1";
+                return;
+            }
+
             environment[opt[0]] = opt[1];
         } else {
             auto it = environment.find(worker);
             if (it == environment.end()) {
-                Terminal::errPrintln(Terminal::TermColor::RED, worker + " (not found)", true);
+                Terminal::println(std::cerr, Terminal::TermColor::RED, worker + " (not found)", true);
                 return;
             }
 
-            Terminal::print(Terminal::TermColor::BLUE, worker, true);
+            Terminal::print(std::cout, Terminal::TermColor::BLUE, worker, true);
             std::cout << " => ";
-            Terminal::print(Terminal::TermColor::CYAN, it->second, true);
+            Terminal::print(std::cout, Terminal::TermColor::CYAN, it->second, true);
+            std::cout << std::endl;
         }
     }
 
@@ -213,7 +233,6 @@ namespace OsintgramCXX::ShellFuckery {
 #ifdef __linux__
         signal(SIGINT, forceStopShell);
         signal(SIGTERM, forceStopShell);
-        signal(SIGKILL, forceStopShell);
         signal(SIGABRT, forceStopShell);
 #endif
 
@@ -296,10 +315,8 @@ namespace OsintgramCXX::ShellFuckery {
         running = false;
 
         if (forceStop && !alreadyForceStopped) {
-#if defined(__ANDROID__)
-            pthread_kill(shellThread.native_handle(), SIGKILL);
-#elif !defined(__ANDROID__) && defined(__linux__)
-            pthread_cancel(shellThread.native_handle());
+#if defined(__linux__)
+            pthread_kill(shellThread.native_handle(), SIGABRT);
 #elif defined(_WIN32)
             TerminateThread(reinterpret_cast<HANDLE>(shellThread.native_handle()), 0);
 #endif

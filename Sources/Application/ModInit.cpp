@@ -215,11 +215,21 @@ void parse_json(const json &j) {
             }
 
             void *libHandle = nullptr;
-            if (!command_set.contains("label"))
-                throw std::runtime_error("invalid command set (\"invalid\" key is missing)");
+            if (!command_set.contains("label") && !command_set["label"].is_string())
+                throw std::runtime_error("invalid command set (\"label\" key is missing or contains invalid data)");
+
+            if (!command_set.contains("id") && !command_set["id"].is_number())
+                throw std::runtime_error("invalid command set (\"id\" key is missing or contains invalid data)");
 
             OsintgramCXX::LibraryEntry libEntryData{};
             libEntryData.label = command_set["label"];
+            libEntryData.id = command_set["id"];
+
+            if (command_set.contains("author") && command_set["author"].is_string())
+                libEntryData.author = command_set["author"];
+
+            if (command_set.contains("description") && command_set["description"].is_string())
+                libEntryData.description = command_set["description"];
 
             std::string objName;
             // construct platform name
@@ -250,6 +260,9 @@ void parse_json(const json &j) {
                 continue;
             }
 
+            if (!command_set["lib"][objName].is_string())
+                throw std::runtime_error("library entry for \"" + objName + "\" is not a string");
+
             std::string libName = command_set["lib"][objName];
             std::string libPath = find_lib(libName);
             if (libPath.empty())
@@ -269,10 +282,7 @@ void parse_json(const json &j) {
                 json h_obj = command_set["handlers"];
                 std::string symbolName;
 
-                if (h_obj.contains("OnLoad")) {
-                    if (!h_obj["OnLoad"].is_string())
-                        throw std::runtime_error("OnLoad is not returning a string");
-
+                if (h_obj.contains("OnLoad") && h_obj["OnLoad"].is_string()) {
                     symbolName = h_obj["OnLoad"];
 
                     libEntryData.handler_onLoad = [libHandle, libName, symbolName]() -> int {
@@ -289,10 +299,7 @@ void parse_json(const json &j) {
                     };
                 }
 
-                if (h_obj.contains("OnStop")) {
-                    if (!h_obj["OnStop"].is_string())
-                        throw std::runtime_error("OnStop is not returning a string");
-
+                if (h_obj.contains("OnStop") && h_obj["OnStop"].is_string()) {
                     symbolName = h_obj["OnStop"];
 
                     libEntryData.handler_onExit = [libHandle, libName, symbolName]() -> int {
@@ -309,10 +316,7 @@ void parse_json(const json &j) {
                     };
                 }
 
-                if (h_obj.contains("OnCommandExec")) {
-                    if (!h_obj["OnCommandExec"].is_string())
-                        throw std::runtime_error("OnCommandExec is not returning a string");
-
+                if (h_obj.contains("OnCommandExec") && h_obj["OnCommandExec"].is_string()) {
                     symbolName = h_obj["OnCommandExec"];
 
                     libEntryData.handler_onCmdExec = [libHandle, libName, symbolName](char *cmdLine) {
@@ -332,7 +336,8 @@ void parse_json(const json &j) {
 
             if (command_set["cmd_list"].is_array() && !command_set["cmd_list"].empty()) {
                 for (const auto &cmd: command_set["cmd_list"]) {
-                    if (cmd["cmd"].is_string() && cmd["description"].is_string() && cmd["exec_symbol"].is_string()) {
+                    if ((cmd.contains("cmd") && cmd.contains("description") && cmd.contains("exec_symbol")) &&
+                        (cmd["cmd"].is_string() && cmd["description"].is_string() && cmd["exec_symbol"].is_string())) {
                         std::string cmdName = cmd["cmd"];
                         std::string desc = cmd["description"];
                         std::string sym = cmd["exec_symbol"];

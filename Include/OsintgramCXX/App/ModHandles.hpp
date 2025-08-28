@@ -26,6 +26,9 @@ namespace OsintgramCXX {
 
     struct LibraryEntry {
         std::string label;
+        long long id;
+        std::optional<std::string> author;
+        std::optional<std::string> description;
         C_OnLoadEntry handler_onLoad;
         C_OnExitEntry handler_onExit;
         C_OnCommandExecute handler_onCmdExec;

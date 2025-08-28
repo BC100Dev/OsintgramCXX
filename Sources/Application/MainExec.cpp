@@ -1,14 +1,11 @@
 #include <iostream>
 #include <exception>
 #include <vector>
-#include <stdexcept>
 #include <thread>
 #include <sstream>
 #include <typeinfo>
 #include <filesystem>
-#include <set>
 #include <csignal>
-#include <random>
 
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
@@ -42,7 +39,6 @@
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
 
-bool quickStop = false;
 std::string chrootPath;
 
 void WinSetColorMode() {
@@ -68,12 +64,12 @@ void exceptionHandler() {
             std::ostringstream sw;
             sw << ex.what();
 
-            Terminal::errPrintln(Terminal::TermColor::RED,
+            Terminal::println(std::cerr, Terminal::TermColor::RED,
                                  "The application has unexpectedly crashed. Cause of this error:", false);
-            Terminal::errPrintln(Terminal::TermColor::RED, sw.str(), true);
+            Terminal::println(std::cerr, Terminal::TermColor::RED, sw.str(), true);
         }
     } else
-        Terminal::errPrintln(Terminal::TermColor::RED, "Unknown Termination captured", true);
+        Terminal::println(std::cerr, Terminal::TermColor::RED, "Unknown Termination captured", true);
 
     std::raise(SIGSEGV);
 }
@@ -198,7 +194,6 @@ void init() {
     signal(SIGINT, sigHandle);
     signal(SIGTERM, sigHandle);
     signal(SIGABRT, sigHandle);
-    signal(SIGKILL, sigHandle);
 #endif
 
     // this method can still be called, will be ineffective, if called outside of Android platforms
@@ -210,13 +205,18 @@ void initSettings() {
 
 void parseArgs(const std::vector<std::string> &args) {
     for (const std::string &arg: args) {
-        if (arg[0] == '-') {
-            if (arg == "-h" || arg == "--help") {
+        std::string _arg = TrimString(arg);
+
+        if (_arg.empty())
+            continue;
+
+        if (_arg[0] == '-') {
+            if (_arg == "-h" || _arg == "--help") {
                 usage();
                 exit(0);
             }
 
-            if (arg.rfind("-E", 0) == 0 && arg.length() > 2) {
+            if (_arg.rfind("-E", 0) == 0) {
                 std::string keyValue = arg.substr(2);
                 size_t eqPos = keyValue.find('=');
 
@@ -228,7 +228,7 @@ void parseArgs(const std::vector<std::string> &args) {
                 ShellFuckery::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
 
-            if (arg.rfind("--sandbox", 0) == 0 && arg.length() > 2) {
+            if (_arg.rfind("--sandbox", 0) == 0) {
                 size_t eqPos = arg.find('=');
                 if (eqPos == std::string::npos) {
                     std::cerr << "Invalid format for --sandbox argument: " << arg << std::endl;
@@ -237,9 +237,6 @@ void parseArgs(const std::vector<std::string> &args) {
 
                 chrootPath = arg.substr(eqPos + 1);
             }
-
-            if (arg == "--test-exec-time")
-                quickStop = true;
         } else {
             //Target target;
             //target.name = arg;
@@ -250,8 +247,6 @@ void parseArgs(const std::vector<std::string> &args) {
 }
 
 int main(int argc, char **argv) {
-    long long startTime = nanoTime();
-
     std::set_terminate(exceptionHandler);
 
     // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
@@ -279,6 +274,7 @@ int main(int argc, char **argv) {
     ShellFuckery::initializeShell();
     ModLoader_load();
 
+    // optional, by the CLI args, enable FS sandboxing
 #if defined(__linux__)
     if (!chrootPath.empty()) {
         if (!fs::exists(chrootPath)) {
@@ -296,46 +292,51 @@ int main(int argc, char **argv) {
             return 1;
         }
 
-        bool capAvail = false;
+        bool shouldChroot = getuid() == 0;
 #ifndef __ANDROID__
-        cap_t caps = cap_get_proc();
-        if (!caps) {
-            std::cerr << "Unable to fetch executable capabilities" << std::endl;
-            return 1;
-        }
-
-        cap_flag_value_t cap_value;
-        if (cap_get_flag(caps, CAP_SYS_CHROOT, CAP_EFFECTIVE, &cap_value) == -1) {
-            std::cerr << "Failed to fetch chroot capabilities for the executable" << std::endl;
-            cap_free(caps);
-            return 1;
-        }
-
-        capAvail = cap_value == CAP_SET;
-        cap_free(caps);
-#endif
-
-        if (getuid() == 0 || capAvail) {
-            if (chroot(chrootPath.c_str()) != 0) {
-                std::cerr << "Unable to switch root directory, error: " << std::strerror(errno) << std::endl;
+        if (!shouldChroot) {
+            cap_t caps = cap_get_proc();
+            if (!caps) {
+                std::cerr << "Unable to fetch executable capabilities" << std::endl;
                 return 1;
             }
+
+            cap_flag_value_t cap_value;
+            if (cap_get_flag(caps, CAP_SYS_CHROOT, CAP_EFFECTIVE, &cap_value) == -1) {
+                std::cerr << "Failed to fetch chroot capabilities for the executable" << std::endl;
+                cap_free(caps);
+                return 1;
+            }
+
+            shouldChroot = cap_value == CAP_SET;
+            cap_free(caps);
+        }
+#endif
+
+        if (shouldChroot) {
+            if (chroot(chrootPath.c_str()) != 0) {
+                std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;
+                return 1;
+            }
+
+            std::cout << "Sandboxing initialized" << std::endl;
+        } else {
+            std::cerr << "Sandboxing failed: not root";
+
+#ifdef __ANDROID__
+            std::cerr << ", which requires the process to enable Sandboxing capability" << std::endl;
+#else
+            std::cerr << ", nor given the capability to do so" << std::endl;
+#endif
+
+            return 1;
         }
     }
 #endif
 
     ModLoader_start();
-
-    if (!quickStop)
-        ShellFuckery::launchShell();
-
+    ShellFuckery::launchShell();
     ModLoader_stop();
-
-    long long endTime = nanoTime();
-    if (quickStop) {
-        double elapsedTime = ((long long) endTime - startTime) / 1'000'000'000.0;
-        printf("Total elapsed time: %.3f seconds\n", elapsedTime);
-    }
 
     return 0;
 }

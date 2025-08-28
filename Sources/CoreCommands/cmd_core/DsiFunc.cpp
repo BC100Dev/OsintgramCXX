@@ -78,5 +78,7 @@ int dsi_func(const std::vector<std::string>& args, const std::map<std::string, s
         actions.display(std::cout);
     }
 
+    OsintgramCXX::CurrentThread_Sleep(500);
+
     return 0;
 }

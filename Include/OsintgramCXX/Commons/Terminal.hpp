@@ -19,18 +19,20 @@ public:
         WHITE
     };
 
-    static void print(TermColor color, const std::string& msg, bool reset = true);
-    static void print(TermColor color, const std::stringstream & msg, bool reset = true);
-    static void println(TermColor color, const std::string& msg, bool reset = true);
-    static void println(TermColor color, const std::stringstream & msg, bool reset = true);
-    static void errPrint(TermColor color, const std::string& msg, bool reset = true);
-    static void errPrint(TermColor color, const std::stringstream & msg, bool reset = true);
-    static void errPrintln(TermColor color, const std::string& msg, bool reset = true);
-    static void errPrintln(TermColor color, const std::stringstream & msg, bool reset = true);
+    struct Size {
+        int width;
+        int height;
+    };
+
     static void clearTerminal();
 
-    static int windowColumns();
-    static int windowRows();
+    static void print(std::ostream& stream, const TermColor& color, const std::string& msg, bool reset = true);
+    static void print(std::ostream& stream, const TermColor& color, const std::stringstream& msg, bool reset = true);
+
+    static void println(std::ostream& stream, const TermColor& color, const std::string& msg, bool reset = true);
+    static void println(std::ostream& stream, const TermColor& color, const std::stringstream& msg, bool reset = true);
+
+    static Size terminalSize();
 
 private:
     static std::string translateColor(TermColor color);
