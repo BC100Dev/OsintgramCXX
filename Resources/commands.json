@@ -16,7 +16,9 @@
             "handlers": {
                 "OnLoad": "plugin_handle_start",
                 "OnStop": "plugin_handle_stop",
-                "OnCommandExec": "plugin_handle_exec"
+                "OnCommandExec": "plugin_handle_exec",
+                "OnCommandExecSuccess": "handle_exec_success",
+                "OnCommandExecFailure": "handle_exec_failure"
             },
             "cmd_list": [
                 {
