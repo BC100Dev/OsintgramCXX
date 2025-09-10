@@ -13,6 +13,20 @@ of this project and rewrite most to all components by myself. Well... except for
 Networking part, me and Networking aren't the best friends... just yet. Wait, until I
 finish one of the most insane projects known to man. A hint, it's on my GitHub profile.
 
+## Update from Datalux himself
+Alright, so apparently, the original project did not completely abandon it. No, I was not
+contacted, don't even try to make me drop my entire Inbox in here. Although I did attempt
+to reach out to him, with no luck... yes, again.
+
+If you guys weren't up-to-speed, there has been some updates regarding that project. Two
+PRs (Pull Requests) have been accepted and merged, along with that man himself creating a
+new repo. This man refuses to talk to me, but would still gladly update it, as if that
+original project never got abandoned in the first place. I have the screenshot down below.
+[Brother](https://github.com/Datalux)... PLEASE, make up your own mind. At least try to
+answer to my E-Mail...
+
+![Screenshot of the Commit History on Osintgram](Docs/Images/Osintgram_CommitHistory.jpg)
+
 ---
 
 ## Use cases
@@ -117,3 +131,52 @@ methods include:
 - Dual-Booting (if you have a Windows PC)
 - WSL (Windows only)
 - Termux (Android only, still experimenting for a proper build)
+
+---
+
+## Modding Support
+Yes, I may have promised that feature back in
+[Osintgram4j](https://github.com/BC100Dev/osintgram4j) itself, but I have decided to take
+things up a notch and actually create a proper one. With this modding support, you can write
+your own C/C++ shared library, have them linked with the
+[`commands.json`](Resources/commands.json) itself, and include your own commands, handlers
+and much more. As the development stage is still in the middle stages and other ideas coming
+in, the format for it will change, especially with the first version, considering that the
+current version provides simple commands (`cmd`, `description`, `exec_symbol`). However,
+please note that it is currently not possible to validate the parameters for the symbol of
+the library entry (the method that gets invoked), so please keep in mind that you have to
+include a method that runs like this:
+
+```c++
+// if using C, skip the export part
+export "C" int cmd_symbol(const char* cmd, int argc, char** argv, int envc, char** env_map)
+```
+
+Along with that, you are able to create handlers for each call. For example, you can have
+a handler that runs immediately, once OsintgramCXX completes loading the necessary things.
+The same goes, when OsintgramCXX is stopping. Please keep in mind that no program can catch
+the SIGKILL signal. The line required for these handlers would be for your codebase:
+
+```c++
+export "C" int plugin_start()
+
+export "C" int plugin_stop()
+```
+
+Want to snoop, what a command gets executed in the first place? Worry not, include a CMD
+starting and finishing handle by making these methods:
+
+```c++
+export "C" void cmd_handle_start(const char* cmdLine)
+
+export "C" void cmd_handle_finish(const char* cmdLine, int rc, const char* stream)
+```
+
+The possibilities are endless. You can start creating one now.
+
+Also keep in mind that I will not support any modifications / plugins that violates the
+Instagram ToS harder than this tool already does.
+
+---
+
+Oh, and before I forget... womp womp, macOS users :skull:
