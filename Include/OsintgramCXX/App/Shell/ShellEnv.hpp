@@ -10,13 +10,18 @@ namespace OsintgramCXX {
 
     using ShellEnvironment = std::map<std::string, std::string>;
 
+    // params: cmdName, argc, argv, envc, env_map
     using C_CommandExec = std::function<int(const char*, int, char **, int, char **)>;
 
     using C_OnLoadEntry = std::function<int()>;
 
     using C_OnExitEntry = std::function<int()>;
 
-    using C_OnCommandExecute = std::function<void(char *)>;
+    // params: cmdLine
+    using C_OnCommandExecutionStart = std::function<void(char *)>;
+
+    // params: cmdLine, rc, stream
+    using C_OnCommandExecutionFinish = std::function<void(char *, int, char*)>;
 
     struct ShellLibEntry {
         std::string cmd;

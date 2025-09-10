@@ -10,6 +10,9 @@ find_package(CURL REQUIRED)
 ## Required for Local Account Storage (used by CURL)
 find_package(ZLIB REQUIRED)
 
+## Let's make it a requirement, especially for Windows users
+find_package(Threads REQUIRED)
+
 list(APPEND OsintgramCXX_LINK_DEPS CURL::libcurl ZLIB::ZLIB)
 list(APPEND OsintgramCXX_LINK_OpenSSL OpenSSL::SSL OpenSSL::Crypto)
 
@@ -30,24 +33,12 @@ if (APP_SYSTEM_TARGET STREQUAL "Windows")
     set_property(TARGET OpenSSL::Crypto PROPERTY INTERFACE_LINK_LIBRARIES "crypt32;ws2_32")
     set_property(TARGET OpenSSL::SSL PROPERTY INTERFACE_LINK_LIBRARIES "crypt32;ws2_32")
 
-    ## fails to statically link, eh, chodas?
-    ## don't worry, I bring a very nice help.
-    if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
-        set(PTHREADS_WIN64_ENABLED OFF)
-        if (NOT DEFINED PTHREADS_WIN64_MINGW_DIR)
-            set(PTHREADS_WIN64_MINGW_DIR "/usr/x86_64-w64-mingw32")
-        endif ()
+    list(APPEND OsintgramCXX_LINK_DEPS "-Wl,-Bstatic,--whole-archive" "winpthread" "-Wl,--no-whole-archive")
 
-        if (EXISTS "${PTHREADS_WIN64_MINGW_DIR}/bin/libwinpthread-1.dll"
-                AND EXISTS "${PTHREADS_WIN64_MINGW_DIR}/lib/libwinpthread.a")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
-        endif ()
+    if (APP_SYSTEM_TARGET STREQUAL "Windows")
+        set(CMAKE_SHARED_LIBRARY_PREFIX "")
+        set(CMAKE_SHARED_LIBRARY_SUFFIX ".dll")
+        set(CMAKE_STATIC_LIBRARY_PREFIX "")
+        set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
     endif ()
 endif ()
-
-if (APP_SYSTEM_TARGET STREQUAL "Windows")
-    set(CMAKE_SHARED_LIBRARY_PREFIX "")
-    set(CMAKE_SHARED_LIBRARY_SUFFIX ".dll")
-    set(CMAKE_STATIC_LIBRARY_PREFIX "")
-    set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
-endif()

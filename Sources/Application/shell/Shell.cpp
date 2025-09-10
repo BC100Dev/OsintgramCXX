@@ -12,6 +12,8 @@
 #include <filesystem>
 #include <cstring>
 
+#include "StdCapture.hpp"
+
 #ifdef __linux__
 
 #include <csignal>
@@ -30,6 +32,7 @@ namespace fs = std::filesystem;
 
 struct CommandExecution {
     bool cmdFound;
+    std::string contents;
     std::string msg;
     int rc;
 };
@@ -88,7 +91,7 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
     CommandExecution execReturn{};
 
     for (const auto &it: OsintgramCXX::loadedLibraries) {
-        for (const auto &cmdEntry: it.second.commands) {
+        for (const auto &cmdEntry : it.second.commands) {
             if (cmd == cmdEntry.cmd) {
                 found = true;
                 cmdExecHandle = cmdEntry.execHandler;
@@ -106,7 +109,7 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
 
     if (cmdExecHandle == nullptr) {
         execReturn.cmdFound = false;
-        execReturn.msg = cmd + ": handler for execution is missing";
+        execReturn.msg = cmd + ": handler for execution is not defined";
         execReturn.rc = 1;
 
         return execReturn;
@@ -131,20 +134,22 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
     // start the listeners for "OnCommandExec"
     for (const auto &it: OsintgramCXX::loadedLibraries) {
         std::thread t([handler = it.second, &cmdLine]() {
-            if (handler.handler_onCmdExec != nullptr)
-                handler.handler_onCmdExec(const_cast<char *>(cmdLine.c_str()));
+            if (handler.handler_onCmdExecStart != nullptr)
+                handler.handler_onCmdExecStart(const_cast<char *>(cmdLine.c_str()));
         });
         t.detach();
     }
 
+    StdCapture cap;
+
     try {
         execReturn.rc = cmdExecHandle(cmd.c_str(), args.size(), argv, env.size(), env_map);
     } catch (const std::runtime_error &err) {
-        std::cerr << "Runtime error occured, while executing \"" << cmd << "\": " << err.what() << std::endl;
+        std::cerr << "Runtime error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
     } catch (const std::exception &err) {
-        std::cerr << "Error occured, while executing \"" << cmd << "\": " << err.what() << std::endl;
+        std::cerr << "Error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
     } catch (...) {
-        std::cerr << "Unknown error occured, while executing \"" << cmd << "\"" << std::endl;
+        std::cerr << "Unknown error occurred, while executing \"" << cmd << "\"" << std::endl;
     }
 
     for (int i = 0; i < env.size(); i++) {
@@ -156,6 +161,18 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
         free(argv[i]);
     }
     delete[] argv;
+
+    for (const auto &it: OsintgramCXX::loadedLibraries) {
+        std::thread t([handler = it.second, &cmdLine, &execReturn, output = cap.str()] {
+            if (handler.handler_onCmdExecFinish != nullptr) {
+                // fill the blank of third parameter requiring "stream" << the stdout and stderr stream
+                handler.handler_onCmdExecFinish(const_cast<char *>(cmdLine.c_str()),
+                                                execReturn.rc,
+                                                const_cast<char *>(output.c_str()));
+            }
+        });
+        t.join();
+    }
 
     if (timeMeasuringSystem) {
         long long endTime = OsintgramCXX::nanoTime();

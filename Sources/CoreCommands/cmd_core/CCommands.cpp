@@ -6,7 +6,7 @@
 #include <iostream>
 
 int cmd_handle(const char *cmd, int argc, char **argv, int envc, char **env_map) {
-    CoreFunctions::funcMap["env"] = dsi_func;
+    CoreFunctions::funcMap["env"] = env_func;
     CoreFunctions::funcMap["userctl"] = user_func;
     CoreFunctions::funcMap["cachectl"] = cache_func;
     CoreFunctions::funcMap["sessionctl"] = session_func;

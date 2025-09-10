@@ -1,9 +1,10 @@
 #include "ModInit.hpp"
 
 #include <OsintgramCXX/App/Shell/ShellEnv.hpp>
-
 #include <OsintgramCXX/App/ModHandles.hpp>
+
 #include <OsintgramCXX/Commons/Utils.hpp>
+#include <OsintgramCXX/Commons/Terminal.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -316,10 +317,10 @@ void parse_json(const json &j) {
                     };
                 }
 
-                if (h_obj.contains("OnCommandExec") && h_obj["OnCommandExec"].is_string()) {
-                    symbolName = h_obj["OnCommandExec"];
+                if (h_obj.contains("OnCommandExecStart") && h_obj["OnCommandExecStart"].is_string()) {
+                    symbolName = h_obj["OnCommandExecStart"];
 
-                    libEntryData.handler_onCmdExec = [libHandle, libName, symbolName](char *cmdLine) {
+                    libEntryData.handler_onCmdExecStart = [libHandle, libName, symbolName](char *cmdLine) {
                         using FunctionType = void(char *);
                         void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
@@ -330,6 +331,23 @@ void parse_json(const json &j) {
                         }
 
                         reinterpret_cast<FunctionType *>(funcPtr)(cmdLine);
+                    };
+                }
+
+                if (h_obj.contains("OnCommandExecFinish") && h_obj["OnCommandExecFinish"].is_string()) {
+                    symbolName = h_obj["OnCommandExecFinish"];
+
+                    libEntryData.handler_onCmdExecFinish = [libHandle, libName, symbolName](char *cmdLine, int rc, char* stream) {
+                        using FunctionType = void(char *, int, char*);
+                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                        if (!funcPtr) {
+                            std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
+                                      << " -> "
+                                      << get_error_from_lib() << std::endl;
+                            return;
+                        }
+
+                        reinterpret_cast<FunctionType *>(funcPtr)(cmdLine, rc, stream);
                     };
                 }
             }

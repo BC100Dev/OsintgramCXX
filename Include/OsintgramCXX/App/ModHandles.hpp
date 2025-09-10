@@ -22,7 +22,7 @@ namespace OsintgramCXX {
     //typedef int (*C_OnLoadEntry)();
 
     //typedef int (*C_OnExitEntry)();
-    //typedef void (*C_OnCommandExecute)(char *); // args: cmdLine
+    //typedef void (*C_OnCommandExecutionStart)(char *); // args: cmdLine
 
     struct LibraryEntry {
         std::string label;
@@ -31,7 +31,8 @@ namespace OsintgramCXX {
         std::optional<std::string> description;
         C_OnLoadEntry handler_onLoad;
         C_OnExitEntry handler_onExit;
-        C_OnCommandExecute handler_onCmdExec;
+        C_OnCommandExecutionStart handler_onCmdExecStart;
+        C_OnCommandExecutionFinish handler_onCmdExecFinish;
         std::vector<ShellLibEntry> commands;
     };
 

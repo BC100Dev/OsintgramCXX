@@ -10,7 +10,10 @@ extern "C" {
         return 0;
     }
 
-    void plugin_handle_exec(char *command) {
+    void plugin_cmd_exec_start(char *command) {
+    }
+
+    void plugin_cmd_exec_finish(char* command, int rc, char* stream) {
     }
 
 }
