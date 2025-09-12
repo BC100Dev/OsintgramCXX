@@ -30,9 +30,9 @@ for entry in raw_lines:
             "cpu_label": parts[6]
         })
     except Exception as e:
-        print(f"[WARN] Could not parse: {entry} → {e}")
+        print(f"[WARN] Could not parse {entry}: {e}")
 
 with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
     json.dump(parsed_devices, out, indent=4)
 
-print(f"[OK] Wrote {len(parsed_devices)} entries → {OUTPUT_FILE}")
+print(f"[OK] Wrote {len(parsed_devices)} entries to {OUTPUT_FILE}")

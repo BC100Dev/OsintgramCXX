@@ -337,8 +337,8 @@ void parse_json(const json &j) {
                 if (h_obj.contains("OnCommandExecFinish") && h_obj["OnCommandExecFinish"].is_string()) {
                     symbolName = h_obj["OnCommandExecFinish"];
 
-                    libEntryData.handler_onCmdExecFinish = [libHandle, libName, symbolName](char *cmdLine, int rc, char* stream) {
-                        using FunctionType = void(char *, int, char*);
+                    libEntryData.handler_onCmdExecFinish = [libHandle, libName, symbolName](char *cmdLine, int rc, int id, char* stream) {
+                        using FunctionType = void(char *, int, int, char*);
                         void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
@@ -347,7 +347,7 @@ void parse_json(const json &j) {
                             return;
                         }
 
-                        reinterpret_cast<FunctionType *>(funcPtr)(cmdLine, rc, stream);
+                        reinterpret_cast<FunctionType *>(funcPtr)(cmdLine, rc, id, stream);
                     };
                 }
             }

@@ -133,11 +133,13 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
 
     // start the listeners for "OnCommandExec"
     for (const auto &it: OsintgramCXX::loadedLibraries) {
-        std::thread t([handler = it.second, &cmdLine]() {
-            if (handler.handler_onCmdExecStart != nullptr)
+        LibraryEntry entry = it.second;
+        if (entry.handler_onCmdExecStart != nullptr) {
+            std::thread t([handler = it.second, &cmdLine] {
                 handler.handler_onCmdExecStart(const_cast<char *>(cmdLine.c_str()));
-        });
-        t.detach();
+            });
+            t.detach();
+        }
     }
 
     StdCapture cap;
@@ -160,18 +162,20 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
     for (int i = 0; i < args.size(); i++) {
         free(argv[i]);
     }
+
     delete[] argv;
 
     for (const auto &it: OsintgramCXX::loadedLibraries) {
-        std::thread t([handler = it.second, &cmdLine, &execReturn, output = cap.str()] {
-            if (handler.handler_onCmdExecFinish != nullptr) {
-                // fill the blank of third parameter requiring "stream" << the stdout and stderr stream
+        LibraryEntry entry = it.second;
+        if (entry.handler_onCmdExecFinish != nullptr) {
+            std::thread t([handler = entry, &cmdLine, &execReturn, output = cap.str()] {
                 handler.handler_onCmdExecFinish(const_cast<char *>(cmdLine.c_str()),
                                                 execReturn.rc,
+                                                handler.id,
                                                 const_cast<char *>(output.c_str()));
-            }
-        });
-        t.join();
+            });
+            t.join();
+        }
     }
 
     if (timeMeasuringSystem) {

@@ -1,10 +1,11 @@
 # OsintgramCXX
 ```text
-   *@@@%%%@@&,     ,&@@%%%&@@@.  |    (@@&%%%@@@        @&.          ,&@.     
-  #@&      ,@@(   #@%.           |  .&@(      \@\      .@@,          *@@,     
- .&@.       /@%  .@@/   .*****,  |  ,@@            @@@@@@@@@@@% .%@@@@@@@@@@%.
-  #@&      ,@@/   %@#       @@|  |   &@/      /@/      .@@,          *@@,     
-   ,@@@@&@@@&.     *@@@@@@@@@@.  |   \#@@@@&@@@/       .@@,          *@@,     
+   ___     _       _                            
+  /___\___(_)_ __ | |_ __ _ _ __ __ _ _ __ ___  
+ //  // __| | '_ \| __/ _` | '__/ _` | '_ ` _ \ 
+/ \_//\__ \ | | | | || (_| | | | (_| | | | | | |
+\___/ |___/_|_| |_|\__\__, |_|  \__,_|_| |_| |_|
+                      |___/                     
 ```
 
 Ever since the development on [the original Project](https://github.com/Datalux/Osintgram)
@@ -145,12 +146,19 @@ in, the format for it will change, especially with the first version, considerin
 current version provides simple commands (`cmd`, `description`, `exec_symbol`). However,
 please note that it is currently not possible to validate the parameters for the symbol of
 the library entry (the method that gets invoked), so please keep in mind that you have to
-include a method that runs like this:
+include a method that matches exactly by the parameters. If that isn't matched, OsintgramCXX
+will crash. Following this sample, you can create a symbol for a command:
 
 ```c++
-// if using C, skip the export part
-export "C" int cmd_symbol(const char* cmd, int argc, char** argv, int envc, char** env_map)
+// if using C, skip the <export "C"> part
+export "C" int cmd_symbol(const char* cmd, int argc, char** argv, int envc, char** env_map) {}
 ```
+
+The symbol passes in the `cmd` value, aka. the command that you assigned the library and the
+symbol for. The `argc` and `argv` are self-explanatory, since they resemble that known C/C++
+`int main(int argc, char** argv)` thing, except that the first parameter is not the command
+itself. Instead of having the shell environment map within one `envp` parameter, I decided
+to separate the count and the map into two parameters.
 
 Along with that, you are able to create handlers for each call. For example, you can have
 a handler that runs immediately, once OsintgramCXX completes loading the necessary things.
@@ -158,19 +166,23 @@ The same goes, when OsintgramCXX is stopping. Please keep in mind that no progra
 the SIGKILL signal. The line required for these handlers would be for your codebase:
 
 ```c++
-export "C" int plugin_start()
+export "C" void plugin_start() {}
 
-export "C" int plugin_stop()
+export "C" void plugin_stop() {}
 ```
 
 Want to snoop, what a command gets executed in the first place? Worry not, include a CMD
 starting and finishing handle by making these methods:
 
 ```c++
-export "C" void cmd_handle_start(const char* cmdLine)
+export "C" void cmd_handle_start(const char* cmdLine) {}
 
-export "C" void cmd_handle_finish(const char* cmdLine, int rc, const char* stream)
+export "C" void cmd_handle_finish(const char* cmdLine, int rc, int id, const char* stream) {}
 ```
+
+With the `cmd_handle_finish`, you pass in the entire command line that the user has entered,
+gives in the `rc` (Return Code) value, `id` being the Plugin / Mod Identifier, and `stream`
+being the entire `stdout` & `stderr` stream.
 
 The possibilities are endless. You can start creating one now.
 

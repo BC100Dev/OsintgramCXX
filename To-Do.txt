@@ -2,33 +2,34 @@ Legend:
 '-' = In Progress
 '?' = Unknown State
 'X' = Finished
+'T' = Following development
 'F' = Finished with caveats (e.g. not every feature was reimplemented due to certain reasons)
 'H' = Halted
 'R' = Marked for Removal
 
 Main features to implement:
 [F] Reimplement the Osintgram4j features into C++
-  > yall knw that certain Java features are allergic to C++
+    > yall knw that certain Java features are allergic to C++
 [X] Write Modding Support
-  > holy f***ing shit, that took me 3-4 hours...
+    > holy f***ing shit, that took me 3-4 hours...
 [-] Implement Features from the settings
 [-] Write the documentation for setup and usage
 [-] Implement Instagram APIs (that includes authentication, sadly...)
 [-] Implement 2FA authentication capabilities
 [ ] Implement Rate Limiting and Wait Timers
 [ ] Write a Dockerfile (because we want to avoid that "it works on my machine" bullshit)
-[-] Cross-platform support for Windows
+[T] Cross-platform support for Windows
 [-] Implement Configurable Proxies
-[ ] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, YAML, XML)
+[-] Implement Proxy-Chaining Support (default `proxychains.conf`, JSON, YAML, XML)
 [-] Implement Temporary / Reference Accounts
-  > This feature will allow users to log into another account from their main Instagram account
+    > This feature will allow users to log into another account from their main Instagram account
 
 Potential features for the future:
 [-] Write a "setup.sh" script that implements vcpkg into the project CMake
     > Editors Note: Adapted into "prepare.sh"
 [R] Automate the VCPKG_ROOT, removing the unnecessary CLI arguments
-[?] Implement Multi-Lingual Support
+[R] Implement Multi-Lingual Support
 [ ] Include OpenCV for Image Processing
-  > This alone already has issues on Arch Linux with the D-Bus library, when building, therefore, may or may not be implemented.
+    > This alone already has issues on Arch Linux with the D-Bus library, when building, therefore, may or may not be implemented.
 
 Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.

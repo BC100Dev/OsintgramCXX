@@ -27,6 +27,7 @@
 #include <climits>
 #include <cerrno>
 #include <cstring>
+#include <sys/mount.h>
 
 #endif
 
@@ -65,7 +66,7 @@ void exceptionHandler() {
             sw << ex.what();
 
             Terminal::println(std::cerr, Terminal::TermColor::RED,
-                                 "The application has unexpectedly crashed. Cause of this error:", false);
+                              "The application has unexpectedly crashed. Cause of this error:", false);
             Terminal::println(std::cerr, Terminal::TermColor::RED, sw.str(), true);
         }
     } else
@@ -275,12 +276,12 @@ int main(int argc, char **argv) {
     ModLoader_load();
 
     // optional, by the CLI args, enable FS sandboxing
-#if defined(__linux__)
+#ifdef __linux__
     if (!chrootPath.empty()) {
         if (!fs::exists(chrootPath)) {
             try {
                 fs::create_directories(chrootPath);
-            } catch (const fs::filesystem_error& err) {
+            } catch (const fs::filesystem_error &err) {
                 std::cerr << "Failed to create a directory at " << chrootPath << std::endl;
                 std::cerr << "Error caused: " << err.what() << std::endl;
                 return 1;
@@ -319,7 +320,13 @@ int main(int argc, char **argv) {
                 return 1;
             }
 
-            std::cout << "Sandboxing initialized" << std::endl;
+            if (chdir("/") != 0) {
+                std::cerr << "Root Change failed, error: " << std::strerror(errno) << std::endl;
+                return 1;
+            }
+
+            ModLoader_start();
+            ShellFuckery::launchShell();
         } else {
             std::cerr << "Sandboxing failed: not root";
 
@@ -333,10 +340,6 @@ int main(int argc, char **argv) {
         }
     }
 #endif
-
-    ModLoader_start();
-    ShellFuckery::launchShell();
-    ModLoader_stop();
 
     return 0;
 }
