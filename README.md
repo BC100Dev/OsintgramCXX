@@ -15,16 +15,20 @@ Networking part, me and Networking aren't the best friends... just yet. Wait, un
 finish one of the most insane projects known to man. A hint, it's on my GitHub profile.
 
 ## Update from Datalux himself
-Alright, so apparently, the original project did not completely abandon it. No, I was not
-contacted, don't even try to make me drop my entire Inbox in here. Although I did attempt
-to reach out to him, with no luck... yes, again.
+Alright, so apparently, the original project is not completely abandoned. No, I was not
+contacted by anyone to say that it is still alive in any way, don't even try to make me
+drop my entire Inbox in here. Although I did attempt to reach out to him with no luck...
+yes, again.
 
 If you guys weren't up-to-speed, there has been some updates regarding that project. Two
 PRs (Pull Requests) have been accepted and merged, along with that man himself creating a
-new repo. This man refuses to talk to me, but would still gladly update it, as if that
-original project never got abandoned in the first place. I have the screenshot down below.
-[Brother](https://github.com/Datalux)... PLEASE, make up your own mind. At least try to
-answer to my E-Mail...
+new repo. Considering that he hasn't responded and refuses to talk and barely has the time
+to talk to people or something (if that is his intention), I made a theory that he might
+also be in an apprenticeship and potentially doing / preparing himself for the final exams,
+clarifying on why there are barely any updates and no responses from this man alone.
+
+In case you guys are lazy to check out that repo alone, here I provide a screenshot of the
+recent commit logs happening:
 
 ![Screenshot of the Commit History on Osintgram](Docs/Images/Osintgram_CommitHistory.jpg)
 
