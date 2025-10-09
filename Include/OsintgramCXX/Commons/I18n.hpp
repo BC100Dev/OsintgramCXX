@@ -14,6 +14,8 @@ public:
     ~I18n();
 
     std::string GetText(const std::string& key);
+
+    std::string GetNamespace();
 private:
     std::string lang;
     std::string ns;

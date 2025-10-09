@@ -324,9 +324,6 @@ int main(int argc, char **argv) {
                 std::cerr << "Root Change failed, error: " << std::strerror(errno) << std::endl;
                 return 1;
             }
-
-            ModLoader_start();
-            ShellFuckery::launchShell();
         } else {
             std::cerr << "Sandboxing failed: not root";
 
@@ -340,6 +337,9 @@ int main(int argc, char **argv) {
         }
     }
 #endif
+
+    ModLoader_start();
+    ShellFuckery::launchShell();
 
     return 0;
 }

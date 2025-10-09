@@ -28,6 +28,7 @@ using json = nlohmann::json;
 namespace fs = std::filesystem;
 
 std::string currentProcessingLibrary;
+std::vector<int> processedEntries;
 
 #ifdef __linux__
 const char *c_home = std::getenv("HOME");
@@ -212,7 +213,7 @@ void parse_json(const json &j) {
                     parse_json(json::parse(data));
                 }
 
-                return;
+                continue;
             }
 
             void *libHandle = nullptr;
@@ -225,6 +226,11 @@ void parse_json(const json &j) {
             OsintgramCXX::LibraryEntry libEntryData{};
             libEntryData.label = command_set["label"];
             libEntryData.id = command_set["id"];
+
+            if (std::find(processedEntries.begin(), processedEntries.end(), libEntryData.id) != processedEntries.end())
+                continue;
+
+            processedEntries.emplace_back(libEntryData.id);
 
             if (command_set.contains("author") && command_set["author"].is_string())
                 libEntryData.author = command_set["author"];

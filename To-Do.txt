@@ -33,3 +33,8 @@ Potential features for the future:
     > This alone already has issues on Arch Linux with the D-Bus library, when building, therefore, may or may not be implemented.
 
 Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.
+
+### !!! ###
+Fixes to do:
+[ ] Process commands.json without duplicating everything (ID-matching)
+[X] Move the ModLoader_start() and ShellLoader::start() outside of "shouldChroot"

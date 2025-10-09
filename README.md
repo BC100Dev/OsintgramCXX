@@ -101,8 +101,12 @@ your distribution. For Debian (Termux included), you will be using `apt`. Your f
 command will be:
 
 ```shell
-$ sudo apt install build-essential cmake tar unzip zip curl libssl-dev libcurl4-openssl-dev
+$ sudo apt install build-essential cmake tar unzip zip curl libssl-dev libcurl4-openssl-dev libcap-dev
 ```
+
+The first few packages, up until the `curl` part, are required for `vcpkg` itself. Packages
+with the prefix of `lib` are required, since they are required for the tool to function correctly.
+If you are using Termux, exclude `libcap-dev`, since this library won't work on Android devices.
 
 For Arch Linux users:
 ```shell
