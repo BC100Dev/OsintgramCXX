@@ -8,3 +8,5 @@ set(CMAKE_CXX_COMPILER "/usr/bin/x86_64-w64-mingw32-g++")
 
 set(APP_SYSTEM_TARGET "Windows")
 set(APP_SYSTEM_ARCH "x86_64")
+
+set(CMAKE_SYSTEM_NAME "Windows")

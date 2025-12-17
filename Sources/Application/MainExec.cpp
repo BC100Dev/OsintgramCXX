@@ -270,7 +270,7 @@ int main(int argc, char **argv) {
 
     // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
     // making things ugly in the process
-    CurrentThread_Sleep(25);
+    CurrentThread_Sleep(10);
 
     ShellFuckery::initializeShell();
     ModLoader_load();
@@ -339,6 +339,9 @@ int main(int argc, char **argv) {
 #endif
 
     ModLoader_start();
+
+    CurrentThread_Sleep(10);
+
     ShellFuckery::launchShell();
 
     return 0;

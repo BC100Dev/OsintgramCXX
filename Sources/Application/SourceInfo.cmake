@@ -18,3 +18,5 @@ if (APP_SYSTEM_TARGET STREQUAL "Linux")
             BUILD_RPATH "${RPATH_VAL}"
             INSTALL_RPATH_USE_LINK_PATH FALSE)
 endif ()
+
+DisableBionicFortify(OsintgramCXX)

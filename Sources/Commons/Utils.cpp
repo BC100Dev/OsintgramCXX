@@ -24,16 +24,15 @@
 #endif
 
 namespace OsintgramCXX {
-
-    std::string ToLowercase(const std::string &str) {
+    std::string ToLowercase(const std::string& str) {
         std::string result = str;
-        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
+        std::ranges::transform(result, result.begin(), [](unsigned char c) {
             return std::tolower(c);
         });
         return result;
     }
 
-    std::string ToUppercase(const std::string &str) {
+    std::string ToUppercase(const std::string& str) {
         std::string result = str;
         std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
             return std::toupper(c);
@@ -41,21 +40,21 @@ namespace OsintgramCXX {
         return result;
     }
 
-    bool StringContains(const std::string &str, const std::string &val) {
+    bool StringContains(const std::string& str, const std::string& val) {
         return str.find(val) != std::string::npos;
     }
 
-    std::string TrimString(const std::string &str) {
+    std::string TrimString(const std::string& str) {
         return TrimString(str, " \t\r\n");
     }
 
-    std::string TrimString(const std::string &str, const std::string &chars) {
+    std::string TrimString(const std::string& str, const std::string& chars) {
         size_t start = str.find_first_not_of(chars);
         size_t end = str.find_last_not_of(chars);
         return (start == std::string::npos || end == std::string::npos) ? "" : str.substr(start, end - start + 1);
     }
 
-    std::vector<std::string> SplitString(const std::string &str, const std::string &delim, int limit) {
+    std::vector<std::string> SplitString(const std::string& str, const std::string& delim, int limit) {
         std::vector<std::string> tokens;
         size_t startIndex = 0;
         size_t delimPos = 0;
@@ -76,18 +75,18 @@ namespace OsintgramCXX {
         return tokens;
     }
 
-    std::vector<std::string> SplitString(const std::string &str, const std::string &delim) {
+    std::vector<std::string> SplitString(const std::string& str, const std::string& delim) {
         return SplitString(str, delim, 0);
     }
 
-    bool StartsWith(const std::string &str, const std::string &prefix) {
+    bool StartsWith(const std::string& str, const std::string& prefix) {
         if (prefix.size() > str.size())
             return false;
 
         return std::equal(prefix.begin(), prefix.end(), str.begin());
     }
 
-    bool EndsWith(const std::string &str, const std::string &suffix) {
+    bool EndsWith(const std::string& str, const std::string& suffix) {
         if (suffix.size() > str.size())
             return false;
 
@@ -95,17 +94,18 @@ namespace OsintgramCXX {
     }
 
     // don't forget to pull up that Regex skill without googling it! (evil laughter)
-    std::string ReplaceAll(const std::string &str, const std::string &pattern, const std::string &replacement) {
+    std::string ReplaceAll(const std::string& str, const std::string& pattern, const std::string& replacement) {
         try {
             std::regex regexPattern(pattern);
             return std::regex_replace(str, regexPattern, replacement);
-        } catch (const std::regex_error &ex) {
+        }
+        catch (const std::regex_error& ex) {
             std::cerr << "Utils.hpp# ReplaceAll - Regex Error: " << ex.what() << std::endl;
             return str;
         }
     }
 
-    std::string ReplaceFirst(const std::string &str, const std::string &from, const std::string &to) {
+    std::string ReplaceFirst(const std::string& str, const std::string& from, const std::string& to) {
         std::string result = str;
         size_t pos = result.find(from);
         if (pos != std::string::npos)
@@ -114,7 +114,7 @@ namespace OsintgramCXX {
         return result;
     }
 
-    std::string Replace(const std::string &str, const std::string &from, const std::string &to) {
+    std::string Replace(const std::string& str, const std::string& from, const std::string& to) {
         std::string result = str;
         size_t pos = 0;
         while ((pos = result.find(from, pos)) != std::string::npos) {
@@ -193,7 +193,7 @@ namespace OsintgramCXX {
         std::string result;
 
 #ifdef __linux__
-        struct passwd *pw = getpwuid(getuid());
+        struct passwd* pw = getpwuid(getuid());
         result = pw ? std::string(pw->pw_name) : "nobody";
 #endif
 
@@ -292,7 +292,7 @@ namespace OsintgramCXX {
 
         long rnd = dis(gen);
         rnd *= RandomInteger(10000, 55000) + RandomLong(5000, 500000) + (RandomLong(500, 1000) * RandomLong(2, 100000))
-                                                                        * 99999;
+            * 99999;
         return rnd;
     }
 
@@ -304,11 +304,11 @@ namespace OsintgramCXX {
         return Pause(PAUSE_PROMPT_DEFAULT, 1);
     }
 
-    std::vector<char> Pause(const std::string &prompt) {
+    std::vector<char> Pause(const std::string& prompt) {
         return Pause(prompt, 1);
     }
 
-    std::vector<char> Pause(const std::string &prompt, const ssize_t &count) {
+    std::vector<char> Pause(const std::string& prompt, const ssize_t& count) {
         std::cout << prompt;
         std::vector<char> chArr(count);
 
@@ -344,12 +344,13 @@ namespace OsintgramCXX {
         std::exit(code);
     }
 
-    void CreateFile(const std::string &path) {
+    void CreateFile(const std::string& path) {
         if (std::filesystem::exists(path))
             return;
 
 #ifdef _WIN32
-        HANDLE hFile = ::CreateFileA(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        HANDLE hFile = ::CreateFileA(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
+                                     nullptr);
         if (hFile == INVALID_HANDLE_VALUE) {
             std::string error;
 
@@ -392,7 +393,7 @@ namespace OsintgramCXX {
     }
 
     long long nanoTime() {
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count();
     }
-
 }

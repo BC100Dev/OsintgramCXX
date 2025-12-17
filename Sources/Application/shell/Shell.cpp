@@ -17,7 +17,6 @@
 #ifdef __linux__
 
 #include <csignal>
-#include <pwd.h>
 
 #elif _WIN32
 
@@ -59,15 +58,15 @@ void helpCmd() {
     gPage.addArg("exit", "", "Exits this application");
     Terminal::println(std::cout, Terminal::TermColor::CYAN, gPage.display(), true);
 
-    for (const auto &cmdVar: OsintgramCXX::loadedLibraries) {
-        const auto &item = cmdVar.second;
+    for (const auto& cmdVar : OsintgramCXX::loadedLibraries) {
+        const auto& item = cmdVar.second;
         Terminal::println(std::cout, Terminal::TermColor::RED, "[" + item.label + "]", true);
 
         HelpPage ePage;
         ePage.setStartSpaceWidth(2);
         ePage.setSpaceWidth(5);
 
-        for (const auto &cmdEntry: item.commands)
+        for (const auto& cmdEntry : item.commands)
             ePage.addArg(cmdEntry.cmd, "", cmdEntry.description);
 
         Terminal::println(std::cout, Terminal::TermColor::CYAN, ePage.display(), true);
@@ -78,10 +77,18 @@ void forceStopShell(int) {
     OsintgramCXX::ShellFuckery::stopShell(true);
     OsintgramCXX::ShellFuckery::cleanup();
     std::cin.setstate(std::ios::badbit);
+
+#ifdef __linux__
+    close(STDIN_FILENO);
+#endif
+
+#ifdef _WIN32
+    CloseHandle(GetStdHandle(STD_INPUT_HANDLE));
+#endif
 }
 
-CommandExecution execCommand(const std::string &cmd, const std::vector<std::string> &args, const ShellEnvironment &env,
-                             const std::string &cmdLine) {
+CommandExecution execCommand(const std::string& cmd, const std::vector<std::string>& args, const ShellEnvironment& env,
+                             const std::string& cmdLine) {
     long long startTime;
     if (timeMeasuringSystem)
         startTime = OsintgramCXX::nanoTime();
@@ -90,8 +97,8 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
     OsintgramCXX::C_CommandExec cmdExecHandle = nullptr;
     CommandExecution execReturn{};
 
-    for (const auto &it: OsintgramCXX::loadedLibraries) {
-        for (const auto &cmdEntry : it.second.commands) {
+    for (const auto& it : OsintgramCXX::loadedLibraries) {
+        for (const auto& cmdEntry : it.second.commands) {
             if (cmd == cmdEntry.cmd) {
                 found = true;
                 cmdExecHandle = cmdEntry.execHandler;
@@ -117,14 +124,14 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
 
     execReturn.cmdFound = true;
 
-    char **argv = new char *[args.size()];
+    char** argv = new char*[args.size()];
     for (size_t i = 0; i < args.size(); i++) {
         argv[i] = strdup(args[i].c_str());
     }
 
-    char **env_map = new char *[env.size()];
+    char** env_map = new char*[env.size()];
     int index = 0;
-    for (const auto &[key, value]: env) {
+    for (const auto& [key, value] : env) {
         std::string entry = key;
         entry.append("=").append(value);
 
@@ -132,11 +139,11 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
     }
 
     // start the listeners for "OnCommandExec"
-    for (const auto &it: OsintgramCXX::loadedLibraries) {
+    for (const auto& it : OsintgramCXX::loadedLibraries) {
         LibraryEntry entry = it.second;
         if (entry.handler_onCmdExecStart != nullptr) {
             std::thread t([handler = it.second, &cmdLine] {
-                handler.handler_onCmdExecStart(const_cast<char *>(cmdLine.c_str()));
+                handler.handler_onCmdExecStart(const_cast<char*>(cmdLine.c_str()));
             });
             t.detach();
         }
@@ -146,11 +153,14 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
 
     try {
         execReturn.rc = cmdExecHandle(cmd.c_str(), args.size(), argv, env.size(), env_map);
-    } catch (const std::runtime_error &err) {
+    }
+    catch (const std::runtime_error& err) {
         std::cerr << "Runtime error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
-    } catch (const std::exception &err) {
+    }
+    catch (const std::exception& err) {
         std::cerr << "Error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
         std::cerr << "Unknown error occurred, while executing \"" << cmd << "\"" << std::endl;
     }
 
@@ -165,14 +175,14 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
 
     delete[] argv;
 
-    for (const auto &it: OsintgramCXX::loadedLibraries) {
+    for (const auto& it : OsintgramCXX::loadedLibraries) {
         LibraryEntry entry = it.second;
         if (entry.handler_onCmdExecFinish != nullptr) {
             std::thread t([handler = entry, &cmdLine, &execReturn, output = cap.str()] {
-                handler.handler_onCmdExecFinish(const_cast<char *>(cmdLine.c_str()),
+                handler.handler_onCmdExecFinish(const_cast<char*>(cmdLine.c_str()),
                                                 execReturn.rc,
                                                 handler.id,
-                                                const_cast<char *>(output.c_str()));
+                                                const_cast<char*>(output.c_str()));
             });
             t.join();
         }
@@ -191,7 +201,6 @@ CommandExecution execCommand(const std::string &cmd, const std::vector<std::stri
 }
 
 namespace OsintgramCXX::ShellFuckery {
-
     std::string PS1;
     bool running = false;
     [[maybe_unused]] bool shellInitialized = false;
@@ -208,14 +217,14 @@ namespace OsintgramCXX::ShellFuckery {
 
         std::stringstream strStream;
         strStream << "[" << user << "/" << GetHostname() << ": " << cwd.filename().string() << "]"
-                  << (IsAdmin() ? "#" : "$") << " ";
+            << (IsAdmin() ? "#" : "$") << " ";
 
         PS1 = strStream.str();
 
         shellInitialized = true;
     }
 
-    void modEnviron(const std::string &line) {
+    void modEnviron(const std::string& line) {
         std::string worker = TrimString(line);
         if (worker[0] == '&')
             worker = worker.substr(1);
@@ -236,7 +245,8 @@ namespace OsintgramCXX::ShellFuckery {
             }
 
             environment[opt[0]] = opt[1];
-        } else {
+        }
+        else {
             auto it = environment.find(worker);
             if (it == environment.end()) {
                 Terminal::println(std::cerr, Terminal::TermColor::RED, worker + " (not found)", true);
@@ -309,7 +319,8 @@ namespace OsintgramCXX::ShellFuckery {
                     std::cerr << cmdLine[0] << ": exit code " << ret.rc << std::endl;
                     CurrentThread_Sleep(70);
                 }
-            } catch (const std::exception &ex) {
+            }
+            catch (const std::exception& ex) {
                 std::cerr << "ShellError: " << ex.what() << std::endl;
             }
         }
@@ -326,7 +337,8 @@ namespace OsintgramCXX::ShellFuckery {
         try {
             shellThread = std::thread(cmd);
             shellThread.join();
-        } catch (std::exception &ex) {
+        }
+        catch (std::exception& ex) {
             std::cerr << "Shell Thread Error (Shell.cpp): " << ex.what() << std::endl;
             stopShell(false);
         }
@@ -354,5 +366,4 @@ namespace OsintgramCXX::ShellFuckery {
         environment.clear();
         shellInitialized = false;
     }
-
 }

@@ -20,7 +20,7 @@ if (DEFINED APP_TARGETS_ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
     list(APPEND OsintgramCXX_LINK_DEPS "-static-libstdc++")
 endif ()
 
-if (APP_SYSTEM_TARGET STREQUAL "Windows")
+if (APP_SYSTEM_TARGET STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR WIN32 OR MINGW)
     list(APPEND OsintgramCXX_LINK_DEPS crypt32 ws2_32 advapi32 secur32)
 
     ## issues with MinGW on Arch: re-create the libraries for OpenSSL that it needs
