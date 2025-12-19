@@ -114,6 +114,8 @@ namespace OsintgramCXX {
 
     long long nanoTime();
 
+    std::filesystem::path UserHomeDirectory();
+
 }
 
 #endif //OSINTGRAMCXX_UTILS_HPP

@@ -6,6 +6,9 @@ out/
 *.iml
 **/*.iml
 
+### JetBrains Fleet ###
+.cache/jb
+
 ### Eclipse ###
 .apt_generated
 .classpath

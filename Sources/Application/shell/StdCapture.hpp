@@ -35,7 +35,7 @@
 
 class StdCaptureError : public std::runtime_error {
 public:
-    StdCaptureError(const std::string &s) : std::runtime_error(s) {}
+    explicit StdCaptureError(const std::string &s) : std::runtime_error(s) {}
 };
 
 class StdCapture {
@@ -102,7 +102,8 @@ public:
             errReader.join();
     }
 
-    std::string str() const { return *stream; }
+    // Returns the captured stdout & stderr themselves
+    [[nodiscard]] std::string str() const { return *stream; }
 
 private:
     int pipeOut[2]{-1,-1}, pipeErr[2]{-1,-1};

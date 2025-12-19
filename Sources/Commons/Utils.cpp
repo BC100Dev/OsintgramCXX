@@ -3,7 +3,6 @@
 #include <thread>
 #include <filesystem>
 #include <algorithm>
-#include <cstdlib>
 #include <fstream>
 
 #define PAUSE_PROMPT_DEFAULT "Press any key to continue..."
@@ -12,15 +11,19 @@
 
 #include <windows.h>
 #include <conio.h>
+#include <shlobj.h> // SHGetKnownFolderPath
+#include <combaseapi.h> // CoTaskMemFree
 
 #elif __linux__
 
 #include <termios.h>
 #include <unistd.h>
-#include <sys/utsname.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include <sys/types.h>
 
+#elif defined(__linux__) && !defined(__ANDROID__)
+#include <pwd.h>
 #endif
 
 namespace OsintgramCXX {
@@ -34,7 +37,7 @@ namespace OsintgramCXX {
 
     std::string ToUppercase(const std::string& str) {
         std::string result = str;
-        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
+        std::ranges::transform(result, result.begin(), [](unsigned char c) {
             return std::toupper(c);
         });
         return result;
@@ -107,8 +110,7 @@ namespace OsintgramCXX {
 
     std::string ReplaceFirst(const std::string& str, const std::string& from, const std::string& to) {
         std::string result = str;
-        size_t pos = result.find(from);
-        if (pos != std::string::npos)
+        if (size_t pos = result.find(from); pos != std::string::npos)
             result.replace(pos, from.length(), to);
 
         return result;
@@ -149,7 +151,7 @@ namespace OsintgramCXX {
     }
 
     std::string GetHostname() {
-        std::string result = "unknown-host";
+        std::string result;
 
 #ifdef __linux__
         char hostname[HOST_NAME_MAX];
@@ -168,7 +170,7 @@ namespace OsintgramCXX {
     }
 
     std::string UserDomain() {
-        std::string result = "LOCALHOST|UNKNOWN-DOMAIN";
+        std::string result;
 
 #ifdef __linux__
         result = GetHostname() + "/" + CurrentUsername();
@@ -178,6 +180,8 @@ namespace OsintgramCXX {
 
         if (GetUserNameExA(NameSamCompatible, username, &username_len))
             result = username;
+        else
+            result = "LOCALHOST\\UNKNOWN-DOMAIN";
 #endif
 
         return result;
@@ -395,5 +399,44 @@ namespace OsintgramCXX {
     long long nanoTime() {
         return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
             .count();
+    }
+
+    std::filesystem::path UserHomeDirectory() {
+        std::filesystem::path result;
+
+#if defined(__linux__) && !defined(__ANDROID__)
+        struct passwd* pw = getpwuid(getuid());
+        if (pw && pw->pw_dir)
+            result = pw->pw_dir;
+        else
+            throw std::runtime_error("Failed to get user home");
+#elif defined(_WIN32)
+        PWSTR widePath = nullptr;
+        if (HRESULT hr = SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &widePath); SUCCEEDED(hr)) {
+            std::wstring path(widePath);
+            CoTaskMemFree(widePath);
+            result = std::filesystem::path(path);
+        } else
+            throw std::runtime_error("Failed to get user home");
+#elif defined(__ANDROID__)
+        std::vector<std::string> checks = {
+            "/data/data/com.termux/files/home/storage/shared",
+            "/data/data/com.termux/files/home",
+            "/storage/emulated/0/Android/data/com.termux/files",
+            "/sdcard/Android/data/com.termux/files"
+        };
+
+        for (const auto& it : checks) {
+            if (access(it.c_str(), F_OK) == 0 && access(it.c_str(), W_OK) == 0) {
+                result = std::filesystem::path(it);
+                break;
+            }
+        }
+
+        if (result.empty() || !result.is_absolute())
+            throw std::runtime_error("Failed to get user home");
+#endif
+
+        return result;
     }
 }

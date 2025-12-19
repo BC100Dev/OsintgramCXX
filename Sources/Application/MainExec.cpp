@@ -14,6 +14,8 @@
 #include <OsintgramCXX/Commons/Terminal.hpp>
 #include <OsintgramCXX/Commons/Utils.hpp>
 
+#include <OsintgramCXX/Logging/Logger.hpp>
+
 #include "ModInit.hpp"
 #include "AndroidCA.hpp"
 
@@ -162,6 +164,11 @@ void sigHandle(int) {
 #endif
 
 void init() {
+    // don't use loggers now, just initialize them (for now)
+    Logging::Instances::getApplicationLoggingInstance();
+    Logging::Instances::getNetworkLoggingInstance();
+    Logging::Instances::getSecureLoggerInstance();
+
 #ifdef _WIN32
     // start Win10 check
     typedef LONG(WINAPI *RtlGetVersion_FUNC)(PRTL_OSVERSIONINFOW);
@@ -249,6 +256,7 @@ void parseArgs(const std::vector<std::string> &args) {
 
 int main(int argc, char **argv) {
     std::set_terminate(exceptionHandler);
+    init();
 
     // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
     WinSetColorMode();
@@ -263,8 +271,6 @@ int main(int argc, char **argv) {
 
         parseArgs(args);
     }
-
-    init();
 
     std::cout << TEXT_BLOCK() << std::endl << std::endl;
 

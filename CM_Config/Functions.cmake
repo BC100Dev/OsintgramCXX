@@ -26,3 +26,11 @@ function(DisableBionicFortify TARGET_NAME)
 
     target_link_options(${TARGET_NAME} PRIVATE "-Wl,--allow-shlib-undefined")
 endfunction()
+
+function(SetTargetOutputDir TARGET DIR)
+    set_target_properties(${TARGET} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${DIR}"
+            LIBRARY_OUTPUT_DIRECTORY "${DIR}"
+            ARCHIVE_OUTPUT_DIRECTORY "${DIR}"
+    )
+endfunction()

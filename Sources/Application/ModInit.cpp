@@ -30,36 +30,42 @@ namespace fs = std::filesystem;
 std::string currentProcessingLibrary;
 std::vector<int> processedEntries;
 
-#ifdef __linux__
-const char *c_home = std::getenv("HOME");
-#endif
-
-#ifdef _WIN32
-const char *c_userProfile = std::getenv("USERPROFILE");
-#endif
-
 std::vector<std::string> lookupPaths = {
-        OsintgramCXX::CurrentWorkingDirectory() + "/Resources",
-        OsintgramCXX::CurrentWorkingDirectory(),
-        OsintgramCXX::ExecutableDirectory() + "/Resources",
-        OsintgramCXX::ExecutableDirectory(),
+    OsintgramCXX::CurrentWorkingDirectory() + "/Resources",
+    OsintgramCXX::CurrentWorkingDirectory(),
+    OsintgramCXX::ExecutableDirectory() + "/Resources",
+    OsintgramCXX::ExecutableDirectory(),
 
-#ifdef __linux__
-        "/etc/OsintgramCXX",
-        std::string(c_home ? c_home : "/home/" + OsintgramCXX::CurrentUsername()) + "/.config/OsintgramCXX",
-        "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX",
-        "/Data/base/shared/OsintgramCXX",
+#if defined(__linux__) && !defined(__ANDROID__)
+    "/etc/OsintgramCXX",
+    OsintgramCXX::UserHomeDirectory().string() + "/.config/OsintgramCXX",
+    "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX",
+    "/Data/base/shared/OsintgramCXX",
+#elif defined(__ANDROID__)
+    "/data/data/com.termux/files/.config/OsintgramCXX",
+    "/data/local/tmp/OsintgramCXX",
+    "/sdcard/Android/data/com.termux/files/.config/OsintgramCXX",
+    "/sdcard/Android/data/com.termux/files/config/OsintgramCXX",
+    "/sdcard/OsintgramCXX",
+    "/storage/emulated/0/Android/data/com.termux/files/.config/OsintgramCXX",
+    "/storage/emulated/0/Android/data/com.termux/files/config/OsintgramCXX",
+    "/storage/emulated/0/OsintgramCXX",
+
+    // I might consider, but don't take the actual word for it, if you do see this one
+    "/data/data/net.bc100dev.osintgram.android/files",
 #endif
 
 #ifdef _WIN32
-        std::string(c_userProfile ? c_userProfile : R"(C:\Users\)" + OsintgramCXX::CurrentUsername()) +
-        R"(\AppData\Local\OsintgramCXX)"
+    OsintgramCXX::UserHomeDirectory().string() + R"(\AppData\Local\OsintgramCXX)",
+    OsintgramCXX::UserHomeDirectory().string() + R"(\AppData\Local\OsintgramCXX\Resources)",
+    OsintgramCXX::UserHomeDirectory().string() + R"(\AppData\Roaming\OsintgramCXX)",
+    OsintgramCXX::UserHomeDirectory().string() + R"(\AppData\Roaming\OsintgramCXX\Resources)",
 #endif
 };
 
-fs::path locate_json(const std::string &filename);
+fs::path locate_json(const std::string& filename);
 
-std::string find_lib(const std::string &file) {
+std::string find_lib(const std::string& file) {
     fs::path result;
 
     // 1. look for libraries within the cwd (current working directory) and the executables directory
@@ -68,8 +74,7 @@ std::string find_lib(const std::string &file) {
 
 #ifdef __linux__
     // 2. look for libraries in the "LD_LIBRARY_PATH" environment
-    const char *ldLibPathEnv = getenv("LD_LIBRARY_PATH");
-    if (ldLibPathEnv) {
+    if (const char* ldLibPathEnv = getenv("LD_LIBRARY_PATH")) {
         std::string ldEntry;
 
         while (std::getline(std::istringstream(ldLibPathEnv), ldEntry, ':')) {
@@ -89,8 +94,8 @@ std::string find_lib(const std::string &file) {
 #else
     // yes, I added that AnlinxOS path, deal with it :skull:
     std::string sysPaths =
-            "/usr/lib:/usr/lib32:/usr/lib64:/usr/local/lib:/usr/local/lib32:/usr/local/lib64:/lib:/lib32:/lib64:/System/" +
-            std::string(CPU_ARCHITECTURE);
+        "/usr/lib:/usr/lib32:/usr/lib64:/usr/local/lib:/usr/local/lib32:/usr/local/lib64:/lib:/lib32:/lib64:/System/" +
+        std::string(CPU_ARCHITECTURE);
 #endif
 
     std::string entry;
@@ -104,26 +109,16 @@ std::string find_lib(const std::string &file) {
     }
 
     // 4. Persistent / User Storage paths
-    std::vector<std::string> storagePaths = {
-            std::string(c_home ? c_home : "/home/" + OsintgramCXX::CurrentUsername()) + "/.config/OsintgramCXX/mods.d",
-            "/etc/OsintgramCXX/mods.d",
-            "/etc/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE),
-            "/usr/share/OsintgramCXX/mods.d",
-            "/usr/share/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE),
-            "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE),
-            "/Data/base/shared/OsintgramCXX/mods.d/" + std::string(CPU_ARCHITECTURE)
-    };
-    for (const auto &it: storagePaths) {
-        if (fs::exists(it))
-            return it;
+    for (const auto& it : lookupPaths) {
+        if (fs::exists(it + "/" + file))
+            return it + "/" + file;
     }
 #endif
 
 #ifdef _WIN32
     // windows, at least you aren't this hard...
     // right?
-    const char *pathEnv = getenv("PATH");
-    if (pathEnv) {
+    if (const char* pathEnv = getenv("PATH")) {
         std::string pathEntry;
         std::istringstream ss(pathEnv);
 
@@ -135,28 +130,26 @@ std::string find_lib(const std::string &file) {
         }
     }
 
-    if (c_userProfile) {
-        std::string userProfile = std::string(c_userProfile);
-        std::vector<std::string> winPaths = {
-                userProfile + R"(\AppData\Local\OsintgramCXX)",
-                userProfile + R"(\AppData\Local\OsintgramCXX\mods.d)",
-                userProfile + R"(\AppData\Local\OsintgramCXX\mods.d\)" + std::string(CPU_ARCHITECTURE)
-        };
+    std::string userProfile = OsintgramCXX::UserHomeDirectory().string();
+    std::vector<std::string> winPaths = {
+        userProfile + R"(\AppData\Local\OsintgramCXX)",
+        userProfile + R"(\AppData\Local\OsintgramCXX\mods.d)",
+        userProfile + R"(\AppData\Local\OsintgramCXX\mods.d\)" + std::string(CPU_ARCHITECTURE)
+    };
 
-        for (const auto& it : winPaths) {
-            result = fs::path(it) / file;
-            if (fs::exists(result))
-                return result.string();
-        }
+    for (const auto& it : winPaths) {
+        result = fs::path(it) / file;
+        if (fs::exists(result))
+            return result.string();
     }
 #endif
 
     return "";
 }
 
-void *get_method_from_handle(void *handle, const char *symbol) {
+void* get_method_from_handle(void* handle, const char* symbol) {
 #ifdef __linux__
-    void *p = dlsym(handle, symbol);
+    void* p = dlsym(handle, symbol);
     if (p == nullptr)
         throw std::runtime_error("dlsym failed for " + currentProcessingLibrary + ": " + std::string(dlerror()));
 
@@ -164,7 +157,7 @@ void *get_method_from_handle(void *handle, const char *symbol) {
 #endif
 
 #ifdef _WIN32
-    return (void *) GetProcAddress((HMODULE) handle, symbol);
+    return (void*)GetProcAddress((HMODULE)handle, symbol);
 #else
     // for you macOS users :skull:
     return nullptr;
@@ -188,21 +181,19 @@ std::string get_error_from_lib() {
 #endif
 }
 
-void parse_json(const json &j) {
+void parse_json(const json& j) {
     if (!j.is_object() || !j.contains("command_sets"))
         throw std::runtime_error("Unexpected JSON content");
 
     if (j["command_sets"].is_array() && !j["command_sets"].empty()) {
-        for (const auto &command_set: j["command_sets"]) {
+        for (const auto& command_set : j["command_sets"]) {
             if (command_set.is_string() && !std::string(command_set).empty()) {
-                fs::path jsonFile = locate_json(command_set);
-                if (fs::exists(jsonFile)) {
+                if (fs::path jsonFile = locate_json(command_set); fs::exists(jsonFile)) {
                     std::string data;
 
                     // we use scope block to make the file closing happen as soon as the scope block is finished
                     {
-                        std::ifstream in(jsonFile);
-                        if (in.is_open()) {
+                        if (std::ifstream in(jsonFile); in.is_open()) {
                             std::stringstream ss;
                             ss << in.rdbuf();
 
@@ -216,7 +207,7 @@ void parse_json(const json &j) {
                 continue;
             }
 
-            void *libHandle = nullptr;
+            void* libHandle = nullptr;
             if (!command_set.contains("label") && !command_set["label"].is_string())
                 throw std::runtime_error("invalid command set (\"label\" key is missing or contains invalid data)");
 
@@ -227,7 +218,7 @@ void parse_json(const json &j) {
             libEntryData.label = command_set["label"];
             libEntryData.id = command_set["id"];
 
-            if (std::find(processedEntries.begin(), processedEntries.end(), libEntryData.id) != processedEntries.end())
+            if (std::ranges::find(processedEntries, libEntryData.id) != processedEntries.end())
                 continue;
 
             processedEntries.emplace_back(libEntryData.id);
@@ -263,7 +254,7 @@ void parse_json(const json &j) {
 
             if (!command_set["lib"].contains(objName)) {
                 std::cerr << "data for this current platform (" << objName << ") does not exist, passing on..."
-                          << std::endl;
+                    << std::endl;
                 continue;
             }
 
@@ -294,15 +285,15 @@ void parse_json(const json &j) {
 
                     libEntryData.handler_onLoad = [libHandle, libName, symbolName]() -> int {
                         using FunctionType = int();
-                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                        void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from \"" << libName << "\": " << symbolName
-                                      << " -> "
-                                      << get_error_from_lib() << std::endl;
+                                << " -> "
+                                << get_error_from_lib() << std::endl;
                             return -1;
                         }
 
-                        return reinterpret_cast<FunctionType *>(funcPtr)();
+                        return reinterpret_cast<FunctionType*>(funcPtr)();
                     };
                 }
 
@@ -311,71 +302,72 @@ void parse_json(const json &j) {
 
                     libEntryData.handler_onExit = [libHandle, libName, symbolName]() -> int {
                         using FunctionType = int();
-                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                        void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
-                                      << " -> "
-                                      << get_error_from_lib() << std::endl;
+                                << " -> "
+                                << get_error_from_lib() << std::endl;
                             return -1;
                         }
 
-                        return reinterpret_cast<FunctionType *>(funcPtr)();
+                        return reinterpret_cast<FunctionType*>(funcPtr)();
                     };
                 }
 
                 if (h_obj.contains("OnCommandExecStart") && h_obj["OnCommandExecStart"].is_string()) {
                     symbolName = h_obj["OnCommandExecStart"];
 
-                    libEntryData.handler_onCmdExecStart = [libHandle, libName, symbolName](char *cmdLine) {
-                        using FunctionType = void(char *);
-                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                    libEntryData.handler_onCmdExecStart = [libHandle, libName, symbolName](char* cmdLine) {
+                        using FunctionType = void(char*);
+                        void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
-                                      << " -> "
-                                      << get_error_from_lib() << std::endl;
+                                << " -> "
+                                << get_error_from_lib() << std::endl;
                             return;
                         }
 
-                        reinterpret_cast<FunctionType *>(funcPtr)(cmdLine);
+                        reinterpret_cast<FunctionType*>(funcPtr)(cmdLine);
                     };
                 }
 
                 if (h_obj.contains("OnCommandExecFinish") && h_obj["OnCommandExecFinish"].is_string()) {
                     symbolName = h_obj["OnCommandExecFinish"];
 
-                    libEntryData.handler_onCmdExecFinish = [libHandle, libName, symbolName](char *cmdLine, int rc, int id, char* stream) {
-                        using FunctionType = void(char *, int, int, char*);
-                        void *funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
-                        if (!funcPtr) {
-                            std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
-                                      << " -> "
-                                      << get_error_from_lib() << std::endl;
-                            return;
-                        }
+                    libEntryData.handler_onCmdExecFinish = [libHandle, libName, symbolName](
+                        char* cmdLine, int rc, int id, char* stream) {
+                            using FunctionType = void(char*, int, int, char*);
+                            void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                            if (!funcPtr) {
+                                std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
+                                    << " -> "
+                                    << get_error_from_lib() << std::endl;
+                                return;
+                            }
 
-                        reinterpret_cast<FunctionType *>(funcPtr)(cmdLine, rc, id, stream);
-                    };
+                            reinterpret_cast<FunctionType*>(funcPtr)(cmdLine, rc, id, stream);
+                        };
                 }
             }
 
             if (command_set["cmd_list"].is_array() && !command_set["cmd_list"].empty()) {
-                for (const auto &cmd: command_set["cmd_list"]) {
+                for (const auto& cmd : command_set["cmd_list"]) {
                     if ((cmd.contains("cmd") && cmd.contains("description") && cmd.contains("exec_symbol")) &&
                         (cmd["cmd"].is_string() && cmd["description"].is_string() && cmd["exec_symbol"].is_string())) {
                         std::string cmdName = cmd["cmd"];
                         std::string desc = cmd["description"];
                         std::string sym = cmd["exec_symbol"];
 
-                        void *funcPtr = get_method_from_handle(libHandle, sym.c_str());
+                        void* funcPtr = get_method_from_handle(libHandle, sym.c_str());
                         if (funcPtr == nullptr)
                             throw std::runtime_error(
-                                    std::string("Command symbol for ").append(libName) + " not found, " + sym);
+                                std::string("Command symbol for ").append(libName) + " not found, " + sym);
 
-                        OsintgramCXX::C_CommandExec cmdExec = [funcPtr](const char *_c, int a, char **b, int c,
-                                                                        char **d) {
-                            return reinterpret_cast<int (*)(const char *, int, char **, int, char **)>(funcPtr)(_c, a,
-                                                                                                                b, c,
-                                                                                                                d);
+                        OsintgramCXX::C_CommandExec cmdExec = [funcPtr](const char* _c, int a, char** b, int c,
+                                                                        char** d) {
+                            return reinterpret_cast<int (*)(const char*, int, char**, int, char**)>(funcPtr)(_c, a,
+                                b, c,
+                                d);
                         };
 
                         OsintgramCXX::ShellLibEntry cmdEntry{};
@@ -393,8 +385,8 @@ void parse_json(const json &j) {
     }
 }
 
-fs::path locate_json(const std::string &filename) {
-    for (const auto &it: lookupPaths) {
+fs::path locate_json(const std::string& filename) {
+    for (const auto& it : lookupPaths) {
         if (fs::exists(fs::path(it) / filename))
             return fs::path(fs::path(it) / filename);
     }
@@ -405,8 +397,7 @@ fs::path locate_json(const std::string &filename) {
 void init_data() {
     std::vector<std::string> jsonFiles;
 
-    const char *cJsonFile = getenv("OsintgramCXX_JsonCommandList");
-    if (cJsonFile) {
+    if (const char* cJsonFile = getenv("OsintgramCXX_JsonCommandList")) {
         std::string _e = cJsonFile;
         std::string delim;
 
@@ -421,9 +412,8 @@ void init_data() {
         }
     }
 
-    for (const auto &it: lookupPaths) {
-        std::string path = it + "/commands.json";
-        if (fs::exists(path))
+    for (const auto& it : lookupPaths) {
+        if (std::string path = it + "/commands.json"; fs::exists(path))
             jsonFiles.emplace_back(path);
     }
 
@@ -432,7 +422,7 @@ void init_data() {
         return;
     }
 
-    for (const auto &it: jsonFiles) {
+    for (const auto& it : jsonFiles) {
         json j;
         std::ifstream in(it);
         if (!in.is_open()) {
@@ -451,14 +441,14 @@ void ModLoader_load() {
 
 void ModLoader_start() {
     // this method just calls on the handlers of "OnLoad", threaded.
-    for (const auto &[unused, vec]: OsintgramCXX::loadedLibraries) {
+    for (const auto& vec : OsintgramCXX::loadedLibraries | std::views::values) {
         if (vec.handler_onLoad != nullptr)
             vec.handler_onLoad();
     }
 }
 
 void ModLoader_stop() {
-    for (const auto &[handle, vec]: OsintgramCXX::loadedLibraries) {
+    for (const auto& [handle, vec] : OsintgramCXX::loadedLibraries) {
         if (vec.handler_onExit != nullptr)
             vec.handler_onExit();
 
@@ -469,11 +459,11 @@ void ModLoader_stop() {
 
 #ifdef _WIN32
         if (handle)
-            FreeLibrary((HMODULE) handle);
+            FreeLibrary((HMODULE)handle);
 #endif
     }
 }
 
 namespace OsintgramCXX {
-    std::map<void *, LibraryEntry> loadedLibraries;
+    std::map<void*, LibraryEntry> loadedLibraries;
 }
