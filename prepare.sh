@@ -6,12 +6,12 @@ BUILD_DIRECTORY="${2:-$(pwd)/Build/}"
 function missing_tools() {
     echo "One or more tools are missing."
     echo "Using your package manager, install these following tools (example with apt):"
-    echo "$ sudo apt install git curl zip unzip tar cmake libssl-dev libcurl4-openssl-dev"
+    echo "$ sudo apt install git curl zip unzip tar cmake libssl-dev libcurl4-openssl-dev libcap build-essential"
     echo ""
     echo "You may have to adjust the packages tailored for your Linux OS,"
     echo "like for Arch Linux (using the pacman command):"
-    echo "$ sudo pacman -Sy git base-devel zip unzip tar cmake"
-    echo "- Note that I did not include curl here, since that package is required by pacman itself"
+    echo "$ sudo pacman -Sy git base-devel zip unzip tar cmake libcap"
+    echo "- Note that I did not include curl here, since that package is required by pacman itself (yes, I checked)"
 }
 
 function check_vcpkg_bin() {
@@ -38,6 +38,11 @@ fi
 
 function clone_vcpkg() {
     "$1" clone https://github.com/microsoft/vcpkg.git "$2"
+    ORIG_PWD="$(pwd)"
+    cd "$2"
+    echo "bootstrapping vcpkg (with -disableMetrics), please wait..."
+    source ./bootstrap-vcpkg.sh -disableMetrics
+    cd "$ORIG_PWD"
 }
 
 GIT_CMD="$(command -v git)"

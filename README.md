@@ -140,8 +140,6 @@ that are already stored.
 Please note that this is still a WIP, and that this is not the finalized version. I will
 make an announcement, once OsintgramCXX receives the first stable release build.
 
----
-
 ### Building on non-Linux systems
 Okay, but you might be running Windows or macOS, so how else can you build it? Different
 methods include:
@@ -152,6 +150,39 @@ methods include:
 - Dual-Booting (if you have a Windows PC)
 - WSL (Windows only)
 - Termux (Android only, still experimenting for a proper build)
+
+---
+
+## Default modules
+For the default installment of this tool, I decided to separate the codebase into multiple
+sections, which include:
+
+- [**Core Application**](Sources/Application): The code that starts up, once you launch that
+  nice `./OsintgramCXX` executable. No, this one is not a library, the others are.
+- [**Shared Code**](Sources/Commons): A shared codebase that is shared upon the other modules,
+  utilizing the DRY methods
+- [**Interactive Commands**](Sources/CoreCommands): The part that would give you the most
+  interests, considering that it is the base module, where all the standard commands live at.
+- [**Instagram Private API**](Sources/instagram-private-api): Oh, this one's spicy, eh? Yes,
+  this code will be the main reason all your custom mods will most likely depend on. That is,
+  if you don't rely on user input and probably automate.
+- [**Application Logging**](Sources/Logging): Nice library to have, in case GDB is a bit too
+  hard to understand and not having to rely on the console output itself. Threaded or not,
+  logging is a must. If you can't log, and you can't reproduce the error, then how are you
+  going to fix them? :neutral_face:
+- [**Networking**](Sources/Networking): The Instagram APIs use them. The application alone
+  uses it to do other possible communications. It's needed. And it's simple to use. See
+  [the header](Include/OsintgramCXX/Networking/Networking.hpp) itself, and you'll learn, how
+  simple it is to make a Network request... that is, if you consider yourself as a proper
+  programmer and not a wannabe dev :skull:
+- [**Security layers**](Sources/Security): A reason to make your accounts secure, whether
+  local or somewhere online, is to securely encrypt them. OsintgramCXX doesn't take a raw
+  configuration file right at the start. You explicitly use the `loginctl` command itself
+  to log in.
+
+While most of the code are statically linked (hello, vcpkg), all of those libraries are
+shared libraries that can be linked via `gcc` or `clang`. Use them to your fullest extent,
+you may need them.
 
 ---
 

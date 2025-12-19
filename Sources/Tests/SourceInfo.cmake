@@ -2,7 +2,7 @@ if (NOT DEFINED OsintgramCXX_CompileTestCode)
     return()
 endif ()
 
-if (OsintgramCXX_CompileTestCode EQUAL ON)
+if (NOT OsintgramCXX_CompileTestCode)
     message(STATUS "Ignore Testing Source Code")
     return()
 endif ()
