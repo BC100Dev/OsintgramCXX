@@ -128,6 +128,18 @@ building. After the execution of `./prepare.sh`, do the final blow with this com
 $ cmake --build Build
 ```
 
+Once that has been built, the final files should be located directly at `Build/bundle`,
+containing the `Osintgram` executable, along with its libraries. In the
+`Build/bundle/Resources` directory are the core files for OsintgramCXX itself to run. The
+`commands.json` is a requirement, since it houses all the commands for OsintgramCXX to be
+able to index, which houses even the core commands themselves. `AppSettings.cfg` is an
+optional file that isn't a requirement, since OsintgramCXX will take in the default values
+that are already stored.
+
+***!! For those already testing !!***
+Please note that this is still a WIP, and that this is not the finalized version. I will
+make an announcement, once OsintgramCXX receives the first stable release build.
+
 ---
 
 ### Building on non-Linux systems
