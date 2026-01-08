@@ -7,13 +7,25 @@
 #include <memory>
 #include <string>
 
+#ifdef _WIN32
+#include <windows.h>
+
+#define ENUM_CLASS_TYPE
+#define ENUM_PREFIX_CONTENT
+#else
+#define ENUM_CLASS_TYPE class
+#define ENUM_PREFIX_CONTENT LogLevel::
+#endif
+
 namespace fs = std::filesystem;
 
-namespace Logging {
-    enum class LogLevel {
+namespace DevUtils {
+    enum ENUM_CLASS_TYPE LogLevel {
         INFO = 0xE0,
         WARNING = 0xE1,
+#ifndef _WIN32
         ERROR = 0xE2,
+#endif
         FATAL = 0xE3,
         DEBUG = 0xE4,
         VERBOSE = 0xE5,
@@ -68,25 +80,25 @@ namespace Logging {
 
     inline std::string formatLogLevel(const LogLevel& lvl) {
         switch (lvl) {
-        case LogLevel::INFO:
+        case ENUM_PREFIX_CONTENT INFO:
             return "INFO";
-        case LogLevel::WARNING:
+        case ENUM_PREFIX_CONTENT WARNING:
             return "WARNING";
-        case LogLevel::ERROR:
+        case ENUM_PREFIX_CONTENT ERROR:
             return "ERROR";
-        case LogLevel::FATAL:
+        case ENUM_PREFIX_CONTENT FATAL:
             return "FATAL";
-        case LogLevel::DEBUG:
+        case ENUM_PREFIX_CONTENT DEBUG:
             return "DEBUG";
-        case LogLevel::VERBOSE:
+        case ENUM_PREFIX_CONTENT VERBOSE:
             return "VERBOSE";
-        case LogLevel::TRACE:
+        case ENUM_PREFIX_CONTENT TRACE:
             return "TRACE";
-        case LogLevel::CRITICAL:
+        case ENUM_PREFIX_CONTENT CRITICAL:
             return "CRITICAL";
-        case LogLevel::GENERIC:
+        case ENUM_PREFIX_CONTENT GENERIC:
             return "GENERIC";
-        case LogLevel::USER:
+        case ENUM_PREFIX_CONTENT USER:
             return "USER";
         default: // unlikely to happen, but default value
             return formatLogLevel(LogLevel::DEBUG);

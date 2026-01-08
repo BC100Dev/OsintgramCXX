@@ -9,10 +9,10 @@
 #include <iostream>
 
 #include <nlohmann/json.hpp>
-#include <OsintgramCXX/Networking/Networking.hpp>
+#include <dev_utils/network/Network.hpp>
 
 using json = nlohmann::json;
-using namespace OsintgramCXX::Networking;
+using namespace DevUtils;
 
 #define AuthenticationHeaders std::vector<std::pair<std::string, std::string>>
 #define OptionalData std::optional

@@ -15,4 +15,4 @@ if (APP_SYSTEM_TARGET STREQUAL "Linux")
     set_target_properties(OsintgramCXX-testing PROPERTIES INSTALL_RPATH '$ORIGIN:$ORIGIN/libs:$ORIGIN/lib:$ORIGIN/../lib')
 endif ()
 
-target_link_libraries(OsintgramCXX-testing PRIVATE ${OsintgramCXX_LINK_DEPS} OsintgramCXX-networking OsintgramCXX-security OsintgramCXX-commons)
+target_link_libraries(OsintgramCXX-testing PRIVATE ${OsintgramCXX_LINK_DEPS} OsintgramCXX-security dev-utils)

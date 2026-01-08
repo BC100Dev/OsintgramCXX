@@ -1,12 +1,12 @@
-#include <OsintgramCXX/Commons/Tools.hpp>
+#include <dev_utils/commons/Tools.hpp>
 
-std::vector<std::string> OsintgramCXX::Tools::translateCmdLine(const std::string &cmdLine) {
+std::vector<std::string> DevUtils::TranslateStrToCmdline(const std::string &cmdLine) {
     if (cmdLine.empty() || cmdLine.find_first_not_of(' ') == std::string::npos)
         return {};
 
-    const int normal = 0;
-    const int inQuote = 1;
-    const int inDoubleQuote = 2;
+    constexpr int normal = 0;
+    constexpr int inQuote = 1;
+    constexpr int inDoubleQuote = 2;
     int state = normal;
 
     std::vector<std::string> result;
@@ -56,7 +56,7 @@ std::vector<std::string> OsintgramCXX::Tools::translateCmdLine(const std::string
         result.push_back(current.str());
 
     if (state == inQuote || state == inDoubleQuote)
-        throw std::runtime_error("unbalanced quotes in " + cmdLine);
+        throw std::runtime_error("TranslateStrToCmdline: unbalanced quotes (\"" + cmdLine + "\")");
 
     return result;
 }

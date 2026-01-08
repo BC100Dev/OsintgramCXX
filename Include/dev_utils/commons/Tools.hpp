@@ -6,9 +6,9 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace OsintgramCXX::Tools {
+namespace DevUtils {
 
-    std::vector<std::string> translateCmdLine(const std::string& cmdLine);
+    std::vector<std::string> TranslateStrToCmdline(const std::string& cmdLine);
 
 }
 

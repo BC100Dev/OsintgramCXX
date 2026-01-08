@@ -1,5 +1,5 @@
 #include "AndroidCA.hpp"
-#include <OsintgramCXX/Commons/Utils.hpp>
+#include <dev_utils/commons/Utils.hpp>
 
 #include <filesystem>
 #include <fstream>
@@ -14,7 +14,7 @@ bool env_exists() {
 
 std::vector<std::string> cert_store_paths = {
         env_exists() ? std::getenv("OsintgramCXX_CertStore") : "",
-        OsintgramCXX::ExecutableDirectory() + "/android_certstore.pem",
+        DevUtils::ExecutableDirectory() + "/android_certstore.pem",
         "/data/data/com.termux/files/usr/etc/tls/cert.pem"
 };
 
@@ -37,7 +37,7 @@ bool has_cert_store() {
 }
 
 void gen_cert_store(const std::string& path) {
-    std::ofstream out(OsintgramCXX::ExecutableDirectory() + "/android_certstore.pem", std::ios::out | std::ios::app);
+    std::ofstream out(DevUtils::ExecutableDirectory() + "/android_certstore.pem", std::ios::out | std::ios::app);
     if (!out.is_open())
         throw std::runtime_error("Cannot open android_certstore.pem for writing");
 
@@ -66,7 +66,7 @@ namespace OsintgramCXX::AndroidVer {
 
     void prepare_cacerts() {
 #ifdef __ANDROID__
-        std::string exec_path = OsintgramCXX::ExecutableDirectory();
+        std::string exec_path = DevUtils::ExecutableDirectory();
 
         if (has_cert_store())
             make_cert_store();

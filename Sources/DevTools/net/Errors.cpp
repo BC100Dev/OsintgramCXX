@@ -1,4 +1,4 @@
-#include <OsintgramCXX/Networking/Errors.hpp>
+#include <dev_utils/network/Errors.hpp>
 #include <typeinfo>
 #include <iostream>
 #include <sstream>
@@ -8,7 +8,7 @@ std::any fetchErrorFromInt(const int& var) {
     return nullptr;
 }
 
-namespace OsintgramCXX::Networking {
+namespace DevUtils {
 
     std::vector<CommonError> CommonErrorList{
             {"challenge_required",

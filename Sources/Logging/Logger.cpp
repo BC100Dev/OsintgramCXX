@@ -1,6 +1,7 @@
-#include <OsintgramCXX/Logging/Logger.hpp>
+#include <dev_utils/logging/Logger.hpp>
 
-namespace Logging {
+namespace DevUtils {
+
     Logger::Logger(const std::string& name) {
         logName = name;
         timestamp = true;

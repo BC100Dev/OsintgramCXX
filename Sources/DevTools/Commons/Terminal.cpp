@@ -1,4 +1,4 @@
-#include <OsintgramCXX/Commons/Terminal.hpp>
+#include <dev_utils/commons/Terminal.hpp>
 
 #ifdef __linux__
 #include <sys/ioctl.h>

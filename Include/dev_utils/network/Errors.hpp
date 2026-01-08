@@ -10,7 +10,7 @@
 #define HTTP_STATUS_Unauthorized 403
 #define HTTP_STATUS_NotFound 404
 
-namespace OsintgramCXX::Networking {
+namespace DevUtils {
 
     struct CommonError {
         std::string type;

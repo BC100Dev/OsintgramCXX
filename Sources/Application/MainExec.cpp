@@ -10,14 +10,15 @@
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
 
-#include <OsintgramCXX/Commons/HelpPage.hpp>
-#include <OsintgramCXX/Commons/Terminal.hpp>
-#include <OsintgramCXX/Commons/Utils.hpp>
-
-#include <OsintgramCXX/Logging/Logger.hpp>
+#include <dev_utils/commons/HelpPage.hpp>
+#include <dev_utils/commons/Terminal.hpp>
+#include <dev_utils/commons/Utils.hpp>
+#include <dev_utils/logging/Logger.hpp>
 
 #include "ModInit.hpp"
 #include "AndroidCA.hpp"
+#include "OsintgramCXX/App/WineDetect.hpp"
+#include "settings/AppSettings.hpp"
 
 #ifdef _WIN32
 
@@ -41,8 +42,11 @@
 
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
+using namespace DevUtils;
 
 std::string chrootPath;
+
+std::map<std::string, std::string> defMap;
 
 void WinSetColorMode() {
 #ifdef _WIN32
@@ -58,9 +62,7 @@ void WinSetColorMode() {
 }
 
 void exceptionHandler() {
-    std::exception_ptr exPtr = std::current_exception();
-
-    if (exPtr) {
+    if (std::exception_ptr exPtr = std::current_exception()) {
         try {
             std::rethrow_exception(exPtr);
         } catch (const std::exception &ex) {
@@ -107,10 +109,9 @@ void usage() {
 
     if (!executablePath.empty()) {
         fs::path filePath(executablePath);
-        std::string fileName = filePath.filename().string();
 
         // in favor of Osintgram4j being discontinued
-        if (fileName == "java")
+        if (std::string fileName = filePath.filename().string(); fileName == "java")
             cmd.append("osintgram4j.jar");
         else
             cmd.append(fileName);
@@ -134,7 +135,8 @@ void usage() {
     hPage.setStartSpaceWidth(4);
     hPage.setDescSeparator("=");
     hPage.addArg("-h  | --help", "", "Display usage and its help page");
-    hPage.addArg("-E[key=value]", "", "Applies an environment variable to the Osintgram Shell");
+    hPage.addArg("-D[key", "value]", "Puts setting values into the application runtime, temporarily overriding the App Settings file");
+    hPage.addArg("-E[key", "value]", "Applies an environment variable to the Osintgram Shell");
     hPage.addArg("--test-exec-time", "", "Tests the execution time (does not start up the Shell");
 
 #ifdef __linux__
@@ -155,57 +157,49 @@ void usage() {
 #ifdef __linux__
 
 void sigHandle(int) {
-    if (ShellFuckery::running)
-        ShellFuckery::stopShell(true);
+    if (AppShell::running)
+        AppShell::stopShell(true);
 
-    ShellFuckery::cleanup();
+    AppShell::cleanup();
 }
 
 #endif
 
 void init() {
     // don't use loggers now, just initialize them (for now)
-    Logging::Instances::getApplicationLoggingInstance();
-    Logging::Instances::getNetworkLoggingInstance();
-    Logging::Instances::getSecureLoggerInstance();
+    Instances::getApplicationLoggingInstance();
+    Instances::getNetworkLoggingInstance();
+    Instances::getSecureLoggerInstance();
 
+    if (Wine::WineExecution()) {
+        Runtime::colorSupportEnabled = false;
+    } else {
 #ifdef _WIN32
-    // start Win10 check
-    typedef LONG(WINAPI *RtlGetVersion_FUNC)(PRTL_OSVERSIONINFOW);
-
-    HMODULE hNtdll = GetModuleHandleA("ntdll.dll");
-    if (hNtdll) {
-        auto RtlGetVersion = (RtlGetVersion_FUNC) GetProcAddress(hNtdll, "RtlGetVersion");
-        if (RtlGetVersion) {
-            RTL_OSVERSIONINFOEXW osInfo = {};
-            osInfo.dwOSVersionInfoSize = sizeof(osInfo);
-
-            if (RtlGetVersion(reinterpret_cast<PRTL_OSVERSIONINFOW>(&osInfo)) == 0) { // 0 == STATUS_SUCCESS
-                bool isWin10Supported = osInfo.dwMajorVersion >= 10 &&
-                                        osInfo.dwMinorVersion >= 0 &&
-                                        osInfo.dwBuildNumber >= 10240;
-
-                if (!isWin10Supported) {
-                    std::cerr << "Warning: You are running an older version than Windows 10." << std::endl;
-                    std::cerr << "Certain features like Terminal Color-Coding will not work." << std::endl;
-                    std::cerr << "Expect gambled up mess in the Terminal, or stick to alternatives." << std::endl;
-                    std::cerr
-                            << "View alternative solutions at \"https://github.com/BC100Dev/OsintgramCXX/blob/master/README.md\""
-                            << std::endl;
-                }
-            }
-        }
-    }
+        if (HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE); hOut != INVALID_HANDLE_VALUE) {
+            DWORD dwMode = 0;
+            if (GetConsoleMode(hOut, &dwMode)) {
+                dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                if (!SetConsoleMode(hOut, dwMode))
+                    Runtime::colorSupportEnabled = false;
+            } else
+                Runtime::colorSupportEnabled = false;
+        } else
+            Runtime::colorSupportEnabled = false;
 #endif
+    }
 
 #ifdef __linux__
     signal(SIGINT, sigHandle);
     signal(SIGTERM, sigHandle);
     signal(SIGABRT, sigHandle);
+
+    // presumably we ain't in a Terminal (presumable file piping)
+    if (!isatty(STDOUT_FILENO))
+        Runtime::colorSupportEnabled = false;
 #endif
 
     // this method can still be called, will be ineffective, if called outside of Android platforms
-    OsintgramCXX::AndroidVer::prepare_cacerts();
+    AndroidVer::prepare_cacerts();
 }
 
 void initSettings() {
@@ -233,7 +227,19 @@ void parseArgs(const std::vector<std::string> &args) {
                     continue;
                 }
 
-                ShellFuckery::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
+                AppShell::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
+            }
+
+            if (_arg.rfind("-D", 0) == 0) {
+                std::string keyValue = arg.substr(2);
+                size_t eqPos = keyValue.find('=');
+
+                if (eqPos == std::string::npos) {
+                    std::cerr << "Invalid format for -D argument (skipping): " << arg << std::endl;
+                    continue;
+                }
+
+                Runtime::defMap[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
 
             if (_arg.rfind("--sandbox", 0) == 0) {
@@ -245,11 +251,6 @@ void parseArgs(const std::vector<std::string> &args) {
 
                 chrootPath = arg.substr(eqPos + 1);
             }
-        } else {
-            //Target target;
-            //target.name = arg;
-
-            //targetList.push_back(target);
         }
     }
 }
@@ -276,9 +277,9 @@ int main(int argc, char **argv) {
 
     // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
     // making things ugly in the process
-    CurrentThread_Sleep(10);
+    threadSleep(10);
 
-    ShellFuckery::initializeShell();
+    AppShell::initializeShell();
     ModLoader_load();
 
     // optional, by the CLI args, enable FS sandboxing
@@ -346,9 +347,9 @@ int main(int argc, char **argv) {
 
     ModLoader_start();
 
-    CurrentThread_Sleep(10);
+    threadSleep(10);
 
-    ShellFuckery::launchShell();
+    AppShell::launchShell();
 
     return 0;
 }

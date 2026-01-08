@@ -3,11 +3,9 @@
 
 #include <string>
 #include <vector>
-#include <OsintgramCXX/Networking/Networking.hpp>
+#include <dev_utils/network/Network.hpp>
 
-using namespace OsintgramCXX::Networking;
-
-namespace OsintgramCXX::Proxy {
+namespace DevUtils {
 
     enum ProxyConnectorType {
         HTTP = 0,

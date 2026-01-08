@@ -4,12 +4,11 @@
 #include <filesystem>
 #include <fstream>
 
-#include <OsintgramCXX/Networking/Networking.hpp>
+#include <dev_utils/commons/Utils.hpp>
+#include <dev_utils/commons/HelpPage.hpp>
+#include <dev_utils/network/Network.hpp>
 
-#include <OsintgramCXX/Commons/Utils.hpp>
-#include <OsintgramCXX/Commons/HelpPage.hpp>
-
-using namespace OsintgramCXX::Networking;
+using namespace DevUtils;
 
 namespace fs = std::filesystem;
 
@@ -36,7 +35,7 @@ void update() {
 
     if (!fs::exists(userConfig)) {
         try {
-            OsintgramCXX::CreateFile(userConfig);
+            CreateFile(userConfig);
         } catch (const std::runtime_error& err) {
             std::cerr << "Unable to update the device_profiles.json" << std::endl;
             std::cerr << "Cause: " << err.what() << std::endl;
@@ -78,7 +77,7 @@ int dsi_func(const std::vector<std::string>& args, const std::map<std::string, s
         actions.display(std::cout);
     }
 
-    OsintgramCXX::CurrentThread_Sleep(500);
+    threadSleep(500);
 
     return 0;
 }

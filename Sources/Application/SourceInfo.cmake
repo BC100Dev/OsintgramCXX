@@ -6,8 +6,7 @@ set(RPATH_VAL "$ORIGIN:$ORIGIN/libs:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../libs")
 
 add_executable(OsintgramCXX ${ModSources})
 SetTargetOutputDir(OsintgramCXX "${OUTPUT_DIRECTORY_ROOT}")
-target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} OsintgramCXX-commons OsintgramCXX-networking OsintgramCXX-security app-logger)
-DisableBionicFortify(OsintgramCXX)
+target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} dev-utils app-logger OsintgramCXX-security)
 
 if (APP_SYSTEM_TARGET STREQUAL "Linux")
     if (NOT APP_TARGETS_ANDROID)
@@ -36,3 +35,7 @@ add_custom_command(TARGET OsintgramCXX POST_BUILD
         "${OUTPUT_DIRECTORY_RESOURCES}/AppSettings.cfg"
         COMMENT "Copying AppSettings.cfg to build directory"
 )
+
+# DO NOT REMOVE THIS
+# Android begs you
+DisableBionicFortify(OsintgramCXX)

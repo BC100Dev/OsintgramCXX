@@ -1,18 +1,20 @@
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/ModHandles.hpp>
 
-#include <OsintgramCXX/Commons/Utils.hpp>
-#include <OsintgramCXX/Commons/Terminal.hpp>
-#include <OsintgramCXX/Commons/Tools.hpp>
-#include <OsintgramCXX/Commons/HelpPage.hpp>
+#include <dev_utils/commons/Utils.hpp>
+#include <dev_utils/commons/Terminal.hpp>
+#include <dev_utils/commons/Tools.hpp>
+#include <dev_utils/commons/HelpPage.hpp>
 
 #include <sstream>
 #include <thread>
 #include <iostream>
 #include <filesystem>
 #include <cstring>
+#include <ranges>
 
 #include "StdCapture.hpp"
+#include "../settings/AppSettings.hpp"
 
 #ifdef __linux__
 
@@ -26,6 +28,7 @@
 #endif
 
 using namespace OsintgramCXX;
+using namespace DevUtils;
 
 namespace fs = std::filesystem;
 
@@ -39,14 +42,14 @@ struct CommandExecution {
 bool timeMeasuringSystem = false;
 
 void helpCmd() {
-    if (OsintgramCXX::loadedLibraries.empty()) {
+    if (loadedLibraries.empty()) {
         std::cerr << "No commands have been added." << std::endl;
         std::cerr << "To add commands, load a native library with the use of 'commands.json' file," << std::endl;
         std::cerr << "and restart the application." << std::endl;
         std::cerr << "Safely exit out of the application by typing 'exit', 'quit' or 'close'" << std::endl;
 
         // shell beautifying
-        CurrentThread_Sleep(70);
+        threadSleep(70);
         return;
     }
 
@@ -58,15 +61,15 @@ void helpCmd() {
     gPage.addArg("exit", "", "Exits this application");
     Terminal::println(std::cout, Terminal::TermColor::CYAN, gPage.display(), true);
 
-    for (const auto& cmdVar : OsintgramCXX::loadedLibraries) {
-        const auto& item = cmdVar.second;
-        Terminal::println(std::cout, Terminal::TermColor::RED, "[" + item.label + "]", true);
+    for (const auto& val : OsintgramCXX::loadedLibraries) {
+        const auto& item = val;
+        Terminal::println(std::cout, Terminal::TermColor::RED, "[" + item.second.label + "]", true);
 
         HelpPage ePage;
         ePage.setStartSpaceWidth(2);
         ePage.setSpaceWidth(5);
 
-        for (const auto& cmdEntry : item.commands)
+        for (const auto& cmdEntry : item.second.commands)
             ePage.addArg(cmdEntry.cmd, "", cmdEntry.description);
 
         Terminal::println(std::cout, Terminal::TermColor::CYAN, ePage.display(), true);
@@ -74,8 +77,8 @@ void helpCmd() {
 }
 
 void forceStopShell(int) {
-    OsintgramCXX::ShellFuckery::stopShell(true);
-    OsintgramCXX::ShellFuckery::cleanup();
+    AppShell::stopShell(true);
+    AppShell::cleanup();
     std::cin.setstate(std::ios::badbit);
 
 #ifdef __linux__
@@ -89,16 +92,14 @@ void forceStopShell(int) {
 
 CommandExecution execCommand(const std::string& cmd, const std::vector<std::string>& args, const ShellEnvironment& env,
                              const std::string& cmdLine) {
-    long long startTime;
-    if (timeMeasuringSystem)
-        startTime = OsintgramCXX::nanoTime();
+    long long startTime = nanoTime();
 
     bool found = false;
-    OsintgramCXX::C_CommandExec cmdExecHandle = nullptr;
+    C_CommandExec cmdExecHandle = nullptr;
     CommandExecution execReturn{};
 
-    for (const auto& it : OsintgramCXX::loadedLibraries) {
-        for (const auto& cmdEntry : it.second.commands) {
+    for (const auto& val : OsintgramCXX::loadedLibraries | std::views::values) {
+        for (const auto& cmdEntry : val.commands) {
             if (cmd == cmdEntry.cmd) {
                 found = true;
                 cmdExecHandle = cmdEntry.execHandler;
@@ -124,12 +125,12 @@ CommandExecution execCommand(const std::string& cmd, const std::vector<std::stri
 
     execReturn.cmdFound = true;
 
-    char** argv = new char*[args.size()];
+    auto argv = new char*[args.size()];
     for (size_t i = 0; i < args.size(); i++) {
         argv[i] = strdup(args[i].c_str());
     }
 
-    char** env_map = new char*[env.size()];
+    auto env_map = new char*[env.size()];
     int index = 0;
     for (const auto& [key, value] : env) {
         std::string entry = key;
@@ -139,10 +140,9 @@ CommandExecution execCommand(const std::string& cmd, const std::vector<std::stri
     }
 
     // start the listeners for "OnCommandExec"
-    for (const auto& it : OsintgramCXX::loadedLibraries) {
-        LibraryEntry entry = it.second;
-        if (entry.handler_onCmdExecStart != nullptr) {
-            std::thread t([handler = it.second, &cmdLine] {
+    for (const auto& val : OsintgramCXX::loadedLibraries | std::views::values) {
+        if (LibraryEntry entry = val; entry.handler_onCmdExecStart != nullptr) {
+            std::thread t([handler = val, &cmdLine] {
                 handler.handler_onCmdExecStart(const_cast<char*>(cmdLine.c_str()));
             });
             t.detach();
@@ -175,9 +175,8 @@ CommandExecution execCommand(const std::string& cmd, const std::vector<std::stri
 
     delete[] argv;
 
-    for (const auto& it : OsintgramCXX::loadedLibraries) {
-        LibraryEntry entry = it.second;
-        if (entry.handler_onCmdExecFinish != nullptr) {
+    for (const auto& val : OsintgramCXX::loadedLibraries | std::views::values) {
+        if (LibraryEntry entry = val; entry.handler_onCmdExecFinish != nullptr) {
             std::thread t([handler = entry, &cmdLine, &execReturn, output = cap.str()] {
                 handler.handler_onCmdExecFinish(const_cast<char*>(cmdLine.c_str()),
                                                 execReturn.rc,
@@ -189,7 +188,7 @@ CommandExecution execCommand(const std::string& cmd, const std::vector<std::stri
     }
 
     if (timeMeasuringSystem) {
-        long long endTime = OsintgramCXX::nanoTime();
+        long long endTime = nanoTime();
         long long duration = endTime - startTime;
         long long sec = duration / 1'000'000'000;
         long long millis = (duration / 1'000'000) % 1'000;
@@ -200,7 +199,7 @@ CommandExecution execCommand(const std::string& cmd, const std::vector<std::stri
     return execReturn;
 }
 
-namespace OsintgramCXX::ShellFuckery {
+namespace OsintgramCXX::AppShell {
     std::string PS1;
     bool running = false;
     [[maybe_unused]] bool shellInitialized = false;
@@ -216,15 +215,22 @@ namespace OsintgramCXX::ShellFuckery {
         fs::path cwd = fs::current_path();
 
         std::stringstream strStream;
-        strStream << "[" << user << "/" << GetHostname() << ": " << cwd.filename().string() << "]"
-            << (IsAdmin() ? "#" : "$") << " ";
+        strStream << "[";
+        if (Runtime::colorSupportEnabled) {
+            Terminal::print(strStream, Terminal::TermColor::BLUE, user, true);
+            strStream << " % ";
+            Terminal::print(strStream, Terminal::TermColor::RED, "OsintgramCXX", true);
+        } else
+            strStream << user << " % OsintgramCXX";
+
+        strStream << "] -> ";
 
         PS1 = strStream.str();
 
         shellInitialized = true;
     }
 
-    void modEnviron(const std::string& line) {
+    void chEnvMapTable(const std::string& line) {
         std::string worker = TrimString(line);
         if (worker[0] == '&')
             worker = worker.substr(1);
@@ -239,7 +245,7 @@ namespace OsintgramCXX::ShellFuckery {
                 return;
             }
 
-            if (opt[0] == "ENABLETIMEMEASURINGSYSTEM") {
+            if (ToLowercase(opt[0]) == ToLowercase("EnableTimeMeasuringSystem")) {
                 timeMeasuringSystem = opt[1] == "true" || opt[1] == "enabled" || opt[1] == "yes" || opt[1] == "1";
                 return;
             }
@@ -280,12 +286,11 @@ namespace OsintgramCXX::ShellFuckery {
 
                 line = TrimString(line);
 
-                // forgotten lines (would SegFault otherwise)
                 if (line.empty())
                     continue;
 
                 if (line[0] == '&') {
-                    modEnviron(line);
+                    chEnvMapTable(line);
                     continue;
                 }
 
@@ -299,7 +304,7 @@ namespace OsintgramCXX::ShellFuckery {
                     continue;
                 }
 
-                std::vector<std::string> cmdLine = Tools::translateCmdLine(line);
+                std::vector<std::string> cmdLine = TranslateStrToCmdline(line);
                 std::vector<std::string> cmdArgs;
 
                 if (cmdLine.size() > 1) {
@@ -310,14 +315,14 @@ namespace OsintgramCXX::ShellFuckery {
                 CommandExecution ret = execCommand(cmdLine[0], cmdArgs, environment, line);
                 if (!ret.cmdFound) {
                     std::cerr << ret.msg << std::endl;
-                    CurrentThread_Sleep(70);
+                    threadSleep(70);
 
                     continue;
                 }
 
                 if (ret.rc != 0) {
                     std::cerr << cmdLine[0] << ": exit code " << ret.rc << std::endl;
-                    CurrentThread_Sleep(70);
+                    threadSleep(70);
                 }
             }
             catch (const std::exception& ex) {

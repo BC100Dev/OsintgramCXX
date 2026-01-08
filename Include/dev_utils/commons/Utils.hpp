@@ -44,7 +44,7 @@
 #define CPU_ARCHITECTURE "x32"
 #endif
 
-namespace OsintgramCXX {
+namespace DevUtils {
 
     std::string ToLowercase(const std::string &str);
 
@@ -98,7 +98,7 @@ namespace OsintgramCXX {
     // I'd recommend at least sparing 512 MB for this project
     long RandomSeed(long min = 5, long max = 500);
 
-    void CurrentThread_Sleep(long duration);
+    void threadSleep(long duration);
 
     std::vector<char> Pause(const std::string &prompt, const ssize_t &count);
 

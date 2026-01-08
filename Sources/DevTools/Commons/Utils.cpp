@@ -1,4 +1,4 @@
-#include <OsintgramCXX/Commons/Utils.hpp>
+#include <dev_utils/commons/Utils.hpp>
 #include <random>
 #include <thread>
 #include <filesystem>
@@ -26,7 +26,7 @@
 #include <pwd.h>
 #endif
 
-namespace OsintgramCXX {
+namespace DevUtils {
     std::string ToLowercase(const std::string& str) {
         std::string result = str;
         std::ranges::transform(result, result.begin(), [](unsigned char c) {
@@ -300,7 +300,7 @@ namespace OsintgramCXX {
         return rnd;
     }
 
-    void CurrentThread_Sleep(long duration) {
+    void threadSleep(long duration) {
         std::this_thread::sleep_for(std::chrono::milliseconds(duration));
     }
 

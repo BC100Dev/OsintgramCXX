@@ -1,5 +1,5 @@
-#include <OsintgramCXX/Networking/Networking.hpp>
-#include <OsintgramCXX/Commons/Utils.hpp>
+#include <dev_utils/network/Network.hpp>
+#include <dev_utils/commons/Utils.hpp>
 
 #include <algorithm>
 #include <iostream>
@@ -15,7 +15,7 @@ struct ProgressState {
     long readTimeoutMillis;
 };
 
-namespace OsintgramCXX::Networking {
+namespace DevUtils {
 
     std::string ReqMethodToStr(const RequestMethod &method) {
         switch (method) {

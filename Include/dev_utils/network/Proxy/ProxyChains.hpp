@@ -6,9 +6,7 @@
 #include <list>
 #include <string>
 
-using namespace OsintgramCXX::Proxy;
-
-namespace OsintgramCXX::ProxyChains {
+namespace DevUtils {
 
     enum PChainPriority {
         HIGHEST = 10,
