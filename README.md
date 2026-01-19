@@ -172,7 +172,7 @@ sections, which include:
   going to fix them? :neutral_face:
 - [**Networking**](Sources/Networking): The Instagram APIs use them. The application alone
   uses it to do other possible communications. It's needed. And it's simple to use. See
-  [the header](Include/dev_utils/network/Network.hpp) itself, and you'll learn, how
+  [the header](Include/dev_tools/network/Network.hpp) itself, and you'll learn, how
   simple it is to make a Network request... that is, if you consider yourself as a proper
   programmer and not a wannabe dev :skull:
 - [**Security layers**](Sources/Security): A reason to make your accounts secure, whether

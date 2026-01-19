@@ -19,8 +19,6 @@ endfunction()
 
 function(DisableBionicFortify TARGET_NAME)
     if (NOT APP_TARGETS_ANDROID)
-        message("!! DisableBionicFortify was called on a non-Android build configuration.")
-        message("!! This message can be ignored, if you are building for Linux or Windows itself.")
         return()
     endif ()
 
@@ -33,4 +31,13 @@ function(SetTargetOutputDir TARGET DIR)
             LIBRARY_OUTPUT_DIRECTORY "${DIR}"
             ARCHIVE_OUTPUT_DIRECTORY "${DIR}"
     )
+endfunction()
+
+function(SetRpathValue TARGET)
+    set(RPATH_VAL "$ORIGIN:$ORIGIN/libs:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../libs")
+    set_target_properties(${TARGET} PROPERTIES
+            BUILD_WITH_INSTALL_RPATH TRUE
+            INSTALL_RPATH "${RPATH_VAL}"
+            BUILD_RPATH "${RPATH_VAL}"
+            INSTALL_RPATH_USE_LINK_PATH FALSE)
 endfunction()

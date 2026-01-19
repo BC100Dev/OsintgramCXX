@@ -10,10 +10,10 @@
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
 
-#include <dev_utils/commons/HelpPage.hpp>
-#include <dev_utils/commons/Terminal.hpp>
-#include <dev_utils/commons/Utils.hpp>
-#include <dev_utils/logging/Logger.hpp>
+#include <dev_tools/commons/HelpPage.hpp>
+#include <dev_tools/commons/Terminal.hpp>
+#include <dev_tools/commons/Utils.hpp>
+#include <dev_tools/logging/Logger.hpp>
 
 #include "ModInit.hpp"
 #include "AndroidCA.hpp"

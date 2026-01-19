@@ -1,10 +1,10 @@
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/ModHandles.hpp>
 
-#include <dev_utils/commons/Utils.hpp>
-#include <dev_utils/commons/Terminal.hpp>
-#include <dev_utils/commons/Tools.hpp>
-#include <dev_utils/commons/HelpPage.hpp>
+#include <dev_tools/commons/Utils.hpp>
+#include <dev_tools/commons/Terminal.hpp>
+#include <dev_tools/commons/Tools.hpp>
+#include <dev_tools/commons/HelpPage.hpp>
 
 #include <sstream>
 #include <thread>

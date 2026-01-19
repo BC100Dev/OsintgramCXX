@@ -3,8 +3,8 @@
 #include <OsintgramCXX/App/Shell/ShellEnv.hpp>
 #include <OsintgramCXX/App/ModHandles.hpp>
 
-#include <dev_utils/commons/Utils.hpp>
-#include <dev_utils/commons/Terminal.hpp>
+#include <dev_tools/commons/Utils.hpp>
+#include <dev_tools/commons/Terminal.hpp>
 
 #include <nlohmann/json.hpp>
 

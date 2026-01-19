@@ -1,23 +1,15 @@
 CollectSources(${PROJECT_MODULE_ROOT} ModSources)
 
-set(CMAKE_SKIP_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-set(RPATH_VAL "$ORIGIN:$ORIGIN/libs:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../libs")
-
 add_executable(OsintgramCXX ${ModSources})
 SetTargetOutputDir(OsintgramCXX "${OUTPUT_DIRECTORY_ROOT}")
-target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} dev-utils app-logger OsintgramCXX-security)
+target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} devtools app-logger OsintgramCXX-security)
 
 if (APP_SYSTEM_TARGET STREQUAL "Linux")
     if (NOT APP_TARGETS_ANDROID)
         target_link_libraries(OsintgramCXX PRIVATE cap)
     endif ()
 
-    set_target_properties(OsintgramCXX PROPERTIES
-            BUILD_WITH_INSTALL_RPATH TRUE
-            INSTALL_RPATH "${RPATH_VAL}"
-            BUILD_RPATH "${RPATH_VAL}"
-            INSTALL_RPATH_USE_LINK_PATH FALSE)
+    SetRpathValue(OsintgramCXX)
 endif ()
 
 # copy commands.json over

@@ -11,7 +11,7 @@ namespace CoreFunctions {
     // Parameters:
     // 1. string - command name itself
     // 2. function(vec<string>, map<string, string>) - command params
-    extern std::map<std::string, std::function<int(const std::vector<std::string>, const std::map<std::string, std::string>)>> funcMap;
+    extern std::map<std::string, std::function<int(const std::vector<std::string>&, const std::map<std::string, std::string>&)>> funcMap;
 
 }
 
