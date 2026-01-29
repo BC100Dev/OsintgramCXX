@@ -8,7 +8,7 @@ std::any fetchErrorFromInt(const int& var) {
     return nullptr;
 }
 
-namespace DevUtils {
+namespace DevTools {
 
     std::vector<CommonError> CommonErrorList{
             {"challenge_required",

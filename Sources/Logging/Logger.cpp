@@ -1,6 +1,6 @@
 #include <dev_tools/logging/Logger.hpp>
 
-namespace DevUtils {
+namespace DevTools {
 
     Logger::Logger(const std::string& name) {
         logName = name;

@@ -17,7 +17,7 @@ std::string find_library(const std::string& lib) {
     // 1. look for libraries within the cwd (current working directory) and the executables directory
     // 2. look for libraries in the "LD_LIBRARY_PATH" environment
     // 3. if still not found, initiate a dummy handle to figure out, where
-    if (std::string cwd = DevUtils::CurrentWorkingDirectory(); fs::exists(fs::path(cwd + "/" + lib)))
+    if (std::string cwd = DevTools::CurrentWorkingDirectory(); fs::exists(fs::path(cwd + "/" + lib)))
         return fs::absolute(cwd + "/" + lib);
 
     if (const char* ldEnv = getenv("LD_LIBRARY_PATH")) {

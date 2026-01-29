@@ -1,20 +1,21 @@
 #include <iostream>
 #include <format>
+#include <fstream>
 
-#include <OsintgramCXX/Networking/Networking.hpp>
-#include <OsintgramCXX/Networking/Errors.hpp>
-#include <OsintgramCXX/Networking/Proxy/Proxy.hpp>
-#include <OsintgramCXX/Networking/Proxy/ProxyChains.hpp>
+#include <dev_tools/network/Network.hpp>
+#include <dev_tools/network/URLParams.hpp>
+#include <dev_tools/network/Errors.hpp>
+#include <dev_tools/network/Proxy/Proxy.hpp>
+#include <dev_tools/network/Proxy/ProxyChains.hpp>
 
-#include <OsintgramCXX/Commons/HelpPage.hpp>
-#include <OsintgramCXX/Commons/Terminal.hpp>
-#include <OsintgramCXX/Commons/Utils.hpp>
-#include <OsintgramCXX/Commons/Tools.hpp>
+#include <dev_tools/commons/HelpPage.hpp>
+#include <dev_tools/commons/Terminal.hpp>
+#include <dev_tools/commons/Utils.hpp>
+#include <dev_tools/commons/Tools.hpp>
 
 #include <OsintgramCXX/App/Shell/ShellEnv.hpp>
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
-#include <OsintgramCXX/App/Properties.hpp>
 #include <OsintgramCXX/App/WineDetect.hpp>
 
 #include <OsintgramCXX/Security/FileEncryption.hpp>
@@ -24,10 +25,11 @@
 
 using namespace OsintgramCXX;
 using namespace OsintgramCXX::Wine;
-using namespace OsintgramCXX::Networking;
-using namespace OsintgramCXX::Proxy;
 using namespace OsintgramCXX::FileEncryption;
+using namespace DevTools;
 using namespace nlohmann;
+
+namespace fs = std::filesystem;
 
 bool performNet() {
     RequestData reqData;
@@ -43,7 +45,7 @@ bool performNet() {
         return false;
     }
 
-    for (const auto &it: respData.headers) {
+    for (const auto& it : respData.headers) {
         std::cout << "Header \"" << it.first << "\" == \"" << it.second << "\"" << std::endl;
     }
 
@@ -59,45 +61,51 @@ void encryptionDecryption() {
 
     try {
         std::cout << "Attempt encryption..." << std::endl;
-        EncryptionData encData = OsintgramCXX::FileEncryption::encrypt("EncryptionTestingPhase.txt", pass);
+        EncryptionData encData = encrypt("EncryptionTestingPhase.txt", pass);
         std::cout << "Encryption passed" << std::endl;
 
         {
             std::ofstream off("Data.enc");
             if (off.is_open() && off.good()) {
-                off.write(reinterpret_cast<const char *>(encData.uCharData.data()), encData.uCharData.size());
+                off.write(reinterpret_cast<const char*>(encData.uCharData.data()), encData.uCharData.size());
                 off.close();
-            } else {
+            }
+            else {
                 std::cerr << "Write unsuccessful" << std::endl;
                 return;
             }
         }
 
         std::cout << "Encrypted data written\nAttempt decryption..." << std::endl;
-        EncryptionData decData = OsintgramCXX::FileEncryption::decrypt("Data.enc", pass);
+        EncryptionData decData = decrypt("Data.enc", pass);
         std::cout << "Decryption passed" << std::endl;
 
         {
             std::ofstream off("Data.dec");
             if (off.is_open() && off.good()) {
-                off.write(reinterpret_cast<const char *>(decData.uCharData.data()), decData.uCharData.size());
+                off.write(reinterpret_cast<const char*>(decData.uCharData.data()), decData.uCharData.size());
                 off.close();
-            } else {
+            }
+            else {
                 std::cerr << "Decryption write unsuccessful" << std::endl;
             }
         }
 
         std::cout << "Decrypted data written" << std::endl;
-    } catch (const std::runtime_error &ex) {
+    }
+    catch (const std::runtime_error& ex) {
         std::cerr << "Runtime Exception: " << ex.what() << std::endl;
-    } catch (const std::exception &ex) {
+    }
+    catch (const std::exception& ex) {
         std::cerr << "Exception: " << ex.what() << std::endl;
-    } catch (...) {
+    }
+    catch (...) {
         std::cerr << "Unknown error" << std::endl;
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
+    /*
     encryptionDecryption();
 
     curl_version_info_data *curlInfo = curl_version_info(CURLVERSION_NOW);
@@ -108,5 +116,21 @@ int main(int argc, char **argv) {
     std::cout << "Username: " << CurrentUsername() << std::endl;
 
     std::cout << "Performing network request..." << std::endl;
-    return performNet() ? 0 : 1;
+    */
+
+    std::vector<URLParam> euParams = {
+        {"search", "hello world"},
+        {"user", "contact@bc100dev.net"},
+        {"filter", "active-user"},
+        {"noval", std::nullopt},
+        {"id", "123"},
+    };
+    std::string euUrl = EncodeURLParams(euParams, "https://api.example.com/data?existingdata=true", false);
+    std::cout << "euUrl = " << euUrl << std::endl;
+
+    for (std::vector<URLParam> duParams = DecodeURLParams(euUrl);
+         const auto& [key, value] : duParams)
+        std::cout << "Param " << key << (value.has_value() ? " => " + value.value() : "") << std::endl;
+
+    return 0;
 }

@@ -8,7 +8,7 @@
 #include <dev_tools/commons/HelpPage.hpp>
 #include <dev_tools/network/Network.hpp>
 
-using namespace DevUtils;
+using namespace DevTools;
 
 namespace fs = std::filesystem;
 

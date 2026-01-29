@@ -26,7 +26,7 @@
 #include <pwd.h>
 #endif
 
-namespace DevUtils {
+namespace DevTools {
     std::string ToLowercase(const std::string& str) {
         std::string result = str;
         std::ranges::transform(result, result.begin(), [](unsigned char c) {

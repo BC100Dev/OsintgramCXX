@@ -19,7 +19,7 @@
 
 namespace fs = std::filesystem;
 
-namespace DevUtils {
+namespace DevTools {
     enum ENUM_CLASS_TYPE LogLevel {
         INFO = 0xE0,
         WARNING = 0xE1,

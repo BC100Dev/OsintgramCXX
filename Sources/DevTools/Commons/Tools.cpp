@@ -1,6 +1,6 @@
 #include <dev_tools/commons/Tools.hpp>
 
-std::vector<std::string> DevUtils::TranslateStrToCmdline(const std::string &cmdLine) {
+std::vector<std::string> DevTools::TranslateStrToCmdline(const std::string &cmdLine) {
     if (cmdLine.empty() || cmdLine.find_first_not_of(' ') == std::string::npos)
         return {};
 

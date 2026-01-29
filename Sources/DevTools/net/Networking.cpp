@@ -15,7 +15,7 @@ struct ProgressState {
     long readTimeoutMillis;
 };
 
-namespace DevUtils {
+namespace DevTools {
 
     std::string ReqMethodToStr(const RequestMethod &method) {
         switch (method) {

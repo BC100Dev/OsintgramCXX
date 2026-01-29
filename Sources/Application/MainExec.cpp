@@ -42,7 +42,7 @@
 
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
-using namespace DevUtils;
+using namespace DevTools;
 
 std::string chrootPath;
 

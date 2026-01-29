@@ -9,7 +9,7 @@
 #include <curl/curl.h>
 #include <iostream>
 
-namespace DevUtils {
+namespace DevTools {
 
     using Headers = std::vector<std::pair<const std::string, const std::string>>;
     using ByteData = std::vector<char>;

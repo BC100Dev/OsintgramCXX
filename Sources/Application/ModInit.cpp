@@ -31,14 +31,14 @@ std::string currentProcessingLibrary;
 std::vector<int> processedEntries;
 
 std::vector<std::string> lookupPaths = {
-    DevUtils::CurrentWorkingDirectory() + "/Resources",
-    DevUtils::CurrentWorkingDirectory(),
-    DevUtils::ExecutableDirectory() + "/Resources",
-    DevUtils::ExecutableDirectory(),
+    DevTools::CurrentWorkingDirectory() + "/Resources",
+    DevTools::CurrentWorkingDirectory(),
+    DevTools::ExecutableDirectory() + "/Resources",
+    DevTools::ExecutableDirectory(),
 
 #if defined(__linux__) && !defined(__ANDROID__)
     "/etc/OsintgramCXX",
-    DevUtils::UserHomeDirectory().string() + "/.config/OsintgramCXX",
+    DevTools::UserHomeDirectory().string() + "/.config/OsintgramCXX",
     "/Data/base/" + std::to_string(getuid()) + "/OsintgramCXX",
     "/Data/base/shared/OsintgramCXX",
 #elif defined(__ANDROID__)
@@ -56,10 +56,10 @@ std::vector<std::string> lookupPaths = {
 #endif
 
 #ifdef _WIN32
-    DevUtils::UserHomeDirectory().string() + R"(\AppData\Local\OsintgramCXX)",
-    DevUtils::UserHomeDirectory().string() + R"(\AppData\Local\OsintgramCXX\Resources)",
-    DevUtils::UserHomeDirectory().string() + R"(\AppData\Roaming\OsintgramCXX)",
-    DevUtils::UserHomeDirectory().string() + R"(\AppData\Roaming\OsintgramCXX\Resources)",
+    DevTools::UserHomeDirectory().string() + R"(\AppData\Local\OsintgramCXX)",
+    DevTools::UserHomeDirectory().string() + R"(\AppData\Local\OsintgramCXX\Resources)",
+    DevTools::UserHomeDirectory().string() + R"(\AppData\Roaming\OsintgramCXX)",
+    DevTools::UserHomeDirectory().string() + R"(\AppData\Roaming\OsintgramCXX\Resources)",
 #endif
 };
 
@@ -69,8 +69,8 @@ std::string find_lib(const std::string& file) {
     fs::path result;
 
     // 1. look for libraries within the cwd (current working directory) and the executables directory
-    if (fs::exists(DevUtils::ExecutableDirectory() + "/" + file))
-        return DevUtils::ExecutableDirectory() + "/" + file;
+    if (fs::exists(DevTools::ExecutableDirectory() + "/" + file))
+        return DevTools::ExecutableDirectory() + "/" + file;
 
 #ifdef __linux__
     // 2. look for libraries in the "LD_LIBRARY_PATH" environment
@@ -130,7 +130,7 @@ std::string find_lib(const std::string& file) {
         }
     }
 
-    std::string userProfile = DevUtils::UserHomeDirectory().string();
+    std::string userProfile = DevTools::UserHomeDirectory().string();
     std::vector<std::string> winPaths = {
         userProfile + R"(\AppData\Local\OsintgramCXX)",
         userProfile + R"(\AppData\Local\OsintgramCXX\mods.d)",
@@ -407,8 +407,8 @@ void init_data() {
         delim = ":";
 #endif
 
-        if (DevUtils::StringContains(_e, delim))
-            jsonFiles = DevUtils::SplitString(_e, delim);
+        if (DevTools::StringContains(_e, delim))
+            jsonFiles = DevTools::SplitString(_e, delim);
     }
 
     for (const auto& it : lookupPaths) {

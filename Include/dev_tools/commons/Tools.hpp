@@ -6,7 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace DevUtils {
+namespace DevTools {
 
     std::vector<std::string> TranslateStrToCmdline(const std::string& cmdLine);
 

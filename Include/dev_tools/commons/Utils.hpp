@@ -44,7 +44,7 @@
 #define CPU_ARCHITECTURE "x32"
 #endif
 
-namespace DevUtils {
+namespace DevTools {
 
     std::string ToLowercase(const std::string &str);
 

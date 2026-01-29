@@ -10,7 +10,7 @@
 #define HTTP_STATUS_Unauthorized 403
 #define HTTP_STATUS_NotFound 404
 
-namespace DevUtils {
+namespace DevTools {
 
     struct CommonError {
         std::string type;

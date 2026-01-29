@@ -5,7 +5,7 @@
 #include <vector>
 #include <dev_tools/network/Network.hpp>
 
-namespace DevUtils {
+namespace DevTools {
 
     enum ProxyConnectorType {
         HTTP = 0,

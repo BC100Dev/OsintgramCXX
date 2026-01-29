@@ -28,7 +28,7 @@
 #endif
 
 using namespace OsintgramCXX;
-using namespace DevUtils;
+using namespace DevTools;
 
 namespace fs = std::filesystem;
 
