@@ -14,23 +14,13 @@ of this project and rewrite most to all components by myself. Well... except for
 Networking part, me and Networking aren't the best friends... just yet. Wait, until I
 finish one of the most insane projects known to man. A hint, it's on my GitHub profile.
 
-## Update from Datalux himself
-Alright, so apparently, the original project is not completely abandoned. No, I was not
-contacted by anyone to say that it is still alive in any way, don't even try to make me
-drop my entire Inbox in here. Although I did attempt to reach out to him with no luck...
-yes, again.
+## Halting development temporarily
+I know that y'all hate to see this part, but due to upcoming final exams that I'll be
+having, I have to shift focus onto them. No, I'm not fully stopping development for
+OsintgramCXX itself. This may or may not take up until May, June or July, depending on how
+the finals will eat me up.
 
-If you guys weren't up-to-speed, there has been some updates regarding that project. Two
-PRs (Pull Requests) have been accepted and merged, along with that man himself creating a
-new repo. Considering that he hasn't responded and refuses to talk and barely has the time
-to talk to people or something (if that is his intention), I made a theory that he might
-also be in an apprenticeship and potentially doing / preparing himself for the final exams,
-clarifying on why there are barely any updates and no responses from this man alone.
-
-In case you guys are lazy to check out that repo alone, here I provide a screenshot of the
-recent commit logs happening:
-
-![Screenshot of the Commit History on Osintgram](Docs/Images/Osintgram_CommitHistory.jpg)
+[See the full information here.](https://github.com/BC100Dev/OsintgramCXX/discussions/5)
 
 ---
 

@@ -7,6 +7,8 @@ add_library(OsintgramCXX-interactive SHARED ${INSTA_SRC} ${SHARED_SRC})
 
 target_link_libraries(OsintgramCXX-core PRIVATE ${OsintgramCXX_LINK_DEPS} devtools instagram-private-api)
 target_include_directories(OsintgramCXX-core PRIVATE "${PROJECT_MODULE_ROOT}/shared")
+DisableBionicFortify(OsintgramCXX-core)
 
 target_link_libraries(OsintgramCXX-interactive PRIVATE ${OsintgramCXX_LINK_DEPS} devtools instagram-private-api)
 target_include_directories(OsintgramCXX-interactive PRIVATE "${PROJECT_MODULE_ROOT}/shared")
+DisableBionicFortify(OsintgramCXX-interactive)

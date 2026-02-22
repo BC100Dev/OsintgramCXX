@@ -16,3 +16,4 @@ if (APP_SYSTEM_TARGET STREQUAL "Linux")
 endif ()
 
 target_link_libraries(OsintgramCXX-testing PRIVATE ${OsintgramCXX_LINK_DEPS} OsintgramCXX-security devtools)
+DisableBionicFortify(OsintgramCXX-testing)

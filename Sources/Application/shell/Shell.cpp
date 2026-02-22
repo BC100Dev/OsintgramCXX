@@ -110,7 +110,7 @@ CommandExecution execCommand(const std::string& cmd, const std::vector<std::stri
 
     if (!found) {
         execReturn.cmdFound = false;
-        execReturn.msg = cmd + ": not found";
+        execReturn.msg = cmd + ": command not found";
         execReturn.rc = 1;
         return execReturn;
     }
@@ -220,7 +220,8 @@ namespace OsintgramCXX::AppShell {
             Terminal::print(strStream, Terminal::TermColor::BLUE, user, true);
             strStream << " % ";
             Terminal::print(strStream, Terminal::TermColor::RED, "OsintgramCXX", true);
-        } else
+        }
+        else
             strStream << user << " % OsintgramCXX";
 
         strStream << "] -> ";
@@ -274,10 +275,12 @@ namespace OsintgramCXX::AppShell {
 #endif
 
         std::string line;
+        std::string multiLineCmd;
+        bool isMultiline = false;
 
         while (running) {
             try {
-                std::cout << PS1;
+                std::cout << (isMultiline ? ">>> " : PS1);
                 if (!std::getline(std::cin, line)) {
                     std::cerr << "exit initiated" << std::endl;
                     running = false;
@@ -294,23 +297,41 @@ namespace OsintgramCXX::AppShell {
                     continue;
                 }
 
-                if (line == "exit" || line == "quit" || line == "close") {
-                    stopShell(false);
-                    return;
-                }
+                if (line.ends_with("\\")) {
+                    multiLineCmd += line.substr(0, line.size() - 1);
 
-                if (line == "help") {
-                    helpCmd();
+                    if (!multiLineCmd.ends_with(' '))
+                        multiLineCmd += ' ';
+
+                    if (!isMultiline)
+                        isMultiline = true;
+
                     continue;
                 }
 
-                std::vector<std::string> cmdLine = TranslateStrToCmdline(line);
+                if (isMultiline)
+                    multiLineCmd += line;
+
+                std::vector<std::string> cmdLine = TranslateStrToCmdline(isMultiline ? multiLineCmd : line);
                 std::vector<std::string> cmdArgs;
 
                 if (cmdLine.size() > 1) {
                     for (size_t i = 1; i < cmdLine.size(); i++)
                         cmdArgs.push_back(cmdLine[i]);
                 }
+
+                if (cmdLine[0] == "exit" || cmdLine[0] == "quit" || cmdLine[0] == "close") {
+                    stopShell(false);
+                    return;
+                }
+
+                if (cmdLine[0] == "help") {
+                    helpCmd();
+                    continue;
+                }
+
+                isMultiline = false;
+                multiLineCmd = "";
 
                 CommandExecution ret = execCommand(cmdLine[0], cmdArgs, environment, line);
                 if (!ret.cmdFound) {
@@ -344,8 +365,10 @@ namespace OsintgramCXX::AppShell {
             shellThread.join();
         }
         catch (std::exception& ex) {
-            std::cerr << "Shell Thread Error (Shell.cpp): " << ex.what() << std::endl;
-            stopShell(false);
+            if (std::string(ex.what()) != "Invalid argument") {
+                std::cerr << "Shell Thread Error (Shell.cpp): " << ex.what() << std::endl;
+                stopShell(false);
+            }
         }
     }
 
