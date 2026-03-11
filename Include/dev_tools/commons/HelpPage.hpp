@@ -1,5 +1,5 @@
-#ifndef ABOAWT_HELPPAGE_H
-#define ABOAWT_HELPPAGE_H
+#ifndef DEVTOOLS_HELPPAGE_H
+#define DEVTOOLS_HELPPAGE_H
 
 #include <string>
 #include <iostream>
@@ -38,4 +38,4 @@ public:
     void free();
 };
 
-#endif //ABOAWT_HELPPAGE_H
+#endif //DEVTOOLS_HELPPAGE_H

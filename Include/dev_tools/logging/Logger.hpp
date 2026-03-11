@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_LOGGER_HPP
-#define OSINTGRAMCXX_LOGGER_HPP
+#ifndef DEVTOOLS_LOGGER_HPP
+#define DEVTOOLS_LOGGER_HPP
 
 #include <filesystem>
 #include <format>
@@ -115,4 +115,4 @@ namespace DevTools {
     }
 }
 
-#endif //OSINTGRAMCXX_LOGGER_HPP
+#endif //DEVTOOLS_LOGGER_HPP

@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_TOOLS_HPP
-#define OSINTGRAMCXX_TOOLS_HPP
+#ifndef DEVTOOLS_TOOLS_HPP
+#define DEVTOOLS_TOOLS_HPP
 
 #include <iostream>
 #include <vector>
@@ -12,4 +12,4 @@ namespace DevTools {
 
 }
 
-#endif //OSINTGRAMCXX_TOOLS_HPP
+#endif //DEVTOOLS_TOOLS_HPP

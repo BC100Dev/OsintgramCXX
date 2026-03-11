@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_ERRORS_HPP
-#define OSINTGRAMCXX_ERRORS_HPP
+#ifndef DEVTOOLS_ERRORS_HPP
+#define DEVTOOLS_ERRORS_HPP
 
 #include <string>
 #include <vector>
@@ -50,4 +50,4 @@ namespace DevTools {
 
 }
 
-#endif //OSINTGRAMCXX_ERRORS_HPP
+#endif //DEVTOOLS_ERRORS_HPP

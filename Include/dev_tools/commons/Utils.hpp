@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_UTILS_HPP
-#define OSINTGRAMCXX_UTILS_HPP
+#ifndef DEVTOOLS_UTILS_HPP
+#define DEVTOOLS_UTILS_HPP
 
 #include <map>
 #include <string>
@@ -118,4 +118,4 @@ namespace DevTools {
 
 }
 
-#endif //OSINTGRAMCXX_UTILS_HPP
+#endif //DEVTOOLS_UTILS_HPP

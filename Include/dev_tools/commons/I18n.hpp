@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_I18N_HPP
-#define OSINTGRAMCXX_I18N_HPP
+#ifndef DEVTOOLS_I18N_HPP
+#define DEVTOOLS_I18N_HPP
 
 #include <string>
 
@@ -23,4 +23,4 @@ private:
     json data;
 };
 
-#endif //OSINTGRAMCXX_I18N_HPP
+#endif //DEVTOOLS_I18N_HPP

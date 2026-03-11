@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_TERMINAL_HPP
-#define OSINTGRAMCXX_TERMINAL_HPP
+#ifndef DEVTOOLS_TERMINAL_HPP
+#define DEVTOOLS_TERMINAL_HPP
 
 #include <iostream>
 #include <string>
@@ -38,4 +38,4 @@ private:
     static std::string translateColor(TermColor color);
 };
 
-#endif //OSINTGRAMCXX_TERMINAL_HPP
+#endif //DEVTOOLS_TERMINAL_HPP

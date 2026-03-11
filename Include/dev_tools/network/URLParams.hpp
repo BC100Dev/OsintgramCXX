@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_URLPARAMS_HPP
-#define OSINTGRAMCXX_URLPARAMS_HPP
+#ifndef DEVTOOLS_URLPARAMS_HPP
+#define DEVTOOLS_URLPARAMS_HPP
 
 #include <string>
 #include <optional>
@@ -24,4 +24,4 @@ namespace DevTools {
 
 }
 
-#endif //OSINTGRAMCXX_URLPARAMS_HPP
+#endif //DEVTOOLS_URLPARAMS_HPP

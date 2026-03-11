@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_ANDROIDENV_HPP
-#define OSINTGRAMCXX_ANDROIDENV_HPP
+#ifndef DEVTOOLS_ANDROIDENV_HPP
+#define DEVTOOLS_ANDROIDENV_HPP
 
 // sorry, this is literally Android only. Oh, wait, I'm not sorry because why should I be sorry?
 
@@ -44,4 +44,4 @@ namespace AppAndroidEnv {
 
 #endif
 
-#endif //OSINTGRAMCXX_ANDROIDENV_HPP
+#endif //DEVTOOLS_ANDROIDENV_HPP

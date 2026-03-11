@@ -1,5 +1,5 @@
-#ifndef DEVUTILS_NETWORKING_HPP
-#define DEVUTILS_NETWORKING_HPP
+#ifndef DEVTOOLS_NETWORKING_HPP
+#define DEVTOOLS_NETWORKING_HPP
 
 #include <string>
 #include <vector>
@@ -71,4 +71,4 @@ namespace DevTools {
     };
 }
 
-#endif //DEVUTILS_NETWORKING_HPP
+#endif //DEVTOOLS_NETWORKING_HPP

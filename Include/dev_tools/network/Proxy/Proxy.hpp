@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_PROXY_HPP
-#define OSINTGRAMCXX_PROXY_HPP
+#ifndef DEVTOOLS_PROXY_HPP
+#define DEVTOOLS_PROXY_HPP
 
 #include <string>
 #include <vector>
@@ -33,4 +33,4 @@ namespace DevTools {
 
 }
 
-#endif //OSINTGRAMCXX_PROXY_HPP
+#endif //DEVTOOLS_PROXY_HPP
