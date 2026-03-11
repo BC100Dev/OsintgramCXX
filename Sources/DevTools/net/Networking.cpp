@@ -16,49 +16,50 @@ struct ProgressState {
 };
 
 namespace DevTools {
-
-    std::string ReqMethodToStr(const RequestMethod &method) {
+    std::string ReqMethodToStr(const RequestMethod& method) {
         switch (method) {
-            case REQ_GET:
-                return "GET";
-            case REQ_POST:
-                return "POST";
-            case REQ_PUT:
-                return "PUT";
-            case REQ_DELETE:
-                return "DELETE";
-            case REQ_PATCH:
-                return "PATCH";
-            case REQ_HEAD:
-                return "HEAD";
-            case REQ_CONNECT:
-                return "CONNECT";
-            case REQ_OPTIONS:
-                return "OPTIONS";
-            case REQ_TRACE:
-                return "TRACE";
-            default:
-                return "UNKNOWN";
+        case RequestMethod::REQ_GET:
+            return "GET";
+        case RequestMethod::REQ_POST:
+            return "POST";
+        case RequestMethod::REQ_PUT:
+            return "PUT";
+        case RequestMethod::REQ_DELETE:
+            return "DELETE";
+        case RequestMethod::REQ_PATCH:
+            return "PATCH";
+        case RequestMethod::REQ_HEAD:
+            return "HEAD";
+        case RequestMethod::REQ_CONNECT:
+            return "CONNECT";
+        case RequestMethod::REQ_OPTIONS:
+            return "OPTIONS";
+        case RequestMethod::REQ_TRACE:
+            return "TRACE";
+        default:
+            return "UNKNOWN";
         }
     }
 
-    static size_t WCallback(void *contents, size_t size, size_t nmemb, void *userp) {
-        auto *response = static_cast<ResponseData *>(userp);
+    static size_t WCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+        auto* response = static_cast<ResponseData*>(userp);
         size_t totalSize = size * nmemb;
 
-        response->data.insert(response->data.end(),
-                              static_cast<char *>(contents),
-                              static_cast<char *>(contents) + totalSize);
-
-        response->raw.insert(response->raw.end(),
-                             static_cast<unsigned char *>(contents),
-                             static_cast<unsigned char *>(contents) + totalSize);
+        if (std::holds_alternative<ByteData>(response->body))
+            std::get<ByteData>(response->body).append(
+                static_cast<char*>(contents), totalSize);
+        else {
+            auto& raw = std::get<RawData>(response->body);
+            raw.insert(raw.end(),
+                       static_cast<unsigned char*>(contents),
+                       static_cast<unsigned char*>(contents) + totalSize);
+        }
 
         return totalSize;
     }
 
-    static size_t HCallback(char *buffer, size_t size, size_t nitems, void *userp) {
-        auto *headers = static_cast<Headers *>(userp);
+    static size_t HCallback(char* buffer, size_t size, size_t nitems, void* userp) {
+        auto* headers = static_cast<Headers*>(userp);
         size_t totalSize = size * nitems;
         std::string headerLine(buffer, totalSize);
 
@@ -73,8 +74,8 @@ namespace DevTools {
         return totalSize;
     }
 
-    static int PCallback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
-        auto *state = static_cast<ProgressState *>(clientp);
+    static int PCallback(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+        auto* state = static_cast<ProgressState*>(clientp);
         long currentTime = static_cast<long>(time(nullptr)) * 1000;
 
         if ((currentTime - state->startTime) > state->readTimeoutMillis)
@@ -85,26 +86,26 @@ namespace DevTools {
 
     long MapHttpVersion(HttpVersion version) {
         switch (version) {
-            case HttpVersion::HTTP_1_0:
-                return CURL_HTTP_VERSION_1_0;
-            case HttpVersion::HTTP_1_1:
-                return CURL_HTTP_VERSION_1_1;
-            case HttpVersion::HTTP_2_0:
-                return CURL_HTTP_VERSION_2;
-            case HttpVersion::HTTP_3_0:
-                return CURL_HTTP_VERSION_3;
-            default:
-                return CURL_HTTP_VERSION_NONE;
+        case HttpVersion::HTTP_1_0:
+            return CURL_HTTP_VERSION_1_0;
+        case HttpVersion::HTTP_1_1:
+            return CURL_HTTP_VERSION_1_1;
+        case HttpVersion::HTTP_2_0:
+            return CURL_HTTP_VERSION_2;
+        case HttpVersion::HTTP_3_0:
+            return CURL_HTTP_VERSION_3;
+        default:
+            return CURL_HTTP_VERSION_NONE;
         }
     }
 
-    void CleanCurl(CURL *curl) {
+    void CleanCurl(CURL* curl) {
         curl_easy_cleanup(curl);
         curl_global_cleanup();
     }
 
-    ResponseData CreateRequest(const RequestData &request) {
-        CURL *curl = curl_easy_init();
+    ResponseData CreateRequest(const RequestData& request) {
+        CURL* curl = curl_easy_init();
         ResponseData response;
 
         if (!curl)
@@ -113,40 +114,53 @@ namespace DevTools {
         try {
             curl_easy_setopt(curl, CURLOPT_URL, request.url.c_str());
 
+            const void* bodyPtr = nullptr;
+            size_t bodySize = 0;
+            if (std::holds_alternative<ByteData>(request.body)) {
+                const auto& b = std::get<ByteData>(request.body);
+                bodyPtr = b.data();
+                bodySize = b.size();
+            }
+            else {
+                const auto& b = std::get<RawData>(request.body);
+                bodyPtr = b.data();
+                bodySize = b.size();
+            }
+
             switch (request.method) {
-                case REQ_GET:
-                    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
-                    break;
-                case REQ_POST:
-                    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-                    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.postData.data());
-                    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, request.postData.size());
-                    break;
-                case REQ_PUT:
-                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-                    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.postData.data());
-                    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, request.postData.size());
-                    break;
-                case REQ_DELETE:
-                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-                    break;
-                case REQ_PATCH:
-                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
-                    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, request.postData.data());
-                    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, request.postData.size());
-                    break;
-                case REQ_HEAD:
-                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
-                    break;
-                case REQ_OPTIONS:
-                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "OPTIONS");
-                    break;
-                case REQ_CONNECT:
-                    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "CONNECT");
-                    break;
-                case REQ_TRACE:
-                    CleanCurl(curl);
-                    throw NetworkError(ReqMethodToStr(request.method) + " not implemented");
+            case RequestMethod::REQ_GET:
+                curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+                break;
+            case RequestMethod::REQ_POST:
+                curl_easy_setopt(curl, CURLOPT_POST, 1L);
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDS, bodyPtr);
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, bodySize);
+                break;
+            case RequestMethod::REQ_PUT:
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDS, bodyPtr);
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, bodySize);
+                break;
+            case RequestMethod::REQ_DELETE:
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+                break;
+            case RequestMethod::REQ_PATCH:
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDS, bodyPtr);
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, bodySize);
+                break;
+            case RequestMethod::REQ_HEAD:
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
+                break;
+            case RequestMethod::REQ_OPTIONS:
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "OPTIONS");
+                break;
+            case RequestMethod::REQ_CONNECT:
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "CONNECT");
+                break;
+            case RequestMethod::REQ_TRACE:
+                CleanCurl(curl);
+                throw NetworkError(ReqMethodToStr(request.method) + " not implemented");
             }
 
             // CA store check (if given)
@@ -157,8 +171,8 @@ namespace DevTools {
             curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, MapHttpVersion(request.version));
 
             // Headers
-            struct curl_slist *curlHeaders = nullptr;
-            for (const auto &[key, value]: request.headers) {
+            struct curl_slist* curlHeaders = nullptr;
+            for (const auto& [key, value] : request.headers) {
                 std::string header = key + ": " + value;
                 curlHeaders = curl_slist_append(curlHeaders, header.c_str());
             }
@@ -198,21 +212,21 @@ namespace DevTools {
             long httpVer;
             curl_easy_getinfo(curl, CURLINFO_HTTP_VERSION, &httpVer);
             switch (httpVer) {
-                case CURL_HTTP_VERSION_1_0:
-                    response.version = HTTP_1_0;
-                    break;
-                case CURL_HTTP_VERSION_1_1:
-                    response.version = HTTP_1_1;
-                    break;
-                case CURL_HTTP_VERSION_2:
-                    response.version = HTTP_2_0;
-                    break;
-                case CURL_HTTP_VERSION_3:
-                    response.version = HTTP_3_0;
-                    break;
-                default:
-                    response.version = HTTP_1_1;
-                    break;
+            case CURL_HTTP_VERSION_1_0:
+                response.version = HttpVersion::HTTP_1_0;
+                break;
+            case CURL_HTTP_VERSION_1_1:
+                response.version = HttpVersion::HTTP_1_1;
+                break;
+            case CURL_HTTP_VERSION_2:
+                response.version = HttpVersion::HTTP_2_0;
+                break;
+            case CURL_HTTP_VERSION_3:
+                response.version = HttpVersion::HTTP_3_0;
+                break;
+            default:
+                response.version = HttpVersion::HTTP_1_1;
+                break;
             }
 
             long httpStatusCode = 0;
@@ -220,7 +234,8 @@ namespace DevTools {
             response.statusCode = static_cast<int>(httpStatusCode);
 
             curl_slist_free_all(curlHeaders);
-        } catch (const std::exception &ex) {
+        }
+        catch (const std::exception& ex) {
             response.errorData = ex.what();
             CleanCurl(curl);
 
@@ -230,6 +245,20 @@ namespace DevTools {
         CleanCurl(curl);
 
         return response;
+    }
+
+    const ByteData& ReadByteData(const Data& d) {
+        if (!std::holds_alternative<ByteData>(d))
+            throw std::runtime_error("[DevTools] Data has not been given as ByteData");
+
+        return std::get<ByteData>(d);
+    }
+
+    const RawData& ReadRawData(const Data& d) {
+        if (!std::holds_alternative<RawData>(d))
+            throw std::runtime_error("[DevTools] Data has not been given as RawData");
+
+        return std::get<RawData>(d);
     }
 
 }

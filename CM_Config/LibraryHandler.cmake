@@ -4,6 +4,14 @@ set(CURL_USE_SCHANNEL OFF)
 ## Encryption / Decryption relevant tasks (required by CURL for HTTPS communication)
 find_package(OpenSSL REQUIRED)
 
+## fucking vcpkg
+if (NOT TARGET CURL::win32_winsock)
+    add_library(CURL::win32_winsock INTERFACE IMPORTED)
+    set_target_properties(CURL::win32_winsock PROPERTIES
+            INTERFACE_LINK_LIBRARIES "ws2_32"
+    )
+endif ()
+
 ## Required for Networking
 find_package(CURL REQUIRED)
 

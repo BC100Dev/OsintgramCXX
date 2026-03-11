@@ -37,7 +37,7 @@ bool performNet() {
     reqData.connTimeoutMillis = 5000;
     reqData.url = "https://www.instagram.com";
     reqData.method = RequestMethod::REQ_GET;
-    reqData.version = HTTP_1_1;
+    reqData.version = HttpVersion::HTTP_1_1;
 
     ResponseData respData = CreateRequest(reqData);
     if (!respData.errorData.empty()) {

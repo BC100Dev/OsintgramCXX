@@ -1,5 +1,5 @@
-#ifndef OSINTGRAMCXX_NETWORKING_HPP
-#define OSINTGRAMCXX_NETWORKING_HPP
+#ifndef DEVUTILS_NETWORKING_HPP
+#define DEVUTILS_NETWORKING_HPP
 
 #include <string>
 #include <vector>
@@ -8,14 +8,19 @@
 #include <optional>
 #include <curl/curl.h>
 #include <iostream>
+#include <variant>
 
 namespace DevTools {
-
     using Headers = std::vector<std::pair<const std::string, const std::string>>;
-    using ByteData = std::vector<char>;
+    using ByteData = std::string;
     using RawData = std::vector<unsigned char>;
+    using Data = std::variant<ByteData, RawData>;
 
-    enum RequestMethod {
+    const ByteData& ReadByteData(const Data& d);
+
+    const RawData& ReadRawData(const Data& d);
+
+    enum class RequestMethod {
         REQ_GET = 0,
         REQ_POST = 1,
         REQ_PATCH = 2,
@@ -27,7 +32,7 @@ namespace DevTools {
         REQ_TRACE = 8
     };
 
-    enum HttpVersion {
+    enum class HttpVersion {
         HTTP_1_0 = 1,
         HTTP_1_1 = 2,
         HTTP_2_0 = 3,
@@ -36,20 +41,18 @@ namespace DevTools {
 
     struct ResponseData {
         int statusCode = 0;
-        ByteData data;
-        RawData raw;
+        Data body;
         Headers headers;
         HttpVersion version;
         std::string errorData;
     };
 
     struct RequestData {
-        RequestMethod method = REQ_GET;
+        RequestMethod method = RequestMethod::REQ_GET;
         std::string url;
         Headers headers;
-        HttpVersion version = HTTP_1_1;
-        ByteData postData;
-        RawData postRaw;
+        HttpVersion version = HttpVersion::HTTP_1_1;
+        Data body;
         std::string ca_path;
 
         long connTimeoutMillis = 30000;
@@ -59,13 +62,13 @@ namespace DevTools {
         bool verifySSL = true;
     };
 
-    ResponseData CreateRequest(const RequestData &request);
+    ResponseData CreateRequest(const RequestData& request);
 
     class NetworkError : public std::runtime_error {
     public:
-        explicit NetworkError(const std::string& what) : std::runtime_error(what) {}
+        explicit NetworkError(const std::string& what) : std::runtime_error(what) {
+        }
     };
-
 }
 
-#endif //OSINTGRAMCXX_NETWORKING_HPP
+#endif //DEVUTILS_NETWORKING_HPP

@@ -15,17 +15,10 @@ namespace fs = std::filesystem;
 void update() {
     RequestData req;
     req.url = "https://raw.githubusercontent.com/BC100Dev/OsintgramCXX/refs/heads/master/Resources/device_profiles.json";
-    req.method = REQ_GET;
+    req.method = RequestMethod::REQ_GET;
     req.headers.emplace_back("User-Agent", "GitHub (OsintgramCXX, v1.0)");
 
-    std::string jsonData;
-    {
-        ResponseData res = CreateRequest(req);
-
-        for (char c : res.data)
-            jsonData += c;
-    }
-
+    std::string jsonData = ReadByteData(req.body);
     std::string userConfig;
 #ifdef __linux__
     userConfig = std::string(std::getenv("HOME")) + "/.local/share/OsintgramCXX/device_profiles.json";
