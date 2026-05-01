@@ -1,5 +1,8 @@
 package net.bc100dev.osintgram.actions;
 
+import net.bc100dev.osintgram.fw.ContentWriter;
+
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -46,7 +49,7 @@ public class DisplayInfo extends JAction {
             System.exit(1);
         }
 
-        String jsonOut = "{\"width\": $WIDTH, \"height\": $HEIGHT, \"dpi\": $DPI}"
+        String jsonOut = "{\"width\": $WIDTH, \"height\": $HEIGHT, \"dpi\": $DPI}\n"
                 .replace("$WIDTH", String.valueOf(width))
                 .replace("$HEIGHT", String.valueOf(height))
                 .replace("$DPI", String.valueOf(dpi));
@@ -56,9 +59,20 @@ public class DisplayInfo extends JAction {
             return;
         }
 
-        try (FileWriter fw = new FileWriter(args[0])) {
-            fw.write(jsonOut);
-        } catch (IOException ex) {
+        int failures = 0;
+        for (String arg : args) {
+            try {
+                ContentWriter cw = new ContentWriter(new File(arg));
+                cw.open();
+                cw.write(jsonOut);
+                cw.close();
+            } catch (IOException ex) {
+                ex.printStackTrace(System.err);
+                failures++;
+            }
+        }
+
+        if (failures == args.length) {
             System.err.println("Failed to write screen dimension set");
             System.out.println("WIDTH=" + width);
             System.out.println("HEIGHT=" + height);
