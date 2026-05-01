@@ -7,26 +7,26 @@
 namespace fs = std::filesystem;
 
 #ifdef __ANDROID__
-bool env_exists() {
-    const char* _ = std::getenv("OsintgramCXX_CertStore");
+bool env_exists(const std::string& en) {
+    const char* _ = std::getenv(en.c_str());
     return _ != nullptr;
 }
 
 std::vector<std::string> cert_store_paths = {
-        env_exists() ? std::getenv("OsintgramCXX_CertStore") : "",
-        DevTools::ExecutableDirectory() + "/android_certstore.pem",
-        "/data/data/com.termux/files/usr/etc/tls/cert.pem"
+    env_exists("TERMUX__PREFIX") ? std::string(std::getenv("TERMUX__PREFIX")) + "/etc/tls/cert.pem" : "",
+    "/data/data/com.termux/files/usr/etc/tls/cert.pem",
+    env_exists("TERMUX__HOME") ? std::string(std::getenv("TERMUX__HOME")) + "/.local/share/OsintgramCXX/certstore.pem" : "",
+    env_exists("OsintgramCXX_CertStore") ? std::getenv("OsintgramCXX_CertStore") : ""
 };
 
 std::vector<std::string> sys_cert_store_paths = {
-        "/system/etc/security/cacerts",
-        "/system/etc/security/cacerts_google"
+    "/system/etc/security/cacerts",
+    "/system/etc/security/cacerts_google"
 };
 
 bool has_cert_store() {
     for (const auto& it : cert_store_paths) {
         if (it.empty())
-            // looking at you, env variable!
             continue;
 
         if (std::filesystem::exists(it))
@@ -63,7 +63,6 @@ void make_cert_store() {
 #endif
 
 namespace OsintgramCXX::AndroidVer {
-
     void prepare_cacerts() {
 #ifdef __ANDROID__
         std::string exec_path = DevTools::ExecutableDirectory();
@@ -72,5 +71,4 @@ namespace OsintgramCXX::AndroidVer {
             make_cert_store();
 #endif
     }
-
 }

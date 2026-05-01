@@ -25,7 +25,7 @@ list(APPEND OsintgramCXX_LINK_DEPS CURL::libcurl ZLIB::ZLIB)
 list(APPEND OsintgramCXX_LINK_OpenSSL OpenSSL::SSL OpenSSL::Crypto)
 
 if (DEFINED APP_TARGETS_ANDROID AND NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
-    list(APPEND OsintgramCXX_LINK_DEPS "-static-libstdc++")
+    include(UseJava)
 endif ()
 
 if (APP_SYSTEM_TARGET STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR WIN32 OR MINGW)
@@ -49,4 +49,9 @@ if (APP_SYSTEM_TARGET STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Windows"
         set(CMAKE_STATIC_LIBRARY_PREFIX "")
         set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
     endif ()
+endif ()
+
+if (APP_TARGETS_ANDROID OR CMAKE_SYSTEM_NAME STREQUAL "Android")
+    include(UseJava)
+    include(FindJava)
 endif ()

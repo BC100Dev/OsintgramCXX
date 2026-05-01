@@ -9,16 +9,18 @@
 
 #include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
+#include <OsintgramCXX/App/WineDetect.hpp>
 
 #include <dev_tools/commons/HelpPage.hpp>
 #include <dev_tools/commons/Terminal.hpp>
 #include <dev_tools/commons/Utils.hpp>
 #include <dev_tools/logging/Logger.hpp>
 
-#include "ModInit.hpp"
-#include "AndroidCA.hpp"
-#include "OsintgramCXX/App/WineDetect.hpp"
+#include "android/TermuxCheck.hpp"
+#include "android/AndroidCA.hpp"
 #include "settings/AppSettings.hpp"
+#include "ModInit.hpp"
+#include "IGApi/Session.hpp"
 
 #ifdef _WIN32
 
@@ -47,6 +49,7 @@ using namespace DevTools;
 std::string chrootPath;
 
 std::map<std::string, std::string> defMap;
+bool main_shouldReconfigure = false;
 
 void WinSetColorMode() {
 #ifdef _WIN32
@@ -65,7 +68,7 @@ void exceptionHandler() {
     if (std::exception_ptr exPtr = std::current_exception()) {
         try {
             std::rethrow_exception(exPtr);
-        } catch (const std::exception &ex) {
+        } catch (const std::exception& ex) {
             std::ostringstream sw;
             sw << ex.what();
 
@@ -82,7 +85,7 @@ void exceptionHandler() {
 void usage() {
     std::string cmd = ".";
     std::string executablePath;
-    const char *pathDelim;
+    const char* pathDelim;
 
 #ifdef _WIN32
     pathDelim = "\\";
@@ -134,10 +137,16 @@ void usage() {
     hPage.setSpaceWidth(3);
     hPage.setStartSpaceWidth(4);
     hPage.setDescSeparator("=");
-    hPage.addArg("-h  | --help", "", "Display usage and its help page");
-    hPage.addArg("-D[key", "value]", "Puts setting values into the application runtime, temporarily overriding the App Settings file");
+    hPage.addArg("-h  | --help", std::nullopt, "Display usage and its help page");
+    hPage.addArg("-D[key", "value]",
+                 "Puts setting values into the application runtime, temporarily overriding the App Settings file");
     hPage.addArg("-E[key", "value]", "Applies an environment variable to the Osintgram Shell");
-    hPage.addArg("--test-exec-time", "", "Tests the execution time (does not start up the Shell");
+    hPage.addArg("--test-exec-time", std::nullopt, "Tests the execution time (does not start up the Shell");
+
+#ifdef __ANDROID__
+    hPage.addArg("--reconfigure-info", std::nullopt,
+                 "Reconfigures the Android Device Information and Network Certificate Setup");
+#endif
 
 #ifdef __linux__
     hPage.addArg("--sandbox", "PATH",
@@ -192,21 +201,31 @@ void init() {
     signal(SIGINT, sigHandle);
     signal(SIGTERM, sigHandle);
     signal(SIGABRT, sigHandle);
+    signal(SIGSEGV, sigHandle);
 
     // presumably we ain't in a Terminal (presumable file piping)
     if (!isatty(STDOUT_FILENO))
         Runtime::colorSupportEnabled = false;
 #endif
 
-    // this method can still be called, will be ineffective, if called outside of Android platforms
+#ifdef __ANDROID__
+    if (!IsTermuxRunning()) {
+        std::cerr << "The Android build of OsintgramCXX requires Termux." << std::endl;
+        std::cerr << "On your mobile device, install Termux directly from GitHub or from F-Droid." << std::endl;
+        std::cerr << "Alternatively, you can install Termux from the Google Play Store, ";
+        std::cerr << "which might have flagged this as false positive due to earlier versions." << std::endl;
+        exit(1);
+    }
+
     AndroidVer::prepare_cacerts();
+#endif
 }
 
 void initSettings() {
 }
 
-void parseArgs(const std::vector<std::string> &args) {
-    for (const std::string &arg: args) {
+void parseArgs(const std::vector<std::string>& args) {
+    for (const std::string& arg : args) {
         std::string _arg = TrimString(arg);
 
         if (_arg.empty())
@@ -242,6 +261,10 @@ void parseArgs(const std::vector<std::string> &args) {
                 Runtime::defMap[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
 
+            if (_arg == "--reconfigure-info")
+                main_shouldReconfigure = true;
+
+#ifdef __linux__
             if (_arg.rfind("--sandbox", 0) == 0) {
                 size_t eqPos = arg.find('=');
                 if (eqPos == std::string::npos) {
@@ -251,11 +274,12 @@ void parseArgs(const std::vector<std::string> &args) {
 
                 chrootPath = arg.substr(eqPos + 1);
             }
+#endif
         }
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     std::set_terminate(exceptionHandler);
     init();
 
@@ -288,7 +312,7 @@ int main(int argc, char **argv) {
         if (!fs::exists(chrootPath)) {
             try {
                 fs::create_directories(chrootPath);
-            } catch (const fs::filesystem_error &err) {
+            } catch (const fs::filesystem_error& err) {
                 std::cerr << "Failed to create a directory at " << chrootPath << std::endl;
                 std::cerr << "Error caused: " << err.what() << std::endl;
                 return 1;

@@ -4,6 +4,7 @@ CollectSources("${PROJECT_MODULE_ROOT}/executables" ExecutableSources)
 
 add_library(devtools SHARED ${CommonsSources} ${NetSources})
 target_link_libraries(devtools PRIVATE ${OsintgramCXX_LINK_DEPS})
+SetRpathValue(devtools)
 
 if (APP_SYSTEM_TARGET STREQUAL "Windows")
     target_link_libraries(devtools PRIVATE ole32 shell32 uuid)

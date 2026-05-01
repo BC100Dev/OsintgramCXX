@@ -40,7 +40,6 @@ Potential features for the future:
 Note: As always, try to make OsintgramCXX as stable as possible. Avoid Software Crashes by using try-catch blocks.
 
 Sources to use from GitHub:
-- dilame/instagram-private-api (despite it being updated 2 years ago - peak laziness)
 - silverxcyber/SilverInstaEye
 - Datalux/Osintgram (yes, quite ironically)
 - subzeroid/instagrapi

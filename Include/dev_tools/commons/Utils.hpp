@@ -108,6 +108,8 @@ namespace DevTools {
 
     void ExitProgram(int code);
 
+    void CreateFile(const std::string& path, int mode);
+
     void CreateFile(const std::string& path);
 
     std::string ExecutableDirectory();
@@ -115,6 +117,30 @@ namespace DevTools {
     long long nanoTime();
 
     std::filesystem::path UserHomeDirectory();
+
+#ifdef __linux__
+    __mode_t GetPermissionMask(const std::filesystem::path &path);
+
+    bool CanUserWrite(__mode_t pMask);
+
+    bool CanUserRead(__mode_t pMask);
+
+    bool CanUserExecute(__mode_t pMask);
+
+    bool CanGroupsWrite(__mode_t pMask);
+
+    bool CanGroupsRead(__mode_t pMask);
+
+    bool CanGroupsExecute(__mode_t pMask);
+
+    bool CanOthersWrite(__mode_t pMask);
+
+    bool CanOthersRead(__mode_t pMask);
+
+    bool CanOthersExecute(__mode_t pMask);
+
+    bool HasSuidCapability(__mode_t pMask);
+#endif
 
 }
 

@@ -17,6 +17,13 @@ function(CollectSources RootDir OutVar)
     set(${OutVar} ${SOURCE_FILES} PARENT_SCOPE)
 endfunction()
 
+function(CollectJavaSources RootDir OutVar)
+    set(SEARCH_PATTERNS "${RootDir}/*.java")
+
+    file(GLOB_RECURSE SOURCE_FILES ${SEARCH_PATTERNS})
+    set(${OutVar} ${SOURCE_FILES} PARENT_SCOPE)
+endfunction()
+
 function(DisableBionicFortify TARGET_NAME)
     if (NOT APP_TARGETS_ANDROID)
         return()
@@ -35,6 +42,9 @@ endfunction()
 
 function(SetRpathValue TARGET)
     set(RPATH_VAL "$ORIGIN:$ORIGIN/libs:$ORIGIN/lib:$ORIGIN/../lib:$ORIGIN/../libs")
+    if (APP_SYSTEM_TARGET STREQUAL "Android" OR APP_TARGETS_ANDROID OR ANDROID)
+        set(RPATH_VAL "${RPATH_VAL}:/data/data/com.termux/files/usr/lib")
+    endif ()
     set_target_properties(${TARGET} PROPERTIES
             BUILD_WITH_INSTALL_RPATH TRUE
             INSTALL_RPATH "${RPATH_VAL}"

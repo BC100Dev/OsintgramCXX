@@ -153,14 +153,11 @@ CommandExecution execCommand(const std::string& cmd, const std::vector<std::stri
 
     try {
         execReturn.rc = cmdExecHandle(cmd.c_str(), args.size(), argv, env.size(), env_map);
-    }
-    catch (const std::runtime_error& err) {
+    } catch (const std::runtime_error& err) {
         std::cerr << "Runtime error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
-    }
-    catch (const std::exception& err) {
+    } catch (const std::exception& err) {
         std::cerr << "Error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
-    }
-    catch (...) {
+    } catch (...) {
         std::cerr << "Unknown error occurred, while executing \"" << cmd << "\"" << std::endl;
     }
 
@@ -220,8 +217,7 @@ namespace OsintgramCXX::AppShell {
             Terminal::print(strStream, Terminal::TermColor::BLUE, user, true);
             strStream << " % ";
             Terminal::print(strStream, Terminal::TermColor::RED, "OsintgramCXX", true);
-        }
-        else
+        } else
             strStream << user << " % OsintgramCXX";
 
         strStream << "] -> ";
@@ -252,8 +248,7 @@ namespace OsintgramCXX::AppShell {
             }
 
             environment[opt[0]] = opt[1];
-        }
-        else {
+        } else {
             auto it = environment.find(worker);
             if (it == environment.end()) {
                 Terminal::println(std::cerr, Terminal::TermColor::RED, worker + " (not found)", true);
@@ -345,8 +340,7 @@ namespace OsintgramCXX::AppShell {
                     std::cerr << cmdLine[0] << ": exit code " << ret.rc << std::endl;
                     threadSleep(70);
                 }
-            }
-            catch (const std::exception& ex) {
+            } catch (const std::exception& ex) {
                 std::cerr << "ShellError: " << ex.what() << std::endl;
             }
         }
@@ -363,8 +357,7 @@ namespace OsintgramCXX::AppShell {
         try {
             shellThread = std::thread(cmd);
             shellThread.join();
-        }
-        catch (std::exception& ex) {
+        } catch (std::exception& ex) {
             if (std::string(ex.what()) != "Invalid argument") {
                 std::cerr << "Shell Thread Error (Shell.cpp): " << ex.what() << std::endl;
                 stopShell(false);

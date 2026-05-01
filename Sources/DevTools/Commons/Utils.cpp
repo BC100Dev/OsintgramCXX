@@ -3,6 +3,7 @@
 #include <thread>
 #include <filesystem>
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 
 #define PAUSE_PROMPT_DEFAULT "Press any key to continue..."
@@ -11,8 +12,8 @@
 
 #include <windows.h>
 #include <conio.h>
-#include <shlobj.h> // SHGetKnownFolderPath
-#include <combaseapi.h> // CoTaskMemFree
+#include <shlobj.h>
+#include <combaseapi.h>
 
 #elif __linux__
 
@@ -20,11 +21,13 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <fcntl.h>
-#include <sys/types.h>
-
-#elif defined(__linux__) && !defined(__ANDROID__)
 #include <pwd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #endif
+
+namespace fs = std::filesystem;
 
 namespace DevTools {
     std::string ToLowercase(const std::string& str) {
@@ -101,8 +104,7 @@ namespace DevTools {
         try {
             std::regex regexPattern(pattern);
             return std::regex_replace(str, regexPattern, replacement);
-        }
-        catch (const std::regex_error& ex) {
+        } catch (const std::regex_error& ex) {
             std::cerr << "Utils.hpp# ReplaceAll - Regex Error: " << ex.what() << std::endl;
             return str;
         }
@@ -188,8 +190,6 @@ namespace DevTools {
     }
 
     std::string CurrentWorkingDirectory() {
-        // apparently, there was a simpler choice all along
-        // who could have known?
         return std::filesystem::current_path().string();
     }
 
@@ -328,8 +328,7 @@ namespace DevTools {
 
         for (int i = 0; i < count; i++) {
             char _c;
-            ssize_t nr = read(STDIN_FILENO, &_c, 1);
-            if (nr == -1) {
+            if (ssize_t nr = read(STDIN_FILENO, &_c, 1); nr == -1) {
                 std::cerr << "Read Error" << std::endl;
                 chArr.clear();
                 break;
@@ -348,16 +347,21 @@ namespace DevTools {
         std::exit(code);
     }
 
-    void CreateFile(const std::string& path) {
+    void CreateFile(const std::string& path, int mode) {
         if (std::filesystem::exists(path))
             return;
+
+        if (std::filesystem::is_directory(path))
+            return;
+
+        if (!std::filesystem::exists(std::filesystem::path(path).parent_path()))
+            std::filesystem::create_directories(std::filesystem::path(path).parent_path());
 
 #ifdef _WIN32
         HANDLE hFile = ::CreateFileA(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
         if (hFile == INVALID_HANDLE_VALUE) {
             std::string error;
-
             {
                 std::stringstream ss;
                 ss << "Could not create file, error 0x" << std::hex << GetLastError();
@@ -370,9 +374,9 @@ namespace DevTools {
 
         CloseHandle(hFile);
 #else
-        int fd = open(path.c_str(), O_CREAT, 0664);
+        int fd = open(path.c_str(), O_CREAT, mode);
         if (fd == -1) {
-            fd = open(path.c_str(), O_WRONLY | O_CREAT, 0664);
+            fd = open(path.c_str(), O_WRONLY | O_CREAT, mode);
 
             if (fd == -1)
                 throw std::runtime_error("Could not create file, error " + std::to_string(errno));
@@ -380,6 +384,10 @@ namespace DevTools {
 
         close(fd);
 #endif
+    }
+
+    void CreateFile(const std::string& path) {
+        CreateFile(path, 0755);
     }
 
     std::string ExecutableDirectory() {
@@ -404,7 +412,7 @@ namespace DevTools {
     std::filesystem::path UserHomeDirectory() {
         std::filesystem::path result;
 
-#if defined(__linux__) && !defined(__ANDROID__)
+#ifdef __linux__
         struct passwd* pw = getpwuid(getuid());
         if (pw && pw->pw_dir)
             result = pw->pw_dir;
@@ -418,25 +426,62 @@ namespace DevTools {
             result = std::filesystem::path(path);
         } else
             throw std::runtime_error("Failed to get user home");
-#elif defined(__ANDROID__)
-        std::vector<std::string> checks = {
-            "/data/data/com.termux/files/home/storage/shared",
-            "/data/data/com.termux/files/home",
-            "/storage/emulated/0/Android/data/com.termux/files",
-            "/sdcard/Android/data/com.termux/files"
-        };
-
-        for (const auto& it : checks) {
-            if (access(it.c_str(), F_OK) == 0 && access(it.c_str(), W_OK) == 0) {
-                result = std::filesystem::path(it);
-                break;
-            }
-        }
-
-        if (result.empty() || !result.is_absolute())
-            throw std::runtime_error("Failed to get user home");
 #endif
 
         return result;
     }
+
+#ifdef __linux__
+    __mode_t GetPermissionMask(const std::filesystem::path &path) {
+        if (!fs::exists(path))
+            throw std::runtime_error("File does not exist");
+
+        struct stat si = {};
+        if (stat(path.c_str(), &si) == -1)
+            throw std::runtime_error("Failed to get file status: " + std::string(std::strerror(errno)));
+
+        return si.st_mode;
+    }
+
+    bool CanUserWrite(__mode_t pMask) {
+        return pMask & S_IWUSR;
+    }
+
+    bool CanUserRead(__mode_t pMask) {
+        return pMask & S_IRUSR;
+    }
+
+    bool CanUserExecute(__mode_t pMask) {
+        return pMask & S_IXUSR;
+    }
+
+    bool CanGroupsWrite(__mode_t pMask) {
+        return pMask & S_IWGRP;
+    }
+
+    bool CanGroupsRead(__mode_t pMask) {
+        return pMask & S_IRGRP;
+    }
+
+    bool CanGroupsExecute(__mode_t pMask) {
+        return pMask & S_IXGRP;
+    }
+
+    bool CanOthersWrite(__mode_t pMask) {
+        return pMask & S_IWOTH;
+    }
+
+    bool CanOthersRead(__mode_t pMask) {
+        return pMask & S_IROTH;
+    }
+
+    bool CanOthersExecute(__mode_t pMask) {
+        return pMask & S_IXOTH;
+    }
+
+    bool HasSuidCapability(__mode_t pMask) {
+        return pMask & S_ISUID;
+    }
+#endif
+
 }

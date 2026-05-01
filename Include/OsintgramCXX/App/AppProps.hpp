@@ -2,14 +2,15 @@
 #define OSINTGRAMCXX_AppPROPS_HPP
 
 #include <string>
-#include <format>
 #include <dev_tools/commons/Utils.hpp>
 
-#define OsintgramCXX_VersionName "v0.1"
+#define OsintgramCXX_VersionName "v0.2"
 #define OsintgramCXX_VersionCode 1
 
 #ifdef _WIN32
 #define OsintgramCXX_PlatformBuild "Windows"
+#elif __ANDROID__
+#define OsintgramCXX_PlatformBuild "Android"
 #elif __linux__
 #define OsintgramCXX_PlatformBuild "Linux"
 #elif __APPLE__
@@ -27,9 +28,8 @@ inline std::string TEXT_BLOCK() {
 \___/ |___/_|_| |_|\__\__, |_|  \__,_|_| |_| |_|
                       |___/                     )";
 
-    if (!block.empty() && block[0] == '\n') {
+    if (!block.empty() && block[0] == '\n')
         block.erase(0,1);
-    }
 
     return block;
 }

@@ -1,0 +1,10 @@
+#ifndef OSINTGRAMCXX_TERMUXCHECK_HPP
+#define OSINTGRAMCXX_TERMUXCHECK_HPP
+
+#ifdef __ANDROID__
+
+bool IsTermuxRunning();
+
+#endif
+
+#endif //OSINTGRAMCXX_TERMUXCHECK_HPP

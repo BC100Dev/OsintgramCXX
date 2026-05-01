@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <sstream>
 
-HelpPage::Item::Item(std::string &a, std::string &e, std::string &d) : arg(a), equalDesc(e), description(d) {}
+HelpPage::Item::Item(std::string &a, std::optional<std::string> &e, std::string &d) : arg(a), equalDesc(e), description(d) {}
 
 HelpPage::HelpPage() : spaceWidth(5), startSpaceWidth(0) {}
 
@@ -22,7 +22,7 @@ int HelpPage::getStartSpaceWidth() const {
     return startSpaceWidth;
 }
 
-void HelpPage::addArg(std::string arg, std::string assignableDesc, std::string description) {
+void HelpPage::addArg(std::string arg, std::optional<std::string> assignableDesc, std::string description) {
     argItemList.emplace_back(arg, assignableDesc, description);
 }
 
@@ -39,12 +39,12 @@ std::string HelpPage::display() const {
     int maxItemLength = 0;
 
     for (const auto &item: argItemList) {
-        std::string argLine = item.arg + (item.equalDesc.empty() ? "" : descSep + item.equalDesc);
+        std::string argLine = item.arg + (item.equalDesc.has_value() ? descSep + item.equalDesc.value() : "");
         maxItemLength = std::max(maxItemLength, static_cast<int>(argLine.length()));
     }
 
     for (const auto& item : argItemList) {
-        std::string argLine = item.arg + (item.equalDesc.empty() ? "" : descSep + item.equalDesc);
+        std::string argLine = item.arg + (item.equalDesc.has_value() ? descSep + item.equalDesc.value() : "");
         if (startSpaceWidth > 0)
             oss << std::string(startSpaceWidth, ' ');
 
