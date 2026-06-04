@@ -347,7 +347,7 @@ namespace DevTools {
         std::exit(code);
     }
 
-    void CreateFile(const std::string& path, int mode) {
+    void MkFile(const std::string& path, int mode) {
         if (std::filesystem::exists(path))
             return;
 
@@ -386,22 +386,26 @@ namespace DevTools {
 #endif
     }
 
-    void CreateFile(const std::string& path) {
-        CreateFile(path, 0755);
+    void MkFile(const std::string& path) {
+        MkFile(path, 0755);
     }
 
-    std::string ExecutableDirectory() {
+    std::filesystem::path ExecutableFile() {
 #ifdef _WIN32
         char buffer[MAX_PATH];
         GetModuleFileName(nullptr, buffer, MAX_PATH);
         std::filesystem::path exePath = std::string(buffer);
-        return exePath.parent_path().string();
+        return exePath.string();
 #else
         char result[PATH_MAX];
         ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
         std::filesystem::path exePath = std::string(result, (count > 0) ? count : 0);
-        return exePath.parent_path().string();
+        return exePath.string();
 #endif
+    }
+
+    std::string ExecutableDirectory() {
+        return ExecutableFile().parent_path().string();
     }
 
     long long nanoTime() {
@@ -429,6 +433,87 @@ namespace DevTools {
 #endif
 
         return result;
+    }
+
+    std::wstring FromStrToWideStr(const std::string& str) {
+        const char* origLoc = std::setlocale(LC_ALL, nullptr);
+        std::setlocale(LC_ALL, "");
+        if (str.empty()) return L"";
+
+        std::mbstate_t state = {};
+        const char* src = str.c_str();
+        size_t size = mbsrtowcs(nullptr, &src, 0, &state) + 1;
+
+        if (size == static_cast<size_t>(-1))
+            throw std::runtime_error("ToWideString: invalid multibyte sequence");
+
+        std::wstring result(size, L'\0');
+        src = str.c_str();
+        mbsrtowcs(result.data(), &src, size, &state);
+        result.resize(size - 1);
+
+        std::setlocale(LC_ALL, origLoc);
+        return result;
+    }
+
+    std::string FromWideStrToStr(const std::wstring& wstr) {
+        const char* origLoc = std::setlocale(LC_ALL, nullptr);
+        std::setlocale(LC_ALL, "");
+        if (wstr.empty()) return "";
+
+        std::mbstate_t state = {};
+        const wchar_t* src = wstr.c_str();
+        size_t size = wcsrtombs(nullptr, &src, 0, &state) + 1;
+
+        if (size == static_cast<size_t>(-1))
+            throw std::runtime_error("FromWStrToStr: invalid wide character sequence");
+
+        std::string result(size, '\0');
+        src = wstr.c_str();
+        wcsrtombs(result.data(), &src, size, &state);
+        result.resize(size - 1);
+
+        std::setlocale(LC_ALL, origLoc);
+        return result;
+    }
+
+    std::string RandomUUID() {
+        std::random_device rd;
+        std::mt19937_64 gen(rd());
+        std::uniform_int_distribution<uint32_t> dist(0, 0xFFFFFFFF);
+
+        uint32_t a  = dist(gen);
+        uint32_t b  = dist(gen);
+        uint32_t c  = dist(gen);
+        uint32_t d  = dist(gen);
+
+        // Set version 4 bits (0100) in the 13th hex digit
+        b = (b & 0xFFFF0FFF) | 0x00004000;
+        // Set variant bits (10xx) in the 17th hex digit
+        c = (c & 0x3FFFFFFF) | 0x80000000;
+
+        std::ostringstream ss;
+        ss << std::hex << std::setfill('0')
+           << std::setw(8) << a          << '-'
+           << std::setw(4) << (b >> 16)  << '-'
+           << std::setw(4) << (b & 0xFFFF) << '-'
+           << std::setw(4) << (c >> 16)  << '-'
+           << std::setw(4) << (c & 0xFFFF)
+           << std::setw(8) << d;
+
+        return ss.str();
+    }
+
+    std::string ConstructErrorMessage() {
+        std::stringstream ss;
+
+#ifdef _WIN32
+        ss << "0x" << std::hex << GetLastError();
+#else
+        ss << std::strerror(errno);
+#endif
+
+        return ss.str();
     }
 
 #ifdef __linux__

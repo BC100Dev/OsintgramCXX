@@ -180,6 +180,7 @@ namespace DevTools {
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curlHeaders);
 
             // SSL Verification
+            curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, request.verifySSL ? 1L : 0L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, request.verifySSL ? 2L : 0L);
 

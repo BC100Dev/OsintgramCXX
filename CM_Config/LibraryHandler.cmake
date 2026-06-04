@@ -41,7 +41,11 @@ if (APP_SYSTEM_TARGET STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Windows"
     set_property(TARGET OpenSSL::Crypto PROPERTY INTERFACE_LINK_LIBRARIES "crypt32;ws2_32")
     set_property(TARGET OpenSSL::SSL PROPERTY INTERFACE_LINK_LIBRARIES "crypt32;ws2_32")
 
-    list(APPEND OsintgramCXX_LINK_DEPS "-Wl,-Bstatic,--whole-archive" "winpthread" "-Wl,--no-whole-archive")
+    list(APPEND OsintgramCXX_LINK_DEPS
+            "-no-pthread"
+            "-Wl,--undefined=clock_gettime64"
+            "-Wl,--undefined=nanosleep64"
+            "-l:libwinpthread.a")
 
     if (APP_SYSTEM_TARGET STREQUAL "Windows")
         set(CMAKE_SHARED_LIBRARY_PREFIX "")

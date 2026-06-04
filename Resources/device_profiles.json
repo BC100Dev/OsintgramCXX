@@ -1,11 +1,14 @@
 [
     {
-        "android_api": 25,
-        "android_version": "7.1.1",
-        "display_dpi": "440dpi",
+        "type": "mobile",
+        "android": {
+            "api": 25,
+            "version": "7.1.1"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 440
         },
         "manufacturer": "Xiaomi",
         "product": "Mi Note 3",
@@ -13,12 +16,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 23,
-        "android_version": "6.0.1",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 23,
+            "version": "6.0.1"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi",
         "product": "Redmi Note 3",
@@ -26,12 +32,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 23,
-        "android_version": "6.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 23,
+            "version": "6.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi",
         "product": "Redmi Note 4",
@@ -39,12 +48,15 @@
         "cpu_label": "mt6797"
     },
     {
-        "android_api": 24,
-        "android_version": "7.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 24,
+            "version": "7.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi/xiaomi",
         "product": "Redmi Note 4",
@@ -52,12 +64,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 23,
-        "android_version": "6.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 23,
+            "version": "6.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi",
         "product": "Redmi Note 4X",
@@ -65,12 +80,15 @@
         "cpu_label": "mt6797"
     },
     {
-        "android_api": 27,
-        "android_version": "8.1.0",
-        "display_dpi": "440dpi",
+        "type": "mobile",
+        "android": {
+            "api": 27,
+            "version": "8.1.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2030
+            "height": 2030,
+            "dpi": 440
         },
         "manufacturer": "Xiaomi/xiaomi",
         "product": "Redmi Note 5",
@@ -78,12 +96,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 23,
-        "android_version": "6.0.1",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 23,
+            "version": "6.0.1"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi",
         "product": "Redmi 4",
@@ -91,12 +112,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 27,
-        "android_version": "8.1.0",
-        "display_dpi": "440dpi",
+        "type": "mobile",
+        "android": {
+            "api": 27,
+            "version": "8.1.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2030
+            "height": 2030,
+            "dpi": 440
         },
         "manufacturer": "Xiaomi/xiaomi",
         "product": "Redmi 5 Plus",
@@ -104,12 +128,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 25,
-        "android_version": "7.1.2",
-        "display_dpi": "440dpi",
+        "type": "mobile",
+        "android": {
+            "api": 25,
+            "version": "7.1.2"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2030
+            "height": 2030,
+            "dpi": 440
         },
         "manufacturer": "Xiaomi/xiaomi",
         "product": "Redmi 5 Plus",
@@ -117,12 +144,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi",
         "product": "MI 5",
@@ -130,12 +160,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 27,
-        "android_version": "8.1.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 27,
+            "version": "8.1.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi/xiaomi",
         "product": "Mi A1",
@@ -143,12 +176,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi",
         "product": "MI 6",
@@ -156,12 +192,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 25,
-        "android_version": "7.1.1",
-        "display_dpi": "440dpi",
+        "type": "mobile",
+        "android": {
+            "api": 25,
+            "version": "7.1.1"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 440
         },
         "manufacturer": "Xiaomi",
         "product": "MI MAX 2",
@@ -169,12 +208,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 24,
-        "android_version": "7.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 24,
+            "version": "7.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "Xiaomi",
         "product": "MI 5s",
@@ -182,12 +224,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "samsung",
         "product": "SM-A520F",
@@ -195,12 +240,15 @@
         "cpu_label": "samsungexynos7880"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2076
+            "height": 2076,
+            "dpi": 480
         },
         "manufacturer": "samsung",
         "product": "SM-G950F",
@@ -208,12 +256,15 @@
         "cpu_label": "samsungexynos8895"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "640dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1440,
-            "height": 2768
+            "height": 2768,
+            "dpi": 640
         },
         "manufacturer": "samsung",
         "product": "SM-G950F",
@@ -221,12 +272,15 @@
         "cpu_label": "samsungexynos8895"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2094
+            "height": 2094,
+            "dpi": 420
         },
         "manufacturer": "samsung",
         "product": "SM-G955F",
@@ -234,12 +288,15 @@
         "cpu_label": "samsungexynos8895"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "560dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1440,
-            "height": 2792
+            "height": 2792,
+            "dpi": 560
         },
         "manufacturer": "samsung",
         "product": "SM-G955F",
@@ -247,12 +304,15 @@
         "cpu_label": "samsungexynos8895"
     },
     {
-        "android_api": 24,
-        "android_version": "7.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 24,
+            "version": "7.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "samsung",
         "product": "SM-A510F",
@@ -260,12 +320,15 @@
         "cpu_label": "samsungexynos7580"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "samsung",
         "product": "SM-G930F",
@@ -273,12 +336,15 @@
         "cpu_label": "samsungexynos8890"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "samsung",
         "product": "SM-G935F",
@@ -286,12 +352,15 @@
         "cpu_label": "samsungexynos8890"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2094
+            "height": 2094,
+            "dpi": 420
         },
         "manufacturer": "samsung",
         "product": "SM-G965F",
@@ -299,12 +368,15 @@
         "cpu_label": "samsungexynos9810"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2076
+            "height": 2076,
+            "dpi": 480
         },
         "manufacturer": "samsung",
         "product": "SM-A530F",
@@ -312,12 +384,15 @@
         "cpu_label": "samsungexynos7885"
     },
     {
-        "android_api": 24,
-        "android_version": "7.0",
-        "display_dpi": "640dpi",
+        "type": "mobile",
+        "android": {
+            "api": 24,
+            "version": "7.0"
+        },
         "display_size": {
             "width": 1440,
-            "height": 2560
+            "height": 2560,
+            "dpi": 640
         },
         "manufacturer": "samsung",
         "product": "SM-G925F",
@@ -325,12 +400,15 @@
         "cpu_label": "samsungexynos7420"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 420
         },
         "manufacturer": "samsung",
         "product": "SM-A720F",
@@ -338,12 +416,15 @@
         "cpu_label": "samsungexynos7880"
     },
     {
-        "android_api": 24,
-        "android_version": "7.0",
-        "display_dpi": "640dpi",
+        "type": "mobile",
+        "android": {
+            "api": 24,
+            "version": "7.0"
+        },
         "display_size": {
             "width": 1440,
-            "height": 2560
+            "height": 2560,
+            "dpi": 640
         },
         "manufacturer": "samsung",
         "product": "SM-G920F",
@@ -351,12 +432,15 @@
         "cpu_label": "samsungexynos7420"
     },
     {
-        "android_api": 24,
-        "android_version": "7.0",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 24,
+            "version": "7.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 420
         },
         "manufacturer": "samsung",
         "product": "SM-J730FM",
@@ -364,12 +448,15 @@
         "cpu_label": "samsungexynos7870"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2076
+            "height": 2076,
+            "dpi": 480
         },
         "manufacturer": "samsung",
         "product": "SM-G960F",
@@ -377,12 +464,15 @@
         "cpu_label": "samsungexynos9810"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2094
+            "height": 2094,
+            "dpi": 420
         },
         "manufacturer": "samsung",
         "product": "SM-N950F",
@@ -390,12 +480,15 @@
         "cpu_label": "samsungexynos8895"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2094
+            "height": 2094,
+            "dpi": 420
         },
         "manufacturer": "samsung",
         "product": "SM-A730F",
@@ -403,12 +496,15 @@
         "cpu_label": "samsungexynos7885"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2094
+            "height": 2094,
+            "dpi": 420
         },
         "manufacturer": "samsung",
         "product": "SM-A605FN",
@@ -416,12 +512,15 @@
         "cpu_label": "qcom"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 480
         },
         "manufacturer": "HUAWEI/HONOR",
         "product": "STF-L09",
@@ -429,12 +528,15 @@
         "cpu_label": "hi3660"
     },
     {
-        "android_api": 27,
-        "android_version": "8.1.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 27,
+            "version": "8.1.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2280
+            "height": 2280,
+            "dpi": 480
         },
         "manufacturer": "HUAWEI/HONOR",
         "product": "COL-L29",
@@ -442,12 +544,15 @@
         "cpu_label": "kirin970"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2032
+            "height": 2032,
+            "dpi": 480
         },
         "manufacturer": "HUAWEI/HONOR",
         "product": "LLD-L31",
@@ -455,12 +560,15 @@
         "cpu_label": "hi6250"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2150
+            "height": 2150,
+            "dpi": 480
         },
         "manufacturer": "HUAWEI",
         "product": "ANE-LX1",
@@ -468,12 +576,15 @@
         "cpu_label": "hi6250"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2032
+            "height": 2032,
+            "dpi": 480
         },
         "manufacturer": "HUAWEI",
         "product": "FIG-LX1",
@@ -481,12 +592,15 @@
         "cpu_label": "hi6250"
     },
     {
-        "android_api": 27,
-        "android_version": "8.1.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 27,
+            "version": "8.1.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2150
+            "height": 2150,
+            "dpi": 480
         },
         "manufacturer": "HUAWEI/HONOR",
         "product": "COL-L29",
@@ -494,12 +608,15 @@
         "cpu_label": "kirin970"
     },
     {
-        "android_api": 26,
-        "android_version": "8.0.0",
-        "display_dpi": "480dpi",
+        "type": "mobile",
+        "android": {
+            "api": 26,
+            "version": "8.0.0"
+        },
         "display_size": {
             "width": 1080,
-            "height": 2038
+            "height": 2038,
+            "dpi": 480
         },
         "manufacturer": "HUAWEI/HONOR",
         "product": "BND-L21",
@@ -507,12 +624,15 @@
         "cpu_label": "hi6250"
     },
     {
-        "android_api": 23,
-        "android_version": "6.0.1",
-        "display_dpi": "420dpi",
+        "type": "mobile",
+        "android": {
+            "api": 23,
+            "version": "6.0.1"
+        },
         "display_size": {
             "width": 1080,
-            "height": 1920
+            "height": 1920,
+            "dpi": 420
         },
         "manufacturer": "LeMobile/LeEco",
         "product": "Le X527",

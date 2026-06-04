@@ -2,7 +2,6 @@
 #define OSINTGRAMCXX_AppPROPS_HPP
 
 #include <string>
-#include <dev_tools/commons/Utils.hpp>
 
 #define OsintgramCXX_VersionName "v0.2"
 #define OsintgramCXX_VersionCode 1

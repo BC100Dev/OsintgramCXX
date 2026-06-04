@@ -33,7 +33,7 @@ void update() {
 
     if (!fs::exists(userConfig)) {
         try {
-            CreateFile(userConfig);
+            MkFile(userConfig);
         } catch (const std::runtime_error& err) {
             std::cerr << "Unable to update the device_profiles.json" << std::endl;
             std::cerr << "Cause: " << err.what() << std::endl;

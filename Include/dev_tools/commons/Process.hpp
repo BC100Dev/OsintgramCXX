@@ -27,7 +27,17 @@ namespace DevTools {
         long timeout = -1;
     };
 
+    struct ProcessIdentifier {
+        int pid;
+        int ppid;
+        std::string name;
+        fs::path binaryPath;
+        std::string user;
+    };
+
     int SpawnProcess(const ProcessRequest& req);
+
+    std::vector<ProcessIdentifier> EnumerateProcesses();
 
 }
 

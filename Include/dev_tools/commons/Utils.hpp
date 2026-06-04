@@ -108,15 +108,25 @@ namespace DevTools {
 
     void ExitProgram(int code);
 
-    void CreateFile(const std::string& path, int mode);
+    void MkFile(const std::string& path, int mode);
 
-    void CreateFile(const std::string& path);
+    void MkFile(const std::string& path);
+
+    std::filesystem::path ExecutableFile();
 
     std::string ExecutableDirectory();
 
     long long nanoTime();
 
     std::filesystem::path UserHomeDirectory();
+
+    std::wstring FromStrToWideStr(const std::string& str);
+
+    std::string FromWideStrToStr(const std::wstring& wstr);
+
+    std::string RandomUUID();
+
+    std::string ConstructErrorMessage();
 
 #ifdef __linux__
     __mode_t GetPermissionMask(const std::filesystem::path &path);

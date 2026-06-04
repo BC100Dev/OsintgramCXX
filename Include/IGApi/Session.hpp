@@ -27,6 +27,16 @@ namespace IG::Session {
         explicit AuthenticationError(const std::string &what) : NetworkError(what) {}
     };
 
+    class KeyHandlerError : public std::runtime_error {
+    public:
+        explicit KeyHandlerError(const std::string &what) : std::runtime_error(what) {}
+    };
+
+    class KeyNotFoundError : public KeyHandlerError {
+    public:
+        explicit KeyNotFoundError(const std::string &what) : KeyHandlerError(what) {}
+    };
+
     /**
      * Base class for all devices used in authentication and request construction. Devices are expected to spoof data
      * through a way called DSI, short for "Device Spoofing Information", something that Instagram expects a legitimate
@@ -57,6 +67,7 @@ namespace IG::Session {
 
         struct AndroidVersion {
             int apiVersion;
+            std::string niceVersion;
             std::string codebaseVersion;
         };
 
@@ -70,6 +81,7 @@ namespace IG::Session {
         };
 
         static const std::string& KEYINFO_ANDROID_API;
+        static const std::string& KEYINFO_ANDROID_CODEBASE;
         static const std::string& KEYINFO_ANDROID_VERSION;
         static const std::string& KEYINFO_DISPLAY_DPI;
         static const std::string& KEYINFO_DISPLAY_WIDTH;
@@ -78,6 +90,8 @@ namespace IG::Session {
         static const std::string& KEYINFO_DEVICE_MANUFACTURER;
         static const std::string& KEYINFO_DEVICE_CODENAME;
         static const std::string& KEYINFO_DEVICE_CPU_LABEL;
+
+        static const std::string& KEYINFO_BROWSER_VERSION;
 
         ~Device() = default;
 
@@ -96,6 +110,12 @@ namespace IG::Session {
          * @return The type itself, being either DESKTOP or MOBILE.
          */
         Type GetDeviceType();
+
+        /**
+         * Sets a different device type on the device object itself
+         * @param type The device type, being either DESKTOP or MOBILE
+         */
+        void SetDeviceType(const Type& type);
 
         /**
          * Injects a key-value pair into the device spoofing info map.

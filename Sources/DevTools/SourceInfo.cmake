@@ -1,4 +1,4 @@
-CollectSources("${PROJECT_MODULE_ROOT}/Commons" CommonsSources)
+CollectSources("${PROJECT_MODULE_ROOT}/redist" CommonsSources)
 CollectSources("${PROJECT_MODULE_ROOT}/net" NetSources)
 CollectSources("${PROJECT_MODULE_ROOT}/executables" ExecutableSources)
 
@@ -7,7 +7,7 @@ target_link_libraries(devtools PRIVATE ${OsintgramCXX_LINK_DEPS})
 SetRpathValue(devtools)
 
 if (APP_SYSTEM_TARGET STREQUAL "Windows")
-    target_link_libraries(devtools PRIVATE ole32 shell32 uuid)
+    target_link_libraries(devtools PRIVATE ole32 oleaut32 shell32 uuid wbemuuid)
 endif ()
 
 if (DEFINED DEVTOOLS_ENABLE_EXECUTABLES AND DEVTOOLS_ENABLE_EXECUTABLES)

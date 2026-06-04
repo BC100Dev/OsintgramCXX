@@ -17,12 +17,15 @@ for entry in raw_lines:
         api_ver, os_ver = parts[0].split("/")
         width, height = map(int, parts[2].split("x"))
         parsed_devices.append({
-            "android_api": int(api_ver),
-            "android_version": os_ver,
-            "display_dpi": parts[1],
+            "type": "mobile",
+            "android": {
+                "api": int(api_ver),
+                "version": os_ver
+            },
             "display_size": {
                 "width": width,
-                "height": height
+                "height": height,
+                "dpi": int(parts[1].removesuffix("dpi"))
             },
             "manufacturer": parts[3],
             "product": parts[4],
