@@ -7,6 +7,7 @@
 #include <regex>
 #include <iostream>
 #include <filesystem>
+#include <thread>
 
 #ifdef __linux__
 
@@ -16,6 +17,7 @@
 #include <climits>
 
 #define MAX_PATH_LIMIT PATH_MAX
+#define THREAD_HANDLE pthread_t
 
 #endif
 
@@ -27,6 +29,7 @@
 #include <direct.h>
 
 #define MAX_PATH_LIMIT MAX_PATH
+#define THREAD_HANDLE unsigned long long
 #endif
 
 #ifdef __amd64__
@@ -127,6 +130,10 @@ namespace DevTools {
     std::string RandomUUID();
 
     std::string ConstructErrorMessage();
+
+    void ForceCloseThread(const THREAD_HANDLE handle);
+
+    void ForceCloseThread(std::thread& th);
 
 #ifdef __linux__
     __mode_t GetPermissionMask(const std::filesystem::path &path);

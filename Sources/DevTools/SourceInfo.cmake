@@ -16,7 +16,7 @@ if (DEFINED DEVTOOLS_ENABLE_EXECUTABLES AND DEVTOOLS_ENABLE_EXECUTABLES)
         add_executable(${EXEC_NAME} ${ExecutableSource})
         DisableBionicFortify(${EXEC_NAME})
         SetRpathValue(${EXEC_NAME})
-        target_link_libraries(${EXEC_NAME} PRIVATE devtools)
+        target_link_libraries(${EXEC_NAME} PRIVATE ${OsintgramCXX_LINK_DEPS} devtools)
         set_target_properties(${EXEC_NAME} PROPERTIES
                         RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY_DEVTOOLS}"
                         LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY_DEVTOOLS}"

@@ -3,10 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
-#include <sstream>
-#include <optional>
-#include <curl/curl.h>
 #include <iostream>
 #include <variant>
 

@@ -24,6 +24,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <csignal>
 
 #endif
 
@@ -514,6 +515,18 @@ namespace DevTools {
 #endif
 
         return ss.str();
+    }
+
+    void ForceCloseThread(const THREAD_HANDLE handle) {
+#ifdef _WIN32
+        TerminateThread(reinterpret_cast<HANDLE>(handle), 0);
+#else
+        pthread_kill(handle, SIGKILL);
+#endif
+    }
+
+    void ForceCloseThread(std::thread& th) {
+        ForceCloseThread(th.native_handle());
     }
 
 #ifdef __linux__

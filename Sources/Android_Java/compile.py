@@ -16,13 +16,12 @@ def resolve_sdk() -> str:
     if _ANDROID_HOME:
         return _ANDROID_HOME
 
-    ## attempt to resolve path automatically
     _HOME_MAP = {
         "linux": os.environ.get("HOME") + "/Android/Sdk",
         "win32": [
             (os.environ.get("LOCALAPPDATA") or "") + "\\Android\\Sdk",
             (os.environ.get("USERPROFILE") or "") + "\\Android\\Sdk",
-        ],
+            ],
         "darwin": os.environ.get("HOME") + "/Library/Android/Sdk"
     }
 
@@ -117,7 +116,7 @@ if not sources:
     sys.exit(1)
 
 print(f"[INFO] Compiling {len(sources)} source file(s)...")
-result = subprocess.run([javac, "--release", JAVA_RELEASE, "-d", CLASS_DIR] + sources)
+result = subprocess.run([javac, "--release", JAVA_RELEASE, "-classpath", android_jar, "-d", CLASS_DIR] + sources)
 
 if result.returncode != 0:
     print("[ERROR] javac failed.", file=sys.stderr)
@@ -132,5 +131,5 @@ if result.returncode != 0:
     sys.exit(result.returncode)
 
 os.makedirs(os.path.join(CMAKE_BINARY_DIR, "bundle", "android"), exist_ok=True)
-shutil.move(os.path.join(DEX_DIR, "classes.dex"), os.path.join(CMAKE_BINARY_DIR, "bundle", "android", "classes.dex"))
+shutil.move(os.path.join(DEX_DIR, "classes.dex"), os.path.join(CMAKE_BINARY_DIR, "bundle", "classes.dex"))
 print(f"[OK] classes.dex written to {CMAKE_BINARY_DIR}/bundle/classes.dex")

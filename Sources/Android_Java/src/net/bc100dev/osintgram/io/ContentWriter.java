@@ -1,4 +1,4 @@
-package net.bc100dev.osintgram.fw;
+package net.bc100dev.osintgram.io;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,6 +12,13 @@ public class ContentWriter {
 
     public ContentWriter(File file) {
         this.file = file;
+    }
+
+    public ContentWriter(File file, boolean autoOpen) throws IOException {
+        this.file = file;
+
+        if (autoOpen)
+            open();
     }
 
     public void open() throws IOException {
@@ -28,6 +35,11 @@ public class ContentWriter {
 
     public boolean isOpen() {
         return fd != null;
+    }
+
+    private void throwIfNotOpen() throws IOException {
+        if (!isOpen())
+            throw new IOException("File not opened");
     }
 
     public void close() throws IOException {

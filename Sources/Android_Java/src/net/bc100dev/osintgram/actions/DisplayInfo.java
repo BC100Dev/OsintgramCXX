@@ -1,9 +1,8 @@
 package net.bc100dev.osintgram.actions;
 
-import net.bc100dev.osintgram.fw.ContentWriter;
+import net.bc100dev.osintgram.io.ContentWriter;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 

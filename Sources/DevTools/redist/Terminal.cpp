@@ -17,16 +17,16 @@ void Terminal::print(std::ostream& stream, const TermColor& color, const std::st
 }
 
 void Terminal::print(std::ostream& stream, const TermColor& color, const std::stringstream& msg, bool reset) {
-    Terminal::print(stream, color, msg.str(), reset);
+    print(stream, color, msg.str(), reset);
 }
 
 void Terminal::println(std::ostream& stream, const TermColor& color, const std::string& msg, bool reset) {
-    Terminal::print(stream, color, msg, reset);
-    stream << std::endl;
+    print(stream, color, msg, reset);
+    stream << "\n";
 }
 
 void Terminal::println(std::ostream& stream, const TermColor& color, const std::stringstream& msg, bool reset) {
-    Terminal::println(stream, color, msg.str(), reset);
+    println(stream, color, msg.str(), reset);
 }
 
 std::string Terminal::translateColor(TermColor color) {
@@ -45,8 +45,24 @@ std::string Terminal::translateColor(TermColor color) {
 }
 
 void Terminal::clearTerminal() {
-    std::cout << "\033[H\033[2J";
-    std::cout.flush();
+#ifdef _WIN32
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    DWORD count;
+    COORD homeCoords = {0, 0};
+
+    if (hConsole == INVALID_HANDLE_VALUE)
+        return;
+
+    GetConsoleScreenBufferInfo(hConsole, &csbi);
+    DWORD cellCount = csbi.dwSize.X * csbi.dwSize.Y;
+
+    FillConsoleOutputCharacter(hConsole, ' ', cellCount, homeCoords, &count);
+    FillConsoleOutputAttribute(hConsole, csbi.wAttributes, cellCount, homeCoords, &count);
+    SetConsoleCursorPosition(hConsole, homeCoords);
+#else
+    std::cout << "\x1b[H\x1b[2J\x1b[3J" << std::flush;
+#endif
 }
 
 Terminal::Size Terminal::terminalSize() {

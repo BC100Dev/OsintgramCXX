@@ -182,7 +182,7 @@ namespace IG::Session {
          *
          * @param name The Instagram username to associate with this session
          */
-        User(const std::string &name);
+        explicit User(const std::string &name);
 
         /**
          * Retrieves the username associated with this session.

@@ -1,6 +1,8 @@
 set(CURL_USE_OPENSSL ON)
 set(CURL_USE_SCHANNEL OFF)
 
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
+
 ## Encryption / Decryption relevant tasks (required by CURL for HTTPS communication)
 find_package(OpenSSL REQUIRED)
 
@@ -30,6 +32,14 @@ endif ()
 
 if (APP_SYSTEM_TARGET STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR WIN32 OR MINGW)
     list(APPEND OsintgramCXX_LINK_DEPS crypt32 ws2_32 advapi32 secur32)
+    set(CMAKE_SYSTEM_IGNORE_PATH
+            /usr/include
+            /usr/local/include
+    )
+    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
     ## issues with MinGW on Arch: re-create the libraries for OpenSSL that it needs
     # why? stupid "-ldl" flag.

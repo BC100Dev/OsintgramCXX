@@ -1,6 +1,10 @@
 package net.bc100dev.osintgram;
 
+import android.os.Looper;
+
 import net.bc100dev.osintgram.actions.DisplayInfo;
+import net.bc100dev.osintgram.actions.GDialog;
+import net.bc100dev.osintgram.ctx.ContextInitiator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,10 +16,15 @@ public class Main {
         if (argv == null || argv.length == 0) {
             System.err.println("Usage: app_process ... classes.dex <action> <args>");
             System.err.println("Actions:");
-            System.err.println("\tdisplay-info -> obtains display info and writes to a file, if provided");
+            System.err.println("\tdisplay-info    obtains display info and writes to a file, if provided");
             System.exit(1);
             return;
         }
+
+        ContextInitiator.getInstance();
+        Looper looper = Looper.myLooper();
+        if (looper == null)
+            Looper.prepareMainLooper();
 
         List<String> argL = new ArrayList<>(Arrays.asList(argv).subList(1, argv.length));
         String[] args = new String[argL.size()];
@@ -24,8 +33,7 @@ public class Main {
 
         switch (argv[0]) {
             case "display-info":
-                DisplayInfo dI = new DisplayInfo(args);
-                dI.executeAction();
+                new DisplayInfo(args).executeAction();
                 break;
             case "battery-info":
                 // for a future library

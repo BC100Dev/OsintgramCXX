@@ -6,6 +6,7 @@ target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} devtools Os
 
 if (APP_SYSTEM_TARGET STREQUAL "Linux")
     if (NOT APP_TARGETS_ANDROID)
+        message(STATUS "OsintgramCXX: shall link against 'cap'")
         target_link_libraries(OsintgramCXX PRIVATE cap)
     endif ()
 

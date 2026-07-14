@@ -10,6 +10,8 @@
 
 #endif
 
+#include <curl/curl.h>
+
 struct ProgressState {
     long startTime;
     long readTimeoutMillis;

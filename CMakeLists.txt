@@ -1,7 +1,15 @@
 cmake_minimum_required(VERSION 3.23)
+
+file(GLOB CM_PRECONF_FILES "${CMAKE_CURRENT_SOURCE_DIR}/CM_Config/PreConfig/*.cmake")
+foreach (CM_PRECONF_FILE ${CM_PRECONF_FILES})
+    message(STATUS "Running PreConfig file ${CM_PRECONF_FILE}")
+    include("${CM_PRECONF_FILE}")
+endforeach ()
+
 project(OsintgramCXX)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CROSSCOMPILING ON)
 
 file(GLOB CM_CONFIG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/CM_Config/*.cmake")
 foreach (CM_CONFIG_FILE ${CM_CONFIG_FILES})
@@ -23,6 +31,7 @@ foreach (Private_CM_Module ${Private_CM_Modules})
 endforeach ()
 
 file(GLOB CM_POSTCONF_FILES "${CMAKE_CURRENT_SOURCE_DIR}/CM_Config/PostConfig/*.cmake")
-foreach (CM_POSTCONF_FILE "${CM_POSTCONF_FILES}")
+foreach (CM_POSTCONF_FILE ${CM_POSTCONF_FILES})
+    message(STATUS "Running PostConfig file ${CM_POSTCONF_FILE}")
     include("${CM_POSTCONF_FILE}")
 endforeach ()
