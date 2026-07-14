@@ -44,16 +44,6 @@ void exceptionHandler() {
 int main(int argc, char** argv) {
     std::set_terminate(exceptionHandler);
 
-    /*
-    === ERRORS ===
-    Status: 401
-    Body: {"state":false,"error":"Unauthorized request: pass access_key or login via https://hikerapi.com/login"}
-
-    === SUCCESS ===
-    Status: 200
-    Body: {"requests":100,"rate":1,"currency":"USD","amount":2.0}
-    */
-
     const std::string token = "YOUR_TOKEN_HERE";
 
     RequestData req;
