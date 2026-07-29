@@ -1,13 +1,12 @@
 #ifndef DEVTOOLS_UTILS_HPP
 #define DEVTOOLS_UTILS_HPP
 
-#include <map>
 #include <string>
-#include <sstream>
 #include <regex>
-#include <iostream>
 #include <filesystem>
 #include <thread>
+
+#include <nlohmann/json.hpp>
 
 #ifdef __linux__
 
@@ -47,32 +46,39 @@
 #define CPU_ARCHITECTURE "x32"
 #endif
 
+using namespace nlohmann;
+
 namespace DevTools {
+    class JsonKeyMissingError : public std::runtime_error {
+    public:
+        explicit JsonKeyMissingError(const std::string& msg) : runtime_error(msg) {
+        }
+    };
 
-    std::string ToLowercase(const std::string &str);
+    std::string ToLowercase(const std::string& str);
 
-    std::string ToUppercase(const std::string &str);
+    std::string ToUppercase(const std::string& str);
 
-    bool StringContains(const std::string &str, const std::string &val);
+    bool StringContains(const std::string& str, const std::string& val);
 
-    std::string TrimString(const std::string &str);
+    std::string TrimString(const std::string& str);
 
-    std::string TrimString(const std::string &str, const std::string &chars);
+    std::string TrimString(const std::string& str, const std::string& chars);
 
-    std::vector<std::string> SplitString(const std::string &str, const std::string &delim, int limit);
+    std::vector<std::string> SplitString(const std::string& str, const std::string& delim, int limit);
 
-    std::vector<std::string> SplitString(const std::string &str, const std::string &delim);
+    std::vector<std::string> SplitString(const std::string& str, const std::string& delim);
 
-    bool StartsWith(const std::string &str, const std::string &prefix);
+    bool StartsWith(const std::string& str, const std::string& prefix);
 
-    bool EndsWith(const std::string &str, const std::string &suffix);
+    bool EndsWith(const std::string& str, const std::string& suffix);
 
     // don't forget to pull up that Regex skill without googling it! (evil laughter)
-    std::string ReplaceAll(const std::string &str, const std::string &pattern, const std::string &replacement);
+    std::string ReplaceAll(const std::string& str, const std::string& pattern, const std::string& replacement);
 
-    std::string ReplaceFirst(const std::string &str, const std::string &from, const std::string &to);
+    std::string ReplaceFirst(const std::string& str, const std::string& from, const std::string& to);
 
-    std::string Replace(const std::string &str, const std::string &from, const std::string &to);
+    std::string Replace(const std::string& str, const std::string& from, const std::string& to);
 
     bool IsAdmin();
 
@@ -103,9 +109,9 @@ namespace DevTools {
 
     void threadSleep(long duration);
 
-    std::vector<char> Pause(const std::string &prompt, const ssize_t &count);
+    std::vector<char> Pause(const std::string& prompt, const ssize_t& count);
 
-    std::vector<char> Pause(const std::string &prompt);
+    std::vector<char> Pause(const std::string& prompt);
 
     std::vector<char> Pause();
 
@@ -136,7 +142,7 @@ namespace DevTools {
     void ForceCloseThread(std::thread& th);
 
 #ifdef __linux__
-    __mode_t GetPermissionMask(const std::filesystem::path &path);
+    __mode_t GetPermissionMask(const std::filesystem::path& path);
 
     bool CanUserWrite(__mode_t pMask);
 
@@ -156,9 +162,12 @@ namespace DevTools {
 
     bool CanOthersExecute(__mode_t pMask);
 
-    bool HasSuidCapability(__mode_t pMask);
+    bool CanChangeUid(__mode_t pMask);
 #endif
 
+    void RequireJsonKeys(const json& data, const std::vector<std::string>& keys);
+
+    void RequireJsonKeys(const json& data, const std::vector<std::string>& keys, const std::string& errMsgPrefix);
 }
 
 #endif //DEVTOOLS_UTILS_HPP

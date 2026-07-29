@@ -8,7 +8,7 @@
 
 #include <dev_tools/network/Network.hpp>
 
-#include <OsintgramCXX/App/Shell/ShellEnv.hpp>
+#include <../../Include/AppShell/ShellEnv.hpp>
 #include <OsintgramCXX/App/WineDetect.hpp>
 
 #include <OsintgramCXX/Security/FileEncryption.hpp>

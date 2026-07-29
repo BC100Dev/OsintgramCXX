@@ -5,7 +5,7 @@
 #include <string>
 #include <optional>
 
-#include <OsintgramCXX/App/Shell/ShellEnv.hpp>
+#include <AppShell/Shell.hpp>
 
 #ifdef __linux__
 
@@ -29,16 +29,16 @@ namespace OsintgramCXX {
         int id;
         std::optional<std::string> author;
         std::optional<std::string> description;
-        C_OnLoadEntry handler_onLoad;
-        C_OnExitEntry handler_onExit;
-        C_OnCommandExecutionStart handler_onCmdExecStart;
-        C_OnCommandExecutionFinish handler_onCmdExecFinish;
-        std::vector<ShellLibEntry> commands;
+        Application::C_OnLoadEntry handler_onLoad;
+        Application::C_OnExitEntry handler_onExit;
+        Application::C_OnCommandExecutionStart handler_onCmdExecStart;
+        Application::C_OnCommandExecutionFinish handler_onCmdExecFinish;
+        std::vector<Application::ShellLibEntry> commands;
     };
 
     // uses:
-    // void*                   native library handle
-    // vector<ShellLibEntry>   executable commands
+    // void*                        native library handle
+    // std::vector<ShellLibEntry>   executable commands
     extern std::map<void *, LibraryEntry> loadedLibraries;
 
 }

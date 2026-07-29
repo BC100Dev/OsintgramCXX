@@ -32,7 +32,7 @@
                 },
                 {
                     "cmd": "userctl",
-                    "description": "Manages Instagram Accounts",
+                    "description": "Manages logged in Instagram Accounts",
                     "exec_symbol": "cmd_handle"
                 },
                 {

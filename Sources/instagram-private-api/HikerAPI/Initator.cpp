@@ -40,14 +40,13 @@ namespace IG::Session {
             throw HikerError("Could not parse HikerAPI json", raw);
         }
 
-        if (!data.contains("requests"))
-            throw HikerError("\"requests\" key has not been found");
-        if (!data.contains("rate"))
-            throw HikerError("\"rate\" key has not been found");
-        if (!data.contains("currency"))
-            throw HikerError("\"currency\" key has not been found");
-        if (!data.contains("amount"))
-            throw HikerError("\"amount\" key has not been found");
+        // haha unhandled errors go BRRRRRRRR
+        RequireJsonKeys(data, {
+                            "requests",
+                            "rate",
+                            "currency",
+                            "amount"
+                        }, "HikerAPI Error");
 
         return {
             data.at("requests"),
@@ -58,12 +57,14 @@ namespace IG::Session {
     }
 
     HikerResponse HikerAPI::InitiateHikerRequest(const HikerRequest& request) {
-        std::string _ep = request.endpoint;
-        if (!_ep.starts_with("/"))
-            _ep = "/" + _ep;
+        std::string haveYouReceivedTheErection = request.endpoint;
+        if (!haveYouReceivedTheErection.starts_with("/"))
+            haveYouReceivedTheErection.insert(0, 1, '/');
+
+        // have you?
 
         RequestData req;
-        req.url = HIKER_API_URL_PREFIX + _ep;
+        req.url = HIKER_API_URL_PREFIX + haveYouReceivedTheErection;
         req.method = request.method;
         req.headers.emplace_back("Accept", request.accepts);
         req.headers.emplace_back("x-access-key", m_authToken);

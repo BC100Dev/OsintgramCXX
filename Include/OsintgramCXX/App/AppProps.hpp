@@ -3,7 +3,7 @@
 
 #include <string>
 
-#define OsintgramCXX_VersionName "v0.2"
+#define OsintgramCXX_VersionName "v0.1-pre"
 #define OsintgramCXX_VersionCode 1
 
 #ifdef _WIN32

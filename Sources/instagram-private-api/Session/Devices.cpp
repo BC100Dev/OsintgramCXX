@@ -20,7 +20,7 @@
 #include <dev_tools/commons/Process.hpp>
 #else
 
-#define BROWSER_DEFAULT_VERSION "150.0"
+#define BROWSER_DEFAULT_VERSION "153.0"
 
 #endif
 
@@ -135,7 +135,8 @@ void prepareDisplayInfo() {
 
             classesPath = std::string(ncp);
         } else if (errno == ENOENT)
-            throw std::runtime_error(std::format("Unable to prepare classes.dex at {} (file was not populated)", classesPath));
+            throw std::runtime_error(std::format("Unable to prepare classes.dex at {} (file was not populated)",
+                                                 classesPath));
         else
             throw std::runtime_error(std::format("Unable to prepare classes.dex: {}", std::strerror(errno)));
     }
@@ -398,24 +399,21 @@ namespace IG::Session {
             }
         }
 #elif defined(_WIN32) // #ifdef __linux__
-        auto Win32Firefox_GetVersion = []() -> std::optional<std::string> {
+        auto Win32Firefox_GetVersion = [](bool currentUser) -> std::optional<std::string> {
             HKEY hKey = nullptr;
             DWORD cbData = 0;
 
-            if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Mozilla\\Mozilla Firefox", 0, KEY_READ, &hKey) !=
-                ERROR_SUCCESS) {
-                if (RegOpenKeyExW(HKEY_CURRENT_USER, L"SOFTWARE\\Mozilla\\Mozilla Firefox", 0, KEY_READ, &hKey) !=
-                    ERROR_SUCCESS) {
-                    return std::nullopt;
-                }
-            }
+            if (RegOpenKeyExW(currentUser ? HKEY_CURRENT_USER : HKEY_LOCAL_MACHINE,
+                              L"SOFTWARE\\Mozilla\\Mozilla Firefox", 0, KEY_READ, &hKey) !=
+                ERROR_SUCCESS)
+                return std::nullopt;
 
             RegQueryValueExW(hKey, L"CurrentVersion", nullptr, nullptr, nullptr, &cbData);
             std::wstring wval(cbData / sizeof(wchar_t), L'\0');
 
             DWORD type = 0;
             if (RegQueryValueExW(hKey, L"CurrentVersion", nullptr, &type,
-                reinterpret_cast<LPBYTE>(wval.data()), &cbData) != ERROR_SUCCESS) {
+                                 reinterpret_cast<LPBYTE>(wval.data()), &cbData) != ERROR_SUCCESS) {
                 RegCloseKey(hKey);
                 return std::nullopt;
             }
@@ -429,12 +427,15 @@ namespace IG::Session {
             return result;
         };
 
-        if (std::optional<std::string> detectVer = Win32Firefox_GetVersion(); detectVer.has_value()) {
+        if (std::optional<std::string> detectVer = Win32Firefox_GetVersion(false); detectVer.has_value()) {
+            version = detectVer.value();
+            if (auto pos = version.find(' '); pos != std::string::npos)
+                version.erase(pos);
+        } else if (detectVer = Win32Firefox_GetVersion(true); detectVer.has_value()) {
             version = detectVer.value();
             if (auto pos = version.find(' '); pos != std::string::npos)
                 version.erase(pos);
         }
-        // can't really leave a comment without CLion yapping about incorrect macro :sob:
 #endif
 
         device.SetInfo(Device::KEYINFO_BROWSER_VERSION, version);

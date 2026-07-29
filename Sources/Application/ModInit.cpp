@@ -1,6 +1,6 @@
 #include "ModInit.hpp"
 
-#include <OsintgramCXX/App/Shell/ShellEnv.hpp>
+#include <AppShell/Shell.hpp>
 #include <OsintgramCXX/App/ModHandles.hpp>
 
 #include <dev_tools/commons/Utils.hpp>
@@ -363,14 +363,14 @@ void parse_json(const json& j) {
                             throw std::runtime_error(
                                 std::string("Command symbol for ").append(libName) + " not found, " + sym);
 
-                        OsintgramCXX::C_CommandExec cmdExec = [funcPtr](const char* _c, int a, char** b, int c,
+                        Application::C_CommandExec cmdExec = [funcPtr](const char* _c, int a, char** b, int c,
                                                                         char** d) {
                             return reinterpret_cast<int (*)(const char*, int, char**, int, char**)>(funcPtr)(_c, a,
                                 b, c,
                                 d);
                         };
 
-                        OsintgramCXX::ShellLibEntry cmdEntry{};
+                        Application::ShellLibEntry cmdEntry{};
                         cmdEntry.cmd = cmdName;
                         cmdEntry.description = desc;
                         cmdEntry.execHandler = cmdExec;

@@ -35,7 +35,8 @@
 
 class StdCaptureError : public std::runtime_error {
 public:
-    explicit StdCaptureError(const std::string &s) : std::runtime_error(s) {}
+    explicit StdCaptureError(const std::string& s) : std::runtime_error(s) {
+    }
 };
 
 class StdCapture {
@@ -106,7 +107,7 @@ public:
     [[nodiscard]] std::string str() const { return *stream; }
 
 private:
-    int pipeOut[2]{-1,-1}, pipeErr[2]{-1,-1};
+    int pipeOut[2]{-1, -1}, pipeErr[2]{-1, -1};
     int savedOut{-1}, savedErr{-1};
     std::shared_ptr<std::string> stream, errBuf;
     std::thread outReader, errReader;

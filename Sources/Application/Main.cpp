@@ -7,7 +7,6 @@
 #include <filesystem>
 #include <csignal>
 
-#include <OsintgramCXX/App/Shell/Shell.hpp>
 #include <OsintgramCXX/App/AppProps.hpp>
 #include <OsintgramCXX/App/WineDetect.hpp>
 
@@ -15,6 +14,8 @@
 #include <dev_tools/commons/Terminal.hpp>
 #include <dev_tools/commons/Utils.hpp>
 #include <dev_tools/logging/Logger.hpp>
+
+#include <AppShell/Shell.hpp>
 
 #include "android/TermuxCheck.hpp"
 #include "android/AndroidCA.hpp"
@@ -45,6 +46,7 @@
 namespace fs = std::filesystem;
 using namespace OsintgramCXX;
 using namespace DevTools;
+using namespace Application;
 
 std::string chrootPath;
 
@@ -166,10 +168,8 @@ void usage() {
 #ifdef __linux__
 
 void sigHandle(int) {
-    if (AppShell::running)
-        AppShell::stopShell(true);
-
-    AppShell::cleanup();
+    if (AppShell& shell = GetShellInstance(); shell.IsRunning())
+        shell.Stop(true);
 }
 
 #endif
@@ -225,6 +225,8 @@ void initSettings() {
 }
 
 void parseArgs(const std::vector<std::string>& args) {
+    AppShell& shell = GetShellInstance();
+
     for (const std::string& arg : args) {
         std::string _arg = TrimString(arg);
 
@@ -246,7 +248,7 @@ void parseArgs(const std::vector<std::string>& args) {
                     continue;
                 }
 
-                AppShell::environment[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
+                shell.SetEnv(keyValue.substr(0, eqPos), keyValue.substr(eqPos + 1));
             }
 
             if (_arg.rfind("-D", 0) == 0) {
@@ -303,7 +305,7 @@ int main(int argc, char** argv) {
     // making things ugly in the process
     threadSleep(10);
 
-    AppShell::initializeShell();
+    AppShell& shell = GetShellInstance();
     ModLoader_load();
 
     // optional, by the CLI args, enable FS sandboxing
@@ -361,7 +363,7 @@ int main(int argc, char** argv) {
 #ifdef __ANDROID__
             std::cerr << ", which requires the process to enable Sandboxing capability" << std::endl;
 #else
-            std::cerr << ", nor given the capability to do so" << std::endl;
+            std::cerr << ", nor given the binary's capability to do so" << std::endl;
 #endif
 
             return 1;
@@ -370,10 +372,10 @@ int main(int argc, char** argv) {
 #endif
 
     ModLoader_start();
+    shell.Start();
 
     threadSleep(10);
-
-    AppShell::launchShell();
+    shell.Stop();
 
     return 0;
 }

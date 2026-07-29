@@ -6,6 +6,9 @@
 #include <cstring>
 #include <fstream>
 
+#include <iostream>
+#include <sstream>
+
 #define PAUSE_PROMPT_DEFAULT "Press any key to continue..."
 
 #ifdef _WIN32
@@ -577,9 +580,27 @@ namespace DevTools {
         return pMask & S_IXOTH;
     }
 
-    bool HasSuidCapability(__mode_t pMask) {
+    bool CanChangeUid(__mode_t pMask) {
         return pMask & S_ISUID;
     }
 #endif
+
+    void RequireJsonKeys(const json& data, const std::vector<std::string>& keys) {
+        return RequireJsonKeys(data, keys, "");
+    }
+
+    void RequireJsonKeys(const json& data, const std::vector<std::string>& keys, const std::string& errMsgPrefix) {
+        for (const auto& key : keys) {
+            if (!data.contains(key)) {
+                std::stringstream ss;
+
+                if (!errMsgPrefix.empty())
+                    ss << errMsgPrefix << ": ";
+
+                ss << "required JSON key \"" << key << "\" is missing";
+                throw JsonKeyMissingError(ss.str());
+            }
+        }
+    }
 
 }
