@@ -1,5 +1,4 @@
 #include <AppShell/Shell.hpp>
-#include <OsintgramCXX/App/ModHandles.hpp>
 
 #include <dev_tools/commons/Utils.hpp>
 #include <dev_tools/commons/Terminal.hpp>
@@ -11,12 +10,8 @@
 #include <iostream>
 #include <filesystem>
 #include <cstring>
-#include <ranges>
 #include <functional>
-
-// #include <openssl/x509.h> (???)
-
-#include "StdCapture.hpp"
+#include <variant>
 
 #ifdef __linux__
 
@@ -30,7 +25,6 @@
 #endif
 
 using namespace Application;
-using namespace OsintgramCXX;
 using namespace DevTools;
 
 #define NFCommandExec std::function<int(const CommandLineInputArgs& /* args */, const ShellEnvironment& /* env */)>
@@ -42,33 +36,17 @@ namespace Application {
     static std::optional<AppShell> instance = std::nullopt;
     sig_atomic_t g_forceStop = 0;
 
-    bool g_hasAddedExternalCommand = false;
-
     void HandleShellForceClose(int);
 
-    void AppShell::AddCommand(const CommandImpl& cmd) {
-        for (const auto& val : loadedLibraries | std::views::values) {
-            for (auto& data = val; const auto& exCmd : data.commands) {
-                if (exCmd.cmd == cmd.name)
-                    throw ShellException("Command by the name of \"" + cmd.name + "\" exists");
-            }
-        }
+    std::optional<CommandHelperFinderFn> finderFunc;
+    std::optional<CommandHelperCallbackFn> callbackFunc;
+    std::optional<CommandHelperListingFn> listingFunc;
 
+    void AppShell::AddCommand(const CommandImpl& cmd) {
         for (const auto& val : m_cmdList) {
             if (val.name == cmd.name)
                 throw ShellException("Command by the name of \"" + cmd.name + "\" exists");
         }
-
-#if ENFORCE_MANUAL_COMMAND_ENTRY_WARNING
-        if (m_customCommandEntryWarning && !g_hasAddedExternalCommand) {
-            Terminal::println(std::cout, Terminal::TermColor::RED, "!!! WARNING !!!", false);
-            std::cout << "A custom command has been added by an external library via a command / hook!" << std::endl;
-            std::cout << "If you suspect of any malicious libraries, immediately shut down the app" << std::endl;
-            Terminal::println(std::cout, Terminal::TermColor::RED, "and remove any suspicious entries!", true);
-
-            g_hasAddedExternalCommand = true;
-        }
-#endif
 
         m_cmdList.emplace_back(cmd);
     }
@@ -157,7 +135,7 @@ namespace Application {
         }
 
         if (ToLowercase(key) == ToLowercase("EnableTimeMeasuringSystem")) {
-            m_timeMeasuringSystem = val == "true" || val == "enabled" || val == "yes" || val == "1";
+            m_timeMeasuringSystem = val == "true" || val == "enabled" || val[0] == 'y' || val == "1";
             return;
         }
 
@@ -272,17 +250,7 @@ namespace Application {
     }
 
     void AppShell::helpCmd() {
-        if (loadedLibraries.empty() && m_cmdList.empty()) {
-            std::cerr << "No commands have been added." << std::endl;
-            std::cerr << "To add commands, fetch a commands.json present and restart the instance." << std::endl;
-            std::cerr << "Exiting this application can be done by typing \"exit\"." << std::endl;
-
-            // shell beautifying at its finest
-            threadSleep(70);
-            return;
-        }
-
-        std::cout << "[Global] (built-in)" << std::endl;
+        std::cout << "[Global]" << std::endl;
         HelpPage gPage;
         gPage.setSpaceWidth(5);
         gPage.setStartSpaceWidth(2);
@@ -291,36 +259,8 @@ namespace Application {
         gPage.display(std::cout);
         std::cout << std::endl;
 
-        for (const auto& val : loadedLibraries) {
-            auto& item = val.second;
-
-            Terminal::print(std::cout, Terminal::TermColor::YELLOW, "[" + item.label + "]", true);
-            if (item.author.has_value())
-                Terminal::print(std::cout, Terminal::TermColor::PURPLE, " (" + item.author.value() + ")", true);
-
-            std::cout << "\n";
-
-            HelpPage ePage;
-            ePage.setSpaceWidth(5);
-            ePage.setStartSpaceWidth(2);
-
-            for (const auto& cmdEntry : item.commands)
-                ePage.addArg(cmdEntry.cmd, std::nullopt, cmdEntry.description);
-
-            Terminal::println(std::cout, Terminal::TermColor::CYAN, ePage.display(), true);
-        }
-
         if (!m_cmdList.empty()) {
-#if ENFORCE_MANUAL_COMMAND_HELPCMD_WARNING
-            Terminal::println(std::cout, Terminal::TermColor::RED, "!!! MANUALLY ADDED COMMANDS !!!", false);
-            std::cout << "Make sure that the native libraries you have added are trusted." << std::endl;
-            Terminal::println(std::cout,
-                              Terminal::TermColor::RED,
-                              "Manually added libraries by external libraries can be malicious, could have special triggers and should be reconsidered before executing.\n",
-                              true);
-#endif
-
-            std::cout << "[Global] (built-in)" << std::endl;
+            std::cout << "[Commands]" << std::endl;
             HelpPage mPage;
             mPage.setSpaceWidth(5);
             mPage.setStartSpaceWidth(2);
@@ -328,6 +268,14 @@ namespace Application {
                 mPage.addArg(manCmds.name, std::nullopt, manCmds.description);
 
             mPage.display(std::cout);
+        }
+
+        if (listingFunc.has_value()) {
+            std::string listingData = listingFunc.value()();
+            listingData = TrimString(listingData);
+
+            if (!listingData.empty())
+                std::cout << listingData << "\n" << std::endl;
         }
     }
 
@@ -346,27 +294,23 @@ namespace Application {
         long long startTime = nanoTime();
 
         bool found = false;
+        bool usingCallback = false;
         std::variant<CMD_VARIANT_LIST> cmdExecHandlerVar;
         CommandExecution execReturn{};
 
-        for (const auto& val : loadedLibraries | std::views::values) {
-            for (const auto& cmdEntry : val.commands) {
-                if (cmd == cmdEntry.cmd) {
-                    found = true;
-                    cmdExecHandlerVar = cmdEntry.execHandler;
-                    break;
-                }
+        for (const auto& manCmd : m_cmdList) {
+            if (cmd == manCmd.name) {
+                found = true;
+                cmdExecHandlerVar = manCmd.handle;
+                break;
             }
         }
 
-        if (!found) {
-            for (const auto& manCmd : m_cmdList) {
-                if (cmd == manCmd.name) {
-                    found = true;
-                    cmdExecHandlerVar = manCmd.handle;
-                    break;
-                }
-            }
+        if (!found && finderFunc.has_value() && callbackFunc.has_value()) {
+            found = finderFunc.value()(cmd);
+
+            if (found)
+                usingCallback = true;
         }
 
         if (!found) {
@@ -376,67 +320,11 @@ namespace Application {
             return execReturn;
         }
 
-        if (std::holds_alternative<C_CommandExec>(cmdExecHandlerVar)) {
-            if (auto qt = std::get<C_CommandExec>(cmdExecHandlerVar); !qt) {
-                execReturn.cmdFound = false;
-                execReturn.msg = cmd + ": handler for execution is not defined";
-                execReturn.rc = 1;
-
-                return execReturn;
-            }
-        }
-
         execReturn.cmdFound = true;
 
-        // start the listeners for "OnCommandExec"
-        for (const auto& val : loadedLibraries | std::views::values) {
-            if (LibraryEntry entry = val; entry.handler_onCmdExecStart != nullptr) {
-                std::thread t([handler = val, &cmdLine] {
-                    handler.handler_onCmdExecStart(const_cast<char*>(cmdLine.c_str()));
-                });
-                t.detach();
-            }
-        }
-
-        StdCapture cap;
-
-        if (std::holds_alternative<C_CommandExec>(cmdExecHandlerVar)) {
-            auto argv = new char*[args.size()];
-            for (size_t i = 0; i < args.size(); i++) {
-                argv[i] = strdup(args[i].c_str());
-            }
-
-            auto env_map = new char*[env.size()];
-            int index = 0;
-            for (const auto& [key, value] : env) {
-                std::string entry = key;
-                entry.append("=").append(value);
-
-                env_map[index++] = strdup(entry.c_str());
-            }
-
-            try {
-                execReturn.rc = std::get<C_CommandExec>(cmdExecHandlerVar)
-                    (cmd.c_str(), args.size(), argv, env.size(), env_map);
-            } catch (const std::runtime_error& err) {
-                std::cerr << "Runtime error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
-            } catch (const std::exception& err) {
-                std::cerr << "Error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
-            } catch (...) {
-                std::cerr << "Unknown error occurred, while executing \"" << cmd << "\"" << std::endl;
-            }
-
-            for (int i = 0; i < env.size(); i++) {
-                free(env_map[i]);
-            }
-            delete[] env_map;
-
-            for (int i = 0; i < args.size(); i++) {
-                free(argv[i]);
-            }
-
-            delete[] argv;
-        } else if (std::holds_alternative<NFCommandExec>(cmdExecHandlerVar)) {
+        if (usingCallback)
+            execReturn.rc = callbackFunc.value()(cmd, args, env);
+        else if (std::holds_alternative<NFCommandExec>(cmdExecHandlerVar)) {
             try {
                 execReturn.rc = std::get<NFCommandExec>(cmdExecHandlerVar)(args, env);
             } catch (const std::runtime_error& err) {
@@ -445,18 +333,6 @@ namespace Application {
                 std::cerr << "Error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
             } catch (...) {
                 std::cerr << "Unknown error occurred, while executing \"" << cmd << "\"" << std::endl;
-            }
-        }
-
-        for (const auto& val : loadedLibraries | std::views::values) {
-            if (LibraryEntry entry = val; entry.handler_onCmdExecFinish != nullptr) {
-                std::thread t([handler = entry, &cmdLine, &execReturn, output = cap.str()] {
-                    handler.handler_onCmdExecFinish(const_cast<char*>(cmdLine.c_str()),
-                                                    execReturn.rc,
-                                                    handler.id,
-                                                    const_cast<char*>(output.c_str()));
-                });
-                t.join();
             }
         }
 
@@ -473,6 +349,14 @@ namespace Application {
         return execReturn;
     }
 
+    void AppShell::SetCommandFallbackHandler(const CommandHelperFinderFn& finderFn,
+                                             const CommandHelperCallbackFn& callbackFn,
+                                             const CommandHelperListingFn& listingFn) const {
+        finderFunc = finderFn;
+        callbackFunc = callbackFn;
+        listingFunc = listingFn;
+    }
+
     AppShell& GetShellInstance() {
         if (instance == std::nullopt)
             instance = AppShell();
@@ -485,5 +369,12 @@ namespace Application {
 
         AppShell& shell = GetShellInstance();
         shell.Stop(true);
+    }
+
+    std::string AppShell::GetEnv(const std::string& key) {
+        if (!m_environment.contains(key))
+            throw ShellException("Key \"" + key + "\" not found");
+
+        return m_environment[key];
     }
 }

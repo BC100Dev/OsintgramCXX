@@ -15,9 +15,7 @@
             },
             "handlers": {
                 "OnLoad": "plugin_handle_start",
-                "OnStop": "plugin_handle_stop",
-                "OnCommandExecStart": "plugin_cmd_exec_start",
-                "OnCommandExecFinish": "plugin_cmd_exec_finish"
+                "OnStop": "plugin_handle_stop"
             },
             "cmd_list": [
                 {
@@ -48,6 +46,11 @@
                 {
                     "cmd": "dsi",
                     "description": "Manages the Device Spoofing Information (DSI) for the effective Instagram APIs",
+                    "exec_symbol": "cmd_handle"
+                },
+                {
+                    "cmd": "set",
+                    "description": "Manages the settings of OsintgramCXX",
                     "exec_symbol": "cmd_handle"
                 }
             ]

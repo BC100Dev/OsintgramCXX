@@ -10,6 +10,7 @@ namespace CoreFunctions {
         {"cachectl", cache_func},
         {"sessionctl", session_func},
         {"net", net_func},
+        {"set", net_func},
     };
 
 }

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <exception>
 #include <vector>
-#include <thread>
 #include <sstream>
 #include <typeinfo>
 #include <filesystem>
@@ -17,11 +16,12 @@
 
 #include <AppShell/Shell.hpp>
 
-#include "android/TermuxCheck.hpp"
+#include <IGApi/Session.hpp>
+
 #include "android/AndroidCA.hpp"
 #include "settings/AppSettings.hpp"
 #include "ModInit.hpp"
-#include "IGApi/Session.hpp"
+#include "shell/ShellCallback.hpp"
 
 #ifdef _WIN32
 
@@ -41,6 +41,10 @@
 
 #include <sys/capability.h>
 
+#endif
+
+#if defined(__ANDROID__)
+#include "android/TermuxCheck.hpp"
 #endif
 
 namespace fs = std::filesystem;
@@ -305,8 +309,9 @@ int main(int argc, char** argv) {
     // making things ugly in the process
     threadSleep(10);
 
-    AppShell& shell = GetShellInstance();
     ModLoader_load();
+    AppShell& shell = GetShellInstance();
+    OSINT_IncludeShellCallback(shell);
 
     // optional, by the CLI args, enable FS sandboxing
 #ifdef __linux__

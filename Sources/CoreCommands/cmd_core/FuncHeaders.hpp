@@ -29,4 +29,6 @@ int user_func(const std::vector<std::string>& args, const std::map<std::string, 
 
 int env_func(const std::vector<std::string>& args, const std::map<std::string, std::string>& env);
 
+int set_func(const std::vector<std::string>& args, const std::map<std::string, std::string>& env);
+
 #endif //OSINTGRAMCXX_FUNCHEADERS_HPP

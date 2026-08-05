@@ -2,6 +2,7 @@
 
 #ifdef __ANDROID__
 #include <fstream>
+#include <unistd.h>
 
 bool IsTermuxRunning() {
     if (getuid() < 10000)

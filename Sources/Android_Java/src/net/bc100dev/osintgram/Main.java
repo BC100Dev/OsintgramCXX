@@ -3,7 +3,6 @@ package net.bc100dev.osintgram;
 import android.os.Looper;
 
 import net.bc100dev.osintgram.actions.DisplayInfo;
-import net.bc100dev.osintgram.actions.GDialog;
 import net.bc100dev.osintgram.ctx.ContextInitiator;
 
 import java.util.ArrayList;

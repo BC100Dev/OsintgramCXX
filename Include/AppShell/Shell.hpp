@@ -17,21 +17,22 @@ namespace Application {
     class AppShell;
 
     using ShellEnvironment = std::map<std::string, std::string>;
+    using CommandLineInputArgs = std::vector<std::string>;
+
+    struct CommandImpl {
+        std::string name;
+        std::string description;
+        std::function<int(const CommandLineInputArgs& /* args */, const ShellEnvironment& /* env */)> handle;
+    };
 
     // params: cmdName, argc, argv, envc, env_map
     using C_CommandExec = std::function<int(const char*, int, char**, int, char**)>;
 
-    using C_OnLoadEntry = std::function<void()>;
-
-    using C_OnExitEntry = std::function<void()>;
-
-    // params: cmdLine
-    using C_OnCommandExecutionStart = std::function<void(char*)>;
-
-    // params: cmdLine, rc, id, stream
-    using C_OnCommandExecutionFinish = std::function<void(char*, int, int, char*)>;
-
-    using CommandLineInputArgs = std::vector<std::string>;
+    using CommandHelperFinderFn = std::function<bool(const std::string& /*cmd*/)>;
+    using CommandHelperCallbackFn = std::function<int(const std::string& /*cmd*/,
+                                                       const CommandLineInputArgs&,
+                                                       const ShellEnvironment&)>;
+    using CommandHelperListingFn = std::function<std::string()>;
 
     struct ShellLibEntry {
         std::string cmd;
@@ -43,18 +44,6 @@ namespace Application {
     public:
         explicit ShellException(const std::string& message) : std::runtime_error(message) {
         }
-    };
-
-    struct CommandSect {
-        int id;
-        std::string label;
-        std::string author;
-    };
-
-    struct CommandImpl {
-        std::string name;
-        std::string description;
-        std::function<int(const CommandLineInputArgs& /* args */, const ShellEnvironment& /* env */)> handle;
     };
 
     class AppShell {
@@ -75,9 +64,13 @@ namespace Application {
 
         void AddCommand(const CommandImpl& cmd);
 
+        void SetCommandFallbackHandler(const CommandHelperFinderFn& finderFn,
+                                              const CommandHelperCallbackFn& callbackFn,
+                                              const CommandHelperListingFn& listingFn) const;
+
         void SetEnv(const std::string& key, const std::string& val);
 
-        void Reload();
+        std::string GetEnv(const std::string& key);
 
     private:
         struct CommandExecution {
@@ -96,15 +89,15 @@ namespace Application {
         void cleanup();
 
         CommandExecution run_cmd(const std::string& cmd,
-                                        const std::vector<std::string>& args,
-                                        const ShellEnvironment& env,
-                                        const std::string& cmdLine);
+                                 const std::vector<std::string>& args,
+                                 const ShellEnvironment& env,
+                                 const std::string& cmdLine);
 
         void chEnvMapTable(const std::string& line);
 
         void helpCmd();
 
-        [[deprecated]] void reloadCmd();
+        [[deprecated]] static void reloadCmd();
 
 
         std::string m_prompt;
