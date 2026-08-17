@@ -3,7 +3,8 @@ install(TARGETS
         OsintgramCXX
         OsintgramCXX-interactive
         OsintgramCXX-security
-        instagram-private-api
+        instagram-api
+        app-shell
         devtools)
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Resources/commands.json"

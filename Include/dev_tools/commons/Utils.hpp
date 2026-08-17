@@ -47,6 +47,7 @@
 #endif
 
 using namespace nlohmann;
+namespace fs = std::filesystem;
 
 namespace DevTools {
     class JsonKeyMissingError : public std::runtime_error {
@@ -86,7 +87,7 @@ namespace DevTools {
 
     std::string UserDomain();
 
-    std::string CurrentWorkingDirectory();
+    fs::path CurrentWorkingDirectory();
 
     std::string CurrentUsername();
 
@@ -117,17 +118,17 @@ namespace DevTools {
 
     void ExitProgram(int code);
 
-    void MkFile(const std::string& path, int mode);
+    void MkFile(const fs::path& path, int mode);
 
-    void MkFile(const std::string& path);
+    void MkFile(const fs::path& path);
 
-    std::filesystem::path ExecutableFile();
+    fs::path ExecutableFile();
 
-    std::string ExecutableDirectory();
+    fs::path ExecutableDirectory();
 
     long long nanoTime();
 
-    std::filesystem::path UserHomeDirectory();
+    fs::path UserHomeDirectory();
 
     std::wstring FromStrToWideStr(const std::string& str);
 
@@ -142,7 +143,7 @@ namespace DevTools {
     void ForceCloseThread(std::thread& th);
 
 #ifdef __linux__
-    __mode_t GetPermissionMask(const std::filesystem::path& path);
+    __mode_t GetPermissionMask(const fs::path& path);
 
     bool CanUserWrite(__mode_t pMask);
 
@@ -168,6 +169,10 @@ namespace DevTools {
     void RequireJsonKeys(const json& data, const std::vector<std::string>& keys);
 
     void RequireJsonKeys(const json& data, const std::vector<std::string>& keys, const std::string& errMsgPrefix);
+
+#ifdef _WIN32
+    fs::path ResolveUnixSymlink(const fs::path& path);
+#endif
 }
 
 #endif //DEVTOOLS_UTILS_HPP

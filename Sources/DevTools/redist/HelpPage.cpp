@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <sstream>
 
-HelpPage::Item::Item(std::string &a, std::optional<std::string> &e, std::string &d) : arg(a), equalDesc(e), description(d) {}
+HelpPage::Item::Item(std::string &a, std::optional<std::string> &e, std::string &d) : arg(a), description(d), equalDesc(e) {}
 
 HelpPage::HelpPage() : spaceWidth(5), startSpaceWidth(0) {}
 

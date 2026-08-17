@@ -30,10 +30,10 @@ namespace fs = std::filesystem;
 std::string currentProcessingLibrary;
 std::vector<int> processedEntries;
 
-std::vector<std::string> lookupPaths = {
-    DevTools::CurrentWorkingDirectory() + "/Resources",
+std::vector<fs::path> lookupPaths = {
+    DevTools::CurrentWorkingDirectory() / "Resources",
     DevTools::CurrentWorkingDirectory(),
-    DevTools::ExecutableDirectory() + "/Resources",
+    DevTools::ExecutableDirectory() / "Resources",
     DevTools::ExecutableDirectory(),
 
 #if defined(__linux__) && !defined(__ANDROID__)
@@ -69,8 +69,8 @@ std::string find_lib(const std::string& file) {
     fs::path result;
 
     // 1. look for libraries within the cwd (current working directory) and the executables directory
-    if (fs::exists(DevTools::ExecutableDirectory() + "/" + file))
-        return DevTools::ExecutableDirectory() + "/" + file;
+    if (fs::exists(DevTools::ExecutableDirectory() / file))
+        return fs::path(DevTools::ExecutableDirectory() / file).string();
 
 #ifdef __linux__
     // 2. look for libraries in the "LD_LIBRARY_PATH" environment
@@ -110,8 +110,8 @@ std::string find_lib(const std::string& file) {
 
     // 4. Persistent / User Storage paths
     for (const auto& it : lookupPaths) {
-        if (fs::exists(it + "/" + file))
-            return it + "/" + file;
+        if (fs::exists(it / file))
+            return it / file;
     }
 #endif
 
@@ -377,8 +377,8 @@ void init_data() {
     }
 
     for (const auto& it : lookupPaths) {
-        if (std::string path = it + "/commands.json"; fs::exists(path))
-            jsonFiles.emplace_back(path);
+        if (fs::path path = it / "commands.json"; fs::exists(path))
+            jsonFiles.emplace_back(path.string());
     }
 
     if (jsonFiles.empty()) {

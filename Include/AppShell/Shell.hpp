@@ -46,6 +46,12 @@ namespace Application {
         }
     };
 
+    struct CommandFallbackContent {
+        CommandHelperFinderFn finderFn;
+        CommandHelperCallbackFn callbackFn;
+        CommandHelperListingFn listingFn;
+    };
+
     class AppShell {
     public:
         AppShell() {
@@ -64,9 +70,9 @@ namespace Application {
 
         void AddCommand(const CommandImpl& cmd);
 
-        void SetCommandFallbackHandler(const CommandHelperFinderFn& finderFn,
-                                              const CommandHelperCallbackFn& callbackFn,
-                                              const CommandHelperListingFn& listingFn) const;
+        void SetCommandFallbackHandler(const CommandFallbackContent& data, bool replace) const;
+
+        void SetCommandFallbackHandler(const CommandFallbackContent& data) const;
 
         void SetEnv(const std::string& key, const std::string& val);
 
@@ -90,8 +96,7 @@ namespace Application {
 
         CommandExecution run_cmd(const std::string& cmd,
                                  const std::vector<std::string>& args,
-                                 const ShellEnvironment& env,
-                                 const std::string& cmdLine);
+                                 const ShellEnvironment& env);
 
         void chEnvMapTable(const std::string& line);
 
@@ -109,6 +114,7 @@ namespace Application {
         ShellEnvironment m_environment;
         bool m_timeMeasuringSystem = false;
         std::vector<CommandImpl> m_cmdList;
+        std::vector<CommandFallbackContent> m_cmdFallbackList;
 
         std::thread m_shellThread;
     };

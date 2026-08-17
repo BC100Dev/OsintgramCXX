@@ -13,7 +13,10 @@
 
 #include "Session.hpp"
 
-using json = nlohmann::json;
+// include a bunch of data structs
+#include "Data/UserInfo.hpp"
+
+using namespace nlohmann;
 using namespace DevTools;
 
 #define AuthenticationHeaders std::vector<std::pair<std::string, std::string>>
@@ -238,7 +241,9 @@ namespace IG::Session {
      */
     class Target {
     public:
+        explicit Target(const UserInfo& userInfo);
     private:
+        UserInfo m_userInfo;
     };
 
     /**

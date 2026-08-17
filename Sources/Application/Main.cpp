@@ -2,7 +2,6 @@
 #include <exception>
 #include <vector>
 #include <sstream>
-#include <typeinfo>
 #include <filesystem>
 #include <csignal>
 
@@ -30,7 +29,6 @@
 #elif defined(__linux__)
 
 #include <unistd.h>
-#include <climits>
 #include <cerrno>
 #include <cstring>
 #include <sys/mount.h>
@@ -40,6 +38,7 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 
 #include <sys/capability.h>
+#include <typeinfo>
 
 #endif
 
@@ -285,14 +284,32 @@ void parseArgs(const std::vector<std::string>& args) {
     }
 }
 
-int main(int argc, char** argv) {
+#ifdef APPLICATION_BUILD_TYPE
+
+#if APPLICATION_BUILD_TYPE == 0
+#define APP_BUILD_TYPE_CONTAINED
+#define APP_MAIN_SYMNAME main
+#else
+#define APP_MAIN_SYMNAME nexint_main
+#endif
+
+void OsintgramCXX_init() {
+#ifdef APP_BUILD_TYPE_CONTAINED
     std::set_terminate(exceptionHandler);
+#endif
+
     init();
 
     // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
+    // damn, this comment above me is so old, it still resolves back, before I changed up the structure to be more modular...
     WinSetColorMode();
     initSettings();
+}
 
+#endif
+
+int APP_MAIN_SYMNAME(int argc, char** argv) {
+    OsintgramCXX_init();
     if (argc > 1) {
         std::vector<std::string> args;
         args.reserve(argc - 1);

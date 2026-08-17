@@ -101,7 +101,7 @@ std::string ShellHelpers_Listings() {
 }
 
 void OSINT_IncludeShellCallback(const AppShell& shell) {
-    shell.SetCommandFallbackHandler(ShellHelpers_Finder,
+    shell.SetCommandFallbackHandler({ShellHelpers_Finder,
                                     ShellHelpers_Executor,
-                                    ShellHelpers_Listings);
+                                    ShellHelpers_Listings}, true);
 }

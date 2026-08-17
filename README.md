@@ -154,7 +154,7 @@ sections, which include:
   utilizing the DRY methods
 - [**Interactive Commands**](Sources/CoreCommands): The part that would give you the most
   interests, considering that it is the base module, where all the standard commands live at.
-- [**Instagram Private API**](Sources/instagram-private-api): Oh, this one's spicy, eh? Yes,
+- [**Instagram Private API**](Sources/instagram-api): Oh, this one's spicy, eh? Yes,
   this code will be the main reason all your custom mods will most likely depend on. That is,
   if you don't rely on user input and probably automate.
 - [**Application Logging**](Sources/Logging): Nice library to have, in case GDB is a bit too

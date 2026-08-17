@@ -106,7 +106,7 @@ void prepareDisplayInfo() {
     else
         displayInfoPath = "/data/data/com.termux/files/home/.local/share/OsintgramCXX/display.json";
 
-    std::string classesPath = ExecutableDirectory() + "/android/classes.dex";
+    std::string classesPath = ExecutableDirectory().string() + "/android/classes.dex";
     if (chmod(classesPath.c_str(), 0544) != 0) {
         if (errno == EACCES) {
             std::string ncp;
@@ -119,7 +119,7 @@ void prepareDisplayInfo() {
             if (!ofd.is_open())
                 throw std::runtime_error("Unable to obtain display information (could not make a copy of classes.dex)");
 
-            std::ifstream ifd(ExecutableDirectory() + "/android/classes.dex", std::ios::binary);
+            std::ifstream ifd(ExecutableDirectory().string() + "/android/classes.dex", std::ios::binary);
             if (!ifd.is_open())
                 throw std::runtime_error("Unable to obtain display information (could not make a copy of classes.dex)");
 

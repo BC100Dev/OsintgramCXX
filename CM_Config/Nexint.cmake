@@ -1,0 +1,13 @@
+if (NOT DEFINED APP_BUILD_OUT_BINTYPE OR NOT APP_BUILD_OUT_BINTYPE OR APP_BUILD_OUT_BINTYPE STREQUAL "")
+    set(APP_BUILD_OUT_BINTYPE "CONTAINED")
+    set(APP_BUILD_OUT_BINFIL "app")
+    return()
+endif ()
+
+if (APP_BUILD_OUT_BINTYPE STREQUAL "CONTAINED")
+    set(APP_BUILD_OUT_BINFIL "app")
+elseif (APP_BUILD_OUT_BINTYPE STREQUAL "NXINT")
+    set(APP_BUILD_OUT_BINFIL "lib")
+else ()
+    message(FATAL_ERROR "Unknown output binary type given, provided with ${APP_BUILD_OUT_BINTYPE}")
+endif ()

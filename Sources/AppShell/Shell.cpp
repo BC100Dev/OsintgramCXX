@@ -71,12 +71,8 @@ namespace Application {
     void AppShell::init_shell() {
         m_alreadyForceStopped = false;
 
-        std::string user = CurrentUsername();
-        std::string sCwd = CurrentWorkingDirectory();
-        fs::path cwd = fs::current_path();
-
         std::stringstream strStream;
-        strStream << "[" << user << " % " << SHELL_APPLICATION_NAME << "] >> ";
+        strStream << "[" << CurrentUsername() << " % " << SHELL_APPLICATION_NAME << "] >> ";
 
         m_prompt = strStream.str();
         m_initialized = true;
@@ -231,7 +227,7 @@ namespace Application {
                 isMultiline = false;
                 multiLineCmd = "";
 
-                CommandExecution ret = run_cmd(cmdLine[0], cmdArgs, m_environment, line);
+                CommandExecution ret = run_cmd(cmdLine[0], cmdArgs, m_environment);
                 if (!ret.cmdFound) {
                     std::cerr << ret.msg << std::endl;
                     threadSleep(70);
@@ -289,8 +285,7 @@ namespace Application {
 
     AppShell::CommandExecution AppShell::run_cmd(const std::string& cmd,
                                                  const std::vector<std::string>& args,
-                                                 const ShellEnvironment& env,
-                                                 const std::string& cmdLine) {
+                                                 const ShellEnvironment& env) {
         long long startTime = nanoTime();
 
         bool found = false;
@@ -349,12 +344,17 @@ namespace Application {
         return execReturn;
     }
 
-    void AppShell::SetCommandFallbackHandler(const CommandHelperFinderFn& finderFn,
-                                             const CommandHelperCallbackFn& callbackFn,
-                                             const CommandHelperListingFn& listingFn) const {
-        finderFunc = finderFn;
-        callbackFunc = callbackFn;
-        listingFunc = listingFn;
+    void AppShell::SetCommandFallbackHandler(const CommandFallbackContent& data, bool replace) const {
+        if ((callbackFunc.has_value() && listingFunc.has_value() && finderFunc.has_value()) && !replace)
+            throw ShellException("Command fallback handlers have been already defined");
+
+        callbackFunc = data.callbackFn;
+        listingFunc = data.listingFn;
+        finderFunc = data.finderFn;
+    }
+
+    void AppShell::SetCommandFallbackHandler(const CommandFallbackContent& data) const {
+        SetCommandFallbackHandler(data, false);
     }
 
     AppShell& GetShellInstance() {

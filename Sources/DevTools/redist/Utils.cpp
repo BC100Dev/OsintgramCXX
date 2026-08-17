@@ -193,8 +193,8 @@ namespace DevTools {
         return result;
     }
 
-    std::string CurrentWorkingDirectory() {
-        return std::filesystem::current_path().string();
+    fs::path CurrentWorkingDirectory() {
+        return fs::current_path();
     }
 
     std::string CurrentUsername() {
@@ -351,18 +351,18 @@ namespace DevTools {
         std::exit(code);
     }
 
-    void MkFile(const std::string& path, int mode) {
-        if (std::filesystem::exists(path))
+    void MkFile(const fs::path& path, int mode) {
+        if (fs::exists(path))
             return;
 
-        if (std::filesystem::is_directory(path))
+        if (fs::is_directory(path))
             return;
 
-        if (!std::filesystem::exists(std::filesystem::path(path).parent_path()))
-            std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+        if (!fs::exists(path.parent_path()))
+            fs::create_directories(path.parent_path());
 
 #ifdef _WIN32
-        HANDLE hFile = ::CreateFileA(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
+        HANDLE hFile = ::CreateFileA(path.string().c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
         if (hFile == INVALID_HANDLE_VALUE) {
             std::string error;
@@ -379,10 +379,10 @@ namespace DevTools {
         CloseHandle(hFile);
 #else
         int fd = open(path.c_str(), O_CREAT, mode);
-        if (fd == -1) {
+        if (fd < 0) {
             fd = open(path.c_str(), O_WRONLY | O_CREAT, mode);
 
-            if (fd == -1)
+            if (fd < 0)
                 throw std::runtime_error("Could not create file, error " + std::to_string(errno));
         }
 
@@ -390,26 +390,26 @@ namespace DevTools {
 #endif
     }
 
-    void MkFile(const std::string& path) {
+    void MkFile(const fs::path& path) {
         MkFile(path, 0755);
     }
 
-    std::filesystem::path ExecutableFile() {
+    fs::path ExecutableFile() {
 #ifdef _WIN32
         char buffer[MAX_PATH];
         GetModuleFileName(nullptr, buffer, MAX_PATH);
-        std::filesystem::path exePath = std::string(buffer);
-        return exePath.string();
+        fs::path exePath = std::string(buffer);
+        return exePath;
 #else
         char result[PATH_MAX];
         ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-        std::filesystem::path exePath = std::string(result, (count > 0) ? count : 0);
-        return exePath.string();
+        fs::path exePath = std::string(result, (count > 0) ? count : 0);
+        return exePath;
 #endif
     }
 
-    std::string ExecutableDirectory() {
-        return ExecutableFile().parent_path().string();
+    fs::path ExecutableDirectory() {
+        return ExecutableFile().parent_path();
     }
 
     long long nanoTime() {
@@ -417,8 +417,8 @@ namespace DevTools {
             .count();
     }
 
-    std::filesystem::path UserHomeDirectory() {
-        std::filesystem::path result;
+    fs::path UserHomeDirectory() {
+        fs::path result;
 
 #ifdef __linux__
         struct passwd* pw = getpwuid(getuid());
@@ -431,7 +431,7 @@ namespace DevTools {
         if (HRESULT hr = SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &widePath); SUCCEEDED(hr)) {
             std::wstring path(widePath);
             CoTaskMemFree(widePath);
-            result = std::filesystem::path(path);
+            result = fs::path(path);
         } else
             throw std::runtime_error("Failed to get user home");
 #endif
@@ -533,7 +533,7 @@ namespace DevTools {
     }
 
 #ifdef __linux__
-    __mode_t GetPermissionMask(const std::filesystem::path &path) {
+    __mode_t GetPermissionMask(const fs::path &path) {
         if (!fs::exists(path))
             throw std::runtime_error("File does not exist");
 
@@ -602,5 +602,29 @@ namespace DevTools {
             }
         }
     }
+
+#ifdef _WIN32
+    fs::path ResolveUnixSymlink(const fs::path& path) {
+        typedef char* (CDECL *PWineGetUnixFileName)(LPCWSTR);
+
+        HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
+        if (!hKernel32)
+            throw std::runtime_error("GetModuleHandleA failed for kernel32.dll");
+
+        auto wine_get_unix_file_name = reinterpret_cast<PWineGetUnixFileName>(GetProcAddress(hKernel32,
+            "wine_get_unix_file_name"));
+
+        if (!wine_get_unix_file_name)
+            throw std::runtime_error("GetProcAddress failed for wine_get_unix_file_name");
+
+        char* unixPath = wine_get_unix_file_name(FromStrToWideStr(path.string()).c_str());
+        if (!unixPath)
+            throw std::runtime_error("wine_get_unix_file_name resolve error");
+
+        auto resolvedPath = fs::path(unixPath);
+        LocalFree(unixPath);
+        return resolvedPath;
+    }
+#endif
 
 }

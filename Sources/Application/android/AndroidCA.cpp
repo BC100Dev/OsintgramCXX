@@ -16,7 +16,9 @@ bool env_exists(const std::string& en) {
 std::vector<std::string> cert_store_paths = {
     env_exists("TERMUX__PREFIX") ? std::string(std::getenv("TERMUX__PREFIX")) + "/etc/tls/cert.pem" : "",
     "/data/data/com.termux/files/usr/etc/tls/cert.pem",
-    env_exists("TERMUX__HOME") ? std::string(std::getenv("TERMUX__HOME")) + "/.local/share/OsintgramCXX/certstore.pem" : "",
+    env_exists("TERMUX__HOME")
+        ? std::string(std::getenv("TERMUX__HOME")) + "/.local/share/OsintgramCXX/certstore.pem"
+        : "",
     env_exists("OsintgramCXX_CertStore") ? std::getenv("OsintgramCXX_CertStore") : ""
 };
 
@@ -38,7 +40,8 @@ bool has_cert_store() {
 }
 
 void gen_cert_store(const std::string& path) {
-    std::ofstream out(DevTools::ExecutableDirectory() + "/android_certstore.pem", std::ios::out | std::ios::app);
+    std::ofstream out(DevTools::ExecutableDirectory().string() + "/android_certstore.pem",
+                      std::ios::out | std::ios::app);
     if (!out.is_open())
         throw std::runtime_error("Cannot open android_certstore.pem for writing");
 
