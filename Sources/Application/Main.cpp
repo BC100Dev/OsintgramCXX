@@ -17,9 +17,9 @@
 
 #include <IGApi/Session.hpp>
 
+#include "ModInit.hpp"
 #include "android/AndroidCA.hpp"
 #include "settings/AppSettings.hpp"
-#include "ModInit.hpp"
 #include "shell/ShellCallback.hpp"
 
 #ifdef _WIN32
@@ -89,63 +89,21 @@ void exceptionHandler() {
 
 void usage() {
     std::string cmd = ".";
-    std::string executablePath;
-    const char* pathDelim;
-
-#ifdef _WIN32
-    pathDelim = "\\";
-
-    char buffer[MAX_PATH];
-    GetModuleFileNameA(nullptr, buffer, MAX_PATH);
-    executablePath = std::string(buffer);
-#else
-    pathDelim = "/";
-
-    char buffer[PATH_MAX];
-    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
-
-    if (len == -1) {
-        perror("usage() => readlink failed");
-        return;
-    }
-
-    buffer[len] = '\0';
-    executablePath = std::string(buffer);
-#endif
-
-    cmd.append(pathDelim);
-
-    if (!executablePath.empty()) {
-        fs::path filePath(executablePath);
-
-        // in favor of Osintgram4j being discontinued
-        if (std::string fileName = filePath.filename().string(); fileName == "java")
-            cmd.append("osintgram4j.jar");
-        else
-            cmd.append(fileName);
+    if (fs::path execFile = ExecutableFile(); !execFile.empty()) {
+        std::string fileName = execFile.filename().string();
+        cmd = fileName == "java" ? "osintgram4j.jar" : fileName;
     }
 
     std::cout << "usage:" << std::endl;
-
-    char userChar = '$';
-#ifdef __linux__
-    if (getuid() == 0 || geteuid() == 0)
-        userChar = '#';
-#elif defined(_WIN32)
-    if (IsAdmin())
-        userChar = '#';
-#endif
-
-    std::cout << userChar << " " << cmd << " [options] (target) (target2 ...)" << std::endl << std::endl;
+    std::cout << (IsAdmin() ? '#' : '$') << " " << cmd << " [options] (target) (target2 ...)" << std::endl << std::endl;
 
     HelpPage hPage;
     hPage.setSpaceWidth(3);
     hPage.setStartSpaceWidth(4);
     hPage.setDescSeparator("=");
     hPage.addArg("-h  | --help", std::nullopt, "Display usage and its help page");
-    hPage.addArg("-D[key", "value]",
-                 "Puts setting values into the application runtime, temporarily overriding the App Settings file");
-    hPage.addArg("-E[key", "value]", "Applies an environment variable to the Osintgram Shell");
+    hPage.addArg("-D[key", "value]", "Puts setting overrides of OsintgramCXX at startup");
+    hPage.addArg("-E[key", "value]", "Applies an environment variable to app shell");
     hPage.addArg("--test-exec-time", std::nullopt, "Tests the execution time (does not start up the Shell");
 
 #ifdef __ANDROID__
@@ -155,7 +113,7 @@ void usage() {
 
 #ifdef __linux__
     hPage.addArg("--sandbox", "PATH",
-                 "Isolates the data saved by this tool from the entire disk (Linux exclusive, increases security factors)");
+                 "Isolates the data saved by this tool from the entire disk, increasing security factors");
 #endif
 
     std::string str = hPage.display();
@@ -183,10 +141,11 @@ void init() {
     Instances::getNetworkLoggingInstance();
     Instances::getSecureLoggerInstance();
 
+#ifdef _WIN32
     if (Wine::WineExecution()) {
+        // by default, colors are already messed up, we don't need to attempt anything
         Runtime::colorSupportEnabled = false;
     } else {
-#ifdef _WIN32
         if (HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE); hOut != INVALID_HANDLE_VALUE) {
             DWORD dwMode = 0;
             if (GetConsoleMode(hOut, &dwMode)) {
@@ -197,8 +156,8 @@ void init() {
                 Runtime::colorSupportEnabled = false;
         } else
             Runtime::colorSupportEnabled = false;
-#endif
     }
+#endif
 
 #ifdef __linux__
     signal(SIGINT, sigHandle);
@@ -220,6 +179,7 @@ void init() {
         exit(1);
     }
 
+    // TODO: rework CA certificate factory for OsintgramCXX
     AndroidVer::prepare_cacerts();
 #endif
 }
@@ -284,20 +244,8 @@ void parseArgs(const std::vector<std::string>& args) {
     }
 }
 
-#ifdef APPLICATION_BUILD_TYPE
-
-#if APPLICATION_BUILD_TYPE == 0
-#define APP_BUILD_TYPE_CONTAINED
-#define APP_MAIN_SYMNAME main
-#else
-#define APP_MAIN_SYMNAME nexint_main
-#endif
-
 void OsintgramCXX_init() {
-#ifdef APP_BUILD_TYPE_CONTAINED
     std::set_terminate(exceptionHandler);
-#endif
-
     init();
 
     // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
@@ -306,9 +254,7 @@ void OsintgramCXX_init() {
     initSettings();
 }
 
-#endif
-
-int APP_MAIN_SYMNAME(int argc, char** argv) {
+int main(int argc, char** argv) {
     OsintgramCXX_init();
     if (argc > 1) {
         std::vector<std::string> args;
@@ -330,8 +276,8 @@ int APP_MAIN_SYMNAME(int argc, char** argv) {
     AppShell& shell = GetShellInstance();
     OSINT_IncludeShellCallback(shell);
 
-    // optional, by the CLI args, enable FS sandboxing
-#ifdef __linux__
+    // optional, by the CLI args, enable FS sandboxing under self-app build
+#if __linux__
     if (!chrootPath.empty()) {
         if (!fs::exists(chrootPath)) {
             try {
@@ -350,45 +296,45 @@ int APP_MAIN_SYMNAME(int argc, char** argv) {
 
         bool shouldChroot = getuid() == 0;
 #ifndef __ANDROID__
-        if (!shouldChroot) {
-            cap_t caps = cap_get_proc();
-            if (!caps) {
-                std::cerr << "Unable to fetch executable capabilities" << std::endl;
-                return 1;
-            }
-
-            cap_flag_value_t cap_value;
-            if (cap_get_flag(caps, CAP_SYS_CHROOT, CAP_EFFECTIVE, &cap_value) == -1) {
-                std::cerr << "Failed to fetch chroot capabilities for the executable" << std::endl;
-                cap_free(caps);
-                return 1;
-            }
-
-            shouldChroot = cap_value == CAP_SET;
-            cap_free(caps);
+    if (!shouldChroot) {
+        cap_t caps = cap_get_proc();
+        if (!caps) {
+            std::cerr << "Unable to fetch executable capabilities" << std::endl;
+            return 1;
         }
+
+        cap_flag_value_t cap_value;
+        if (cap_get_flag(caps, CAP_SYS_CHROOT, CAP_EFFECTIVE, &cap_value) == -1) {
+            std::cerr << "Failed to fetch chroot capabilities for the executable" << std::endl;
+            cap_free(caps);
+            return 1;
+        }
+
+        shouldChroot = cap_value == CAP_SET;
+        cap_free(caps);
+    }
 #endif
 
-        if (shouldChroot) {
-            if (chroot(chrootPath.c_str()) != 0) {
-                std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;
-                return 1;
-            }
+    if (shouldChroot) {
+        if (chroot(chrootPath.c_str()) != 0) {
+            std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;
+            return 1;
+        }
 
-            if (chdir("/") != 0) {
-                std::cerr << "Root Change failed, error: " << std::strerror(errno) << std::endl;
-                return 1;
-            }
-        } else {
-            std::cerr << "Sandboxing failed: not root";
+        if (chdir("/") != 0) {
+            std::cerr << "Root Change failed, error: " << std::strerror(errno) << std::endl;
+            return 1;
+        }
+    } else {
+        std::cerr << "Sandboxing failed: not root";
 
 #ifdef __ANDROID__
-            std::cerr << ", which requires the process to enable Sandboxing capability" << std::endl;
+    std::cerr << ", which requires the process to enable Sandboxing capability" << std::endl;
 #else
-            std::cerr << ", nor given the binary's capability to do so" << std::endl;
+    std::cerr << ", nor given the binary's capability to do so" << std::endl;
 #endif
 
-            return 1;
+    return 1;
         }
     }
 #endif
