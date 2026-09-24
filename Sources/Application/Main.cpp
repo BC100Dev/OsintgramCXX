@@ -37,13 +37,18 @@
 
 #if defined(__linux__) && !defined(__ANDROID__)
 
-#include <sys/capability.h>
 #include <typeinfo>
+#include <libs/libcap.h>
 
 #endif
 
 #if defined(__ANDROID__)
 #include "android/TermuxCheck.hpp"
+#endif
+
+#define APP_GUI_COMPATIBILITY_MODE_ENABLED true
+#if APP_GUI_COMPATIBILITY_MODE_ENABLED
+bool guiModeSupport = false;
 #endif
 
 namespace fs = std::filesystem;
@@ -135,7 +140,12 @@ void sigHandle(int) {
 
 #endif
 
+void initSettings() {
+}
+
 void init() {
+    initSettings();
+
     // don't use loggers now, just initialize them (for now)
     Instances::getApplicationLoggingInstance();
     Instances::getNetworkLoggingInstance();
@@ -182,9 +192,6 @@ void init() {
     // TODO: rework CA certificate factory for OsintgramCXX
     AndroidVer::prepare_cacerts();
 #endif
-}
-
-void initSettings() {
 }
 
 void parseArgs(const std::vector<std::string>& args) {
@@ -251,7 +258,20 @@ void OsintgramCXX_init() {
     // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
     // damn, this comment above me is so old, it still resolves back, before I changed up the structure to be more modular...
     WinSetColorMode();
-    initSettings();
+
+#if APP_GUI_COMPATIBILITY_MODE_ENABLED
+
+#if defined(__linux__) && !defined(__ANDROID__)
+    guiModeSupport = isatty(STDIN_FILENO);
+#elif _WIN32
+    auto module = GetModuleHandleW(nullptr);
+    auto dos = reinterpret_cast<PIMAGE_DOS_HEADER>(module);
+
+    if (auto nt = reinterpret_cast<PIMAGE_NT_HEADERS>(reinterpret_cast<std::byte*>(module) + dos->e_lfanew))
+        guiModeSupport = nt->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI;
+#endif
+
+#endif // APP_GUI_COMPATIBILITY_MODE_ENABLED
 }
 
 int main(int argc, char** argv) {
@@ -295,46 +315,50 @@ int main(int argc, char** argv) {
         }
 
         bool shouldChroot = getuid() == 0;
-#ifndef __ANDROID__
-    if (!shouldChroot) {
-        cap_t caps = cap_get_proc();
-        if (!caps) {
-            std::cerr << "Unable to fetch executable capabilities" << std::endl;
-            return 1;
-        }
+#if defined(__linux__) && !defined(__ANDROID__)
+        if (!shouldChroot) {
+            cap_dynamic_init();
+            cap_t proc = cap_get_proc();
+            if (!proc) {
+                std::cerr << "Unable to fetch executable capabilities" << std::endl;
+                cap_dynamic_close();
+                return 1;
+            }
 
-        cap_flag_value_t cap_value;
-        if (cap_get_flag(caps, CAP_SYS_CHROOT, CAP_EFFECTIVE, &cap_value) == -1) {
-            std::cerr << "Failed to fetch chroot capabilities for the executable" << std::endl;
-            cap_free(caps);
-            return 1;
-        }
+            cap_flag_value_t procVal;
+            if (cap_get_flag(proc, CAP_SYS_CHROOT, CAP_EFFECTIVE, &procVal) == -1) {
+                std::cerr << "Failed to fetch chroot capabilities for the running executable" << std::endl;
+                cap_free(proc);
+                cap_dynamic_close();
+                return 1;
+            }
 
-        shouldChroot = cap_value == CAP_SET;
-        cap_free(caps);
-    }
+            shouldChroot = procVal == CAP_SET;
+            cap_free(proc);
+            cap_dynamic_close();
+        }
 #endif
 
-    if (shouldChroot) {
-        if (chroot(chrootPath.c_str()) != 0) {
-            std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;
-            return 1;
-        }
+        if (shouldChroot) {
+            if (chroot(chrootPath.c_str()) != 0) {
+                std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;
+                return 1;
+            }
 
-        if (chdir("/") != 0) {
-            std::cerr << "Root Change failed, error: " << std::strerror(errno) << std::endl;
-            return 1;
-        }
-    } else {
-        std::cerr << "Sandboxing failed: not root";
+            if (chdir("/") != 0) {
+                std::cerr << "Root Change failed, error: " << std::strerror(errno) << std::endl;
+                return 1;
+            }
+        } else {
+            std::cerr << "Sandboxing failed: not root";
 
 #ifdef __ANDROID__
-    std::cerr << ", which requires the process to enable Sandboxing capability" << std::endl;
+            std::cerr << ", which requires the process to enable Sandboxing capability" << std::endl;
 #else
-    std::cerr << ", nor given the binary's capability to do so" << std::endl;
+            std::cerr << ", nor given the binary's capability to do so" << std::endl;
 #endif
 
-    return 1;
+            return 1;
         }
     }
 #endif

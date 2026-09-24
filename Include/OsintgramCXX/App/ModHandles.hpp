@@ -19,6 +19,11 @@ namespace OsintgramCXX {
 
     using C_OnExitEntry = std::function<void()>;
 
+    using C_OnCommandExecutionStart = std::function<void(char *)>;
+
+    // params: cmdLine, rc, stream
+    using C_OnCommandExecutionFinish = std::function<void(char *, int, char*)>;
+
     //// main command executor
     //// args: cmd, argc, argv, env_size, env_map
     //typedef int (*C_CommandExec)(int, char **, int, char **);
@@ -35,6 +40,8 @@ namespace OsintgramCXX {
         std::optional<std::string> description;
         C_OnLoadEntry handler_onLoad;
         C_OnExitEntry handler_onExit;
+        C_OnCommandExecutionStart handler_onCmdExecStart;
+        C_OnCommandExecutionFinish handler_onCmdExecFinish;
         std::vector<Application::ShellLibEntry> commands;
     };
 

@@ -13,6 +13,8 @@
 #include <functional>
 #include <variant>
 
+#include "StdCapture.hpp"
+
 #ifdef __linux__
 
 #include <csignal>
@@ -41,6 +43,7 @@ namespace Application {
     std::optional<CommandHelperFinderFn> finderFunc;
     std::optional<CommandHelperCallbackFn> callbackFunc;
     std::optional<CommandHelperListingFn> listingFunc;
+    std::optional<CommandExecutionListener> execListener;
 
     void AppShell::AddCommand(const CommandImpl& cmd) {
         for (const auto& val : m_cmdList) {
@@ -191,7 +194,7 @@ namespace Application {
                     continue;
                 }
 
-                if (line.ends_with("\\")) {
+                if (line.ends_with('\\')) {
                     multiLineCmd += line.substr(0, line.size() - 1);
 
                     if (!multiLineCmd.ends_with(' '))
@@ -227,7 +230,7 @@ namespace Application {
                 isMultiline = false;
                 multiLineCmd = "";
 
-                CommandExecution ret = run_cmd(cmdLine[0], cmdArgs, m_environment);
+                CommandExecution ret = run_cmd(isMultiline ? multiLineCmd : line, cmdLine[0], cmdArgs, m_environment);
                 if (!ret.cmdFound) {
                     std::cerr << ret.msg << std::endl;
                     threadSleep(70);
@@ -283,7 +286,8 @@ namespace Application {
         // and that I wanted a few additional methods.
     }
 
-    AppShell::CommandExecution AppShell::run_cmd(const std::string& cmd,
+    AppShell::CommandExecution AppShell::run_cmd(const std::string& cmdline,
+                                                 const std::string& cmd,
                                                  const std::vector<std::string>& args,
                                                  const ShellEnvironment& env) {
         long long startTime = nanoTime();
@@ -317,6 +321,15 @@ namespace Application {
 
         execReturn.cmdFound = true;
 
+        if (execListener.has_value()) {
+            std::thread th([&] {
+                execListener.value()(ExecutionType::PRE_EXEC, cmdline, std::nullopt, std::nullopt);
+            });
+            th.join();
+        }
+
+        StdCapture scap;
+
         if (usingCallback)
             execReturn.rc = callbackFunc.value()(cmd, args, env);
         else if (std::holds_alternative<NFCommandExec>(cmdExecHandlerVar)) {
@@ -329,6 +342,13 @@ namespace Application {
             } catch (...) {
                 std::cerr << "Unknown error occurred, while executing \"" << cmd << "\"" << std::endl;
             }
+        }
+
+        if (execListener.has_value()) {
+            std::thread th([&] {
+                execListener.value()(ExecutionType::POST_EXEC, cmdline, execReturn.rc, scap.str());
+            });
+            th.join();
         }
 
         if (m_timeMeasuringSystem) {
@@ -346,7 +366,7 @@ namespace Application {
 
     void AppShell::SetCommandFallbackHandler(const CommandFallbackContent& data, bool replace) const {
         if ((callbackFunc.has_value() && listingFunc.has_value() && finderFunc.has_value()) && !replace)
-            throw ShellException("Command fallback handlers have been already defined");
+            throw ShellException("Command fallback handlers have already been defined");
 
         callbackFunc = data.callbackFn;
         listingFunc = data.listingFn;
@@ -355,6 +375,10 @@ namespace Application {
 
     void AppShell::SetCommandFallbackHandler(const CommandFallbackContent& data) const {
         SetCommandFallbackHandler(data, false);
+    }
+
+    void AppShell::SetCommandExecutionListener(const CommandExecutionListener& listener) const {
+        execListener = listener;
     }
 
     AppShell& GetShellInstance() {

@@ -10,6 +10,8 @@
 #include <dev_tools/commons/HelpPage.hpp>
 #include <OsintgramCXX/App/ModHandles.hpp>
 
+using namespace OsintgramCXX;
+
 bool ShellHelpers_Finder(const std::string& cmd) {
     for (const auto& val : OsintgramCXX::loadedLibraries | std::views::values) {
         for (const auto& it : val.commands) {
@@ -100,8 +102,34 @@ std::string ShellHelpers_Listings() {
     return oss.str() + "\n";
 }
 
+void ShellHelpers_CommandExecListener(const ExecutionType& exType,
+                                      const std::string& cmdline,
+                                      std::optional<int> retCode,
+                                      const std::optional<std::string>& data) {
+    for (const auto& val : loadedLibraries | std::views::values) {
+        if (exType == ExecutionType::PRE_EXEC && val.handler_onCmdExecStart != nullptr) {
+            std::thread th([&] {
+                val.handler_onCmdExecStart(const_cast<char*>(cmdline.c_str()));
+            });
+            th.detach();
+        }
+
+        if (exType == ExecutionType::POST_EXEC && val.handler_onCmdExecFinish != nullptr) {
+            std::thread th([&] {
+                val.handler_onCmdExecFinish(const_cast<char*>(cmdline.c_str()),
+                    retCode.has_value() ? retCode.value() : -16,
+                    const_cast<char*>(std::string(data.has_value() ? data.value() : "").c_str()));
+            });
+            th.join();
+        }
+    }
+}
+
 void OSINT_IncludeShellCallback(const AppShell& shell) {
-    shell.SetCommandFallbackHandler({ShellHelpers_Finder,
-                                    ShellHelpers_Executor,
-                                    ShellHelpers_Listings}, true);
+    shell.SetCommandFallbackHandler({
+                                        .finderFn = ShellHelpers_Finder,
+                                        .callbackFn = ShellHelpers_Executor,
+                                        .listingFn = ShellHelpers_Listings
+                                    }, true);
+    shell.SetCommandExecutionListener(ShellHelpers_CommandExecListener);
 }

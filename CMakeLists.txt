@@ -6,7 +6,15 @@ foreach (CM_PRECONF_FILE ${CM_PRECONF_FILES})
     include("${CM_PRECONF_FILE}")
 endforeach ()
 
-project(OsintgramCXX)
+set(CM_PROJECT_NAME OsintgramCXX)
+
+# top-level check
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    cmake_minimum_required(VERSION 3.25)
+    project(${CM_PROJECT_NAME})
+elseif (NOT PROJECT_NAME)
+    project(${CM_PROJECT_NAME})
+endif ()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CROSSCOMPILING ON)

@@ -1,22 +1,10 @@
 CollectSources(${PROJECT_MODULE_ROOT} ModSources)
-
-if (APP_BUILD_OUT_BINFIL STREQUAL "app")
-    add_executable(OsintgramCXX ${ModSources})
-    target_compile_definitions(OsintgramCXX PRIVATE APPLICATION_BUILD_TYPE=0)
-else ()
-    add_library(OsintgramCXX SHARED ${ModSources})
-    target_compile_definitions(OsintgramCXX PRIVATE APPLICATION_BUILD_TYPE=1)
-endif ()
+add_executable(OsintgramCXX ${ModSources})
 
 SetTargetOutputDir(OsintgramCXX "${OUTPUT_DIRECTORY_ROOT}")
 target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} devtools app-shell OsintgramCXX-security instagram-api)
 
 if (APP_SYSTEM_TARGET STREQUAL "Linux")
-    if (NOT APP_TARGETS_ANDROID)
-        message(STATUS "OsintgramCXX: shall link against 'cap'")
-        target_link_libraries(OsintgramCXX PRIVATE cap)
-    endif ()
-
     SetRpathValue(OsintgramCXX)
 endif ()
 

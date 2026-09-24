@@ -25,14 +25,23 @@ namespace Application {
         std::function<int(const CommandLineInputArgs& /* args */, const ShellEnvironment& /* env */)> handle;
     };
 
+    enum class ExecutionType {
+        PRE_EXEC,
+        POST_EXEC
+    };
+
     // params: cmdName, argc, argv, envc, env_map
     using C_CommandExec = std::function<int(const char*, int, char**, int, char**)>;
 
     using CommandHelperFinderFn = std::function<bool(const std::string& /*cmd*/)>;
     using CommandHelperCallbackFn = std::function<int(const std::string& /*cmd*/,
-                                                       const CommandLineInputArgs&,
-                                                       const ShellEnvironment&)>;
+                                                      const CommandLineInputArgs&,
+                                                      const ShellEnvironment&)>;
     using CommandHelperListingFn = std::function<std::string()>;
+    using CommandExecutionListener = std::function<void(const ExecutionType& /* type */,
+                                                        const std::string& /* cmdline */,
+                                                        std::optional<int> /* return_code */,
+                                                        const std::optional<std::string>& /* data */)>;
 
     struct ShellLibEntry {
         std::string cmd;
@@ -74,6 +83,8 @@ namespace Application {
 
         void SetCommandFallbackHandler(const CommandFallbackContent& data) const;
 
+        void SetCommandExecutionListener(const CommandExecutionListener& listener) const;
+
         void SetEnv(const std::string& key, const std::string& val);
 
         std::string GetEnv(const std::string& key);
@@ -94,7 +105,8 @@ namespace Application {
 
         void cleanup();
 
-        CommandExecution run_cmd(const std::string& cmd,
+        CommandExecution run_cmd(const std::string& cmdline,
+                                 const std::string& cmd,
                                  const std::vector<std::string>& args,
                                  const ShellEnvironment& env);
 
@@ -114,7 +126,6 @@ namespace Application {
         ShellEnvironment m_environment;
         bool m_timeMeasuringSystem = false;
         std::vector<CommandImpl> m_cmdList;
-        std::vector<CommandFallbackContent> m_cmdFallbackList;
 
         std::thread m_shellThread;
     };

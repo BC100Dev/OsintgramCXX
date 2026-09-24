@@ -15,7 +15,9 @@
             },
             "handlers": {
                 "OnLoad": "plugin_handle_start",
-                "OnStop": "plugin_handle_stop"
+                "OnStop": "plugin_handle_stop",
+                "OnCommandExecStart": "plugin_cmd_exec_start",
+                "OnCommandExecFinish": "plugin_cmd_exec_finish"
             },
             "cmd_list": [
                 {

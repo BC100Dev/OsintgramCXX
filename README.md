@@ -22,6 +22,12 @@ the finals will eat me up.
 
 [See the full information here.](https://github.com/BC100Dev/OsintgramCXX/discussions/5)
 
+With me and Datalux further expanding the [Osintgram](https://github.com/Datalux/Osintgram)
+project, I have decided to take care on the CLI part, while the original version can
+officially deviate into web-based tooling. This means that if you are a CLI deliberate,
+this version is for you. This version allows you to use the legacy version of logging into
+your Instagram account.
+
 ---
 
 ## Use cases
@@ -47,9 +53,18 @@ However, what I can describe on what features are implemented (or will be) in he
   connection through several servers
 - **Multi-Session Interaction**: Target multiple profiles at once without having to automate
   more things
+- **HikerAPI support**: With the HikerAPI being a better alternative to scraping user data on
+  the Instagram platform, things become easier
+- **Legacy User Login support**: Most tools are phasing out the requirement of logging in.
+  This one doesn't.
 
-Does the original version of this tool have most of those things prebuilt already? I don't
-think so. Let me cook and you won't be disappointed.
+A note on the Legacy User Login:
+> it is strongly recommended to no longer use it. Even if that part will still be maintained
+> for those that want to use their own accounts, HikerAPI is strongly recommended. In the
+> case of HikerAPI, DSI is not required. DSI is only strongly recommended, when you are using
+> your own account as a way of logging in. Another thing to note is the fact that Instagram
+> will most likely restrict your account, if they detect automation on your account. If the
+> legacy user login is required, make sure to use an alternative account.
 
 ---
 
@@ -91,13 +106,12 @@ your distribution. For Debian (Termux included), you will be using `apt`. Your f
 command will be:
 
 ```shell
-$ sudo apt install build-essential cmake tar unzip zip curl libssl-dev libcurl4-openssl-dev libcap-dev
+$ sudo apt install build-essential cmake tar unzip zip curl libssl-dev libcurl4-openssl-dev
 ```
 
 The first few packages, up until the `curl` part, are required for `vcpkg` itself. Packages
 with the prefix of `lib` are required, since they are required for the tool to function
-correctly. If you are using Termux, exclude `libcap-dev`, since this library won't work on
-Android devices.
+correctly.
 
 For Arch Linux users:
 ```shell
@@ -219,7 +233,7 @@ starting and finishing handle by making these methods:
 ```c++
 export "C" void cmd_handle_start(const char* cmdLine) {}
 
-export "C" void cmd_handle_finish(const char* cmdLine, int rc, int id, const char* stream) {}
+export "C" void cmd_handle_finish(const char* cmdLine, int rc, const char* stream) {}
 ```
 
 With the `cmd_handle_finish`, you pass in the entire command line that the user has entered,

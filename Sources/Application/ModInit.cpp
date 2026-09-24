@@ -283,14 +283,14 @@ void parse_json(const json& j) {
                 if (h_obj.contains("OnLoad") && h_obj["OnLoad"].is_string()) {
                     symbolName = h_obj["OnLoad"];
 
-                    libEntryData.handler_onLoad = [libHandle, libName, symbolName]() -> int {
-                        using FunctionType = int();
+                    libEntryData.handler_onLoad = [libHandle, libName, symbolName]() -> void {
+                        using FunctionType = void();
                         void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from \"" << libName << "\": " << symbolName
                                 << " -> "
                                 << get_error_from_lib() << std::endl;
-                            return -1;
+                            return;
                         }
 
                         return reinterpret_cast<FunctionType*>(funcPtr)();
@@ -300,18 +300,55 @@ void parse_json(const json& j) {
                 if (h_obj.contains("OnStop") && h_obj["OnStop"].is_string()) {
                     symbolName = h_obj["OnStop"];
 
-                    libEntryData.handler_onExit = [libHandle, libName, symbolName]() -> int {
-                        using FunctionType = int();
+                    libEntryData.handler_onExit = [libHandle, libName, symbolName]() -> void {
+                        using FunctionType = void();
                         void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
                         if (!funcPtr) {
                             std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
                                 << " -> "
                                 << get_error_from_lib() << std::endl;
-                            return -1;
+                            return;
                         }
 
                         return reinterpret_cast<FunctionType*>(funcPtr)();
                     };
+                }
+
+                if (h_obj.contains("OnCommandExecStart") && h_obj["OnCommandExecStart"].is_string()) {
+                    symbolName = h_obj["OnCommandExecStart"];
+
+                    libEntryData.handler_onCmdExecStart = [libHandle, libName, symbolName](char* cmdline) -> void {
+                        using FunctionType = void(char*);
+                        void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                        if (!funcPtr) {
+                            std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
+                                << " -> "
+                                << get_error_from_lib() << std::endl;
+                            return;
+                        }
+
+                        return reinterpret_cast<FunctionType*>(funcPtr)(cmdline);
+                    };
+                }
+
+                if (h_obj.contains("OnCommandExecFinish") && h_obj["OnCommandExecFinish"].is_string()) {
+                    symbolName = h_obj["OnCommandExecFinish"];
+
+                    libEntryData.handler_onCmdExecFinish = [libHandle, libName, symbolName]
+                    (char* cmdline,
+                     int rc,
+                     char* stream) -> void {
+                            using FunctionType = void(char*, int, char*);
+                            void* funcPtr = get_method_from_handle(libHandle, symbolName.c_str());
+                            if (!funcPtr) {
+                                std::cerr << "[ERROR] Failed to resolve symbol from " << libName << ": " << symbolName
+                                    << " -> "
+                                    << get_error_from_lib() << std::endl;
+                                return;
+                            }
+
+                            return reinterpret_cast<FunctionType*>(funcPtr)(cmdline, rc, stream);
+                        };
                 }
             }
 
@@ -329,7 +366,7 @@ void parse_json(const json& j) {
                                 std::string("Command symbol for ").append(libName) + " not found, " + sym);
 
                         Application::C_CommandExec cmdExec = [funcPtr](const char* _c, int a, char** b, int c,
-                                                                        char** d) {
+                                                                       char** d) {
                             return reinterpret_cast<int (*)(const char*, int, char**, int, char**)>(funcPtr)(_c, a,
                                 b, c,
                                 d);
