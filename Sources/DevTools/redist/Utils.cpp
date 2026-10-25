@@ -1,6 +1,7 @@
 #include <dev_tools/commons/Utils.hpp>
 #include <random>
 #include <thread>
+#include <format>
 #include <filesystem>
 #include <algorithm>
 #include <cstring>
@@ -51,7 +52,11 @@ namespace DevTools {
     }
 
     bool StringContains(const std::string& str, const std::string& val) {
+#if __cplusplus >= 202302L
+        return str.contains(val);
+#else
         return str.find(val) != std::string::npos;
+#endif
     }
 
     std::string TrimString(const std::string& str) {
@@ -90,26 +95,37 @@ namespace DevTools {
     }
 
     bool StartsWith(const std::string& str, const std::string& prefix) {
+#if __cplusplus >= 202002L
+        return str.starts_with(prefix);
+#else
         if (prefix.size() > str.size())
             return false;
 
         return std::equal(prefix.begin(), prefix.end(), str.begin());
+#endif
     }
 
     bool EndsWith(const std::string& str, const std::string& suffix) {
+#if __cplusplus >= 202002L
+        return str.ends_with(suffix);
+#else
         if (suffix.size() > str.size())
             return false;
 
         return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+#endif
     }
 
     // don't forget to pull up that Regex skill without googling it! (evil laughter)
     std::string ReplaceAll(const std::string& str, const std::string& pattern, const std::string& replacement) {
+        return ReplaceAll(str, std::regex(pattern), replacement);
+    }
+
+    std::string ReplaceAll(const std::string& str, const std::regex& pattern, const std::string& replacement) {
         try {
-            std::regex regexPattern(pattern);
-            return std::regex_replace(str, regexPattern, replacement);
+            return std::regex_replace(str, pattern, replacement);
         } catch (const std::regex_error& ex) {
-            std::cerr << "Utils.hpp# ReplaceAll - Regex Error: " << ex.what() << std::endl;
+            std::cerr << "Utils.hpp#ReplaceAll - Regex Error: " << ex.what() << std::endl;
             return str;
         }
     }
@@ -136,7 +152,7 @@ namespace DevTools {
     bool IsAdmin() {
         bool result = false;
 #ifdef __linux__
-        result = (getuid() == 0 || geteuid() == 0) && getgid() == 0;
+        result = getuid() == 0 || geteuid() == 0;
 #endif
 
 #ifdef _WIN32
@@ -291,6 +307,18 @@ namespace DevTools {
         return dis(gen);
     }
 
+    std::string RandomString(int len) {
+        return RandomString(len, CHARS_UPPER CHARS_LOWER CHARS_NUMS CHARS_SPECIAL);
+    }
+
+    std::string RandomString(int len, const std::string& chars) {
+        std::ostringstream oss;
+        for (int i = 0; i < len; i++)
+            oss << chars[RandomInteger(0, static_cast<int>(chars.length()) - 1)];
+
+        return oss.str();
+    }
+
     long RandomSeed(long min, long max) {
         std::random_device rd;
         unsigned int seed = rd();
@@ -352,17 +380,18 @@ namespace DevTools {
     }
 
     void MkFile(const fs::path& path, int mode) {
-        if (fs::exists(path))
-            return;
-
         if (fs::is_directory(path))
+            throw std::runtime_error("Path is a directory: " + path.string());
+
+        if (fs::exists(path))
             return;
 
         if (!fs::exists(path.parent_path()))
             fs::create_directories(path.parent_path());
 
 #ifdef _WIN32
-        HANDLE hFile = ::CreateFileA(path.string().c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
+        HANDLE hFile = ::CreateFileA(path.string().c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                                     FILE_ATTRIBUTE_NORMAL,
                                      nullptr);
         if (hFile == INVALID_HANDLE_VALUE) {
             std::string error;
@@ -401,10 +430,7 @@ namespace DevTools {
         fs::path exePath = std::string(buffer);
         return exePath;
 #else
-        char result[PATH_MAX];
-        ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-        fs::path exePath = std::string(result, (count > 0) ? count : 0);
-        return exePath;
+        return ResolveUnixSymlink("/proc/self/exe");
 #endif
     }
 
@@ -418,14 +444,36 @@ namespace DevTools {
     }
 
     fs::path UserHomeDirectory() {
+        return UserHomeDirectory({});
+    }
+
+    fs::path UserHomeDirectory(const HomeDirConfig& config) {
         fs::path result;
 
 #ifdef __linux__
-        struct passwd* pw = getpwuid(getuid());
-        if (pw && pw->pw_dir)
+        if (!config.defHomeDir.empty())
+            return config.defHomeDir;
+
+        uid_t uid = getuid();
+        if (config.userId.has_value())
+            uid = config.userId.value();
+        else {
+            if (config.resolveSudoEnv) {
+                if (const char* sudoUid = std::getenv("SUDO_UID"); sudoUid)
+                    uid = std::stoi(sudoUid);
+            }
+            if (config.resolveDoasEnv) {
+                if (const char* doasUser = std::getenv("DOAS_USER"); doasUser) {
+                    if (const passwd* pw = getpwnam(doasUser))
+                        uid = pw->pw_uid;
+                }
+            }
+        }
+
+        if (passwd* pw = getpwuid(uid); pw && pw->pw_dir)
             result = pw->pw_dir;
         else
-            throw std::runtime_error("Failed to get user home");
+            throw std::runtime_error("Failed to get user home for UID " + std::to_string(uid));
 #elif defined(_WIN32)
         PWSTR widePath = nullptr;
         if (HRESULT hr = SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &widePath); SUCCEEDED(hr)) {
@@ -439,20 +487,22 @@ namespace DevTools {
         return result;
     }
 
-    std::wstring FromStrToWideStr(const std::string& str) {
+    std::wstring FromStrToWideStr(const std::string& data) {
+        if (data.empty())
+            return L"";
+
         const char* origLoc = std::setlocale(LC_ALL, nullptr);
         std::setlocale(LC_ALL, "");
-        if (str.empty()) return L"";
 
         std::mbstate_t state = {};
-        const char* src = str.c_str();
+        const char* src = data.c_str();
         size_t size = mbsrtowcs(nullptr, &src, 0, &state) + 1;
 
         if (size == static_cast<size_t>(-1))
             throw std::runtime_error("ToWideString: invalid multibyte sequence");
 
         std::wstring result(size, L'\0');
-        src = str.c_str();
+        src = data.c_str();
         mbsrtowcs(result.data(), &src, size, &state);
         result.resize(size - 1);
 
@@ -460,20 +510,22 @@ namespace DevTools {
         return result;
     }
 
-    std::string FromWideStrToStr(const std::wstring& wstr) {
+    std::string FromWideStrToStr(const std::wstring& data) {
+        if (data.empty())
+            return "";
+
         const char* origLoc = std::setlocale(LC_ALL, nullptr);
         std::setlocale(LC_ALL, "");
-        if (wstr.empty()) return "";
 
         std::mbstate_t state = {};
-        const wchar_t* src = wstr.c_str();
+        const wchar_t* src = data.c_str();
         size_t size = wcsrtombs(nullptr, &src, 0, &state) + 1;
 
         if (size == static_cast<size_t>(-1))
             throw std::runtime_error("FromWStrToStr: invalid wide character sequence");
 
         std::string result(size, '\0');
-        src = wstr.c_str();
+        src = data.c_str();
         wcsrtombs(result.data(), &src, size, &state);
         result.resize(size - 1);
 
@@ -486,10 +538,10 @@ namespace DevTools {
         std::mt19937_64 gen(rd());
         std::uniform_int_distribution<uint32_t> dist(0, 0xFFFFFFFF);
 
-        uint32_t a  = dist(gen);
-        uint32_t b  = dist(gen);
-        uint32_t c  = dist(gen);
-        uint32_t d  = dist(gen);
+        uint32_t a = dist(gen);
+        uint32_t b = dist(gen);
+        uint32_t c = dist(gen);
+        uint32_t d = dist(gen);
 
         // Set version 4 bits (0100) in the 13th hex digit
         b = (b & 0xFFFF0FFF) | 0x00004000;
@@ -498,12 +550,12 @@ namespace DevTools {
 
         std::ostringstream ss;
         ss << std::hex << std::setfill('0')
-           << std::setw(8) << a          << '-'
-           << std::setw(4) << (b >> 16)  << '-'
-           << std::setw(4) << (b & 0xFFFF) << '-'
-           << std::setw(4) << (c >> 16)  << '-'
-           << std::setw(4) << (c & 0xFFFF)
-           << std::setw(8) << d;
+            << std::setw(8) << a << '-'
+            << std::setw(4) << (b >> 16) << '-'
+            << std::setw(4) << (b & 0xFFFF) << '-'
+            << std::setw(4) << (c >> 16) << '-'
+            << std::setw(4) << (c & 0xFFFF)
+            << std::setw(8) << d;
 
         return ss.str();
     }
@@ -520,7 +572,7 @@ namespace DevTools {
         return ss.str();
     }
 
-    void ForceCloseThread(const THREAD_HANDLE handle) {
+    void ForceCloseThread(const THREAD_HANDLE& handle) {
 #ifdef _WIN32
         TerminateThread(reinterpret_cast<HANDLE>(handle), 0);
 #else
@@ -533,7 +585,7 @@ namespace DevTools {
     }
 
 #ifdef __linux__
-    __mode_t GetPermissionMask(const fs::path &path) {
+    __mode_t GetPermissionMask(const fs::path& path) {
         if (!fs::exists(path))
             throw std::runtime_error("File does not exist");
 
@@ -603,28 +655,49 @@ namespace DevTools {
         }
     }
 
-#ifdef _WIN32
     fs::path ResolveUnixSymlink(const fs::path& path) {
-        typedef char* (CDECL *PWineGetUnixFileName)(LPCWSTR);
+        std::error_code ec;
+        fs::file_status status = fs::symlink_status(path, ec);
+        if (ec)
+            throw std::runtime_error(std::format("Failed to stat path {}: {}", path.string(), ec.message()));
 
-        HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
-        if (!hKernel32)
-            throw std::runtime_error("GetModuleHandleA failed for kernel32.dll");
+        if (status.type() == fs::file_type::not_found)
+            throw std::runtime_error("Path does not exist");
 
-        auto wine_get_unix_file_name = reinterpret_cast<PWineGetUnixFileName>(GetProcAddress(hKernel32,
-            "wine_get_unix_file_name"));
+        if (!fs::is_symlink(path))
+            throw std::runtime_error("Given path is not a symlink");
 
-        if (!wine_get_unix_file_name)
-            throw std::runtime_error("GetProcAddress failed for wine_get_unix_file_name");
+        try {
+            fs::path resolved = fs::read_symlink(path);
+            return resolved;
+        } catch (...) {
+#ifdef _WIN32
+            typedef char* (CDECL *PWineGetUnixFileName)(LPCWSTR);
 
-        char* unixPath = wine_get_unix_file_name(FromStrToWideStr(path.string()).c_str());
-        if (!unixPath)
-            throw std::runtime_error("wine_get_unix_file_name resolve error");
+            HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
+            if (!hKernel32)
+                throw std::runtime_error("GetModuleHandleA failed for kernel32.dll");
 
-        auto resolvedPath = fs::path(unixPath);
-        LocalFree(unixPath);
-        return resolvedPath;
-    }
+            auto wine_get_unix_file_name = reinterpret_cast<PWineGetUnixFileName>(GetProcAddress(hKernel32,
+                "wine_get_unix_file_name"));
+
+            if (!wine_get_unix_file_name)
+                return "";
+
+            char* unixPath = wine_get_unix_file_name(FromStrToWideStr(path.string()).c_str());
+            if (!unixPath)
+                throw std::runtime_error("wine_get_unix_file_name resolve error");
+
+            auto resolvedPath = fs::path(unixPath);
+            LocalFree(unixPath);
+            return resolvedPath;
+#else
+            throw std::runtime_error(std::format("Unable to resolve symlink at {}", path.string()));
 #endif
+        }
+    }
 
+    fs::path TempDirectory() {
+        return fs::temp_directory_path();
+    }
 }

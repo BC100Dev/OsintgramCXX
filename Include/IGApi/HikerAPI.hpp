@@ -28,7 +28,7 @@ namespace IG::Session {
 
     struct HikerBody {
         std::string contentType;
-        std::variant<std::string, std::vector<unsigned char>> body;
+        std::vector<uint8_t> body;
     };
 
     struct HikerRequest {

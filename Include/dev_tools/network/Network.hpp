@@ -8,13 +8,6 @@
 
 namespace DevTools {
     using Headers = std::vector<std::pair<const std::string, const std::string>>;
-    using ByteData = std::string;
-    using RawData = std::vector<unsigned char>;
-    using Data = std::variant<ByteData, RawData>;
-
-    const ByteData& ReadByteData(const Data& d);
-
-    const RawData& ReadRawData(const Data& d);
 
     enum class RequestMethod {
         REQ_GET = 0,
@@ -35,12 +28,18 @@ namespace DevTools {
         HTTP_3_0 = 4,
     };
 
+    struct MultipartField {
+        std::string name;
+        std::vector<uint8_t> data;
+        std::optional<std::string> filename;
+        std::optional<std::string> contentType;
+    };
+
     struct ResponseData {
         int statusCode = 0;
-        Data body;
+        std::vector<uint8_t> body;
         Headers headers;
         HttpVersion version;
-        std::string errorData;
     };
 
     struct RequestData {
@@ -48,7 +47,7 @@ namespace DevTools {
         std::string url;
         Headers headers;
         HttpVersion version = HttpVersion::HTTP_1_1;
-        Data body;
+        std::vector<uint8_t> body;
         std::string ca_path;
 
         long connTimeoutMillis = 30000;
@@ -57,6 +56,8 @@ namespace DevTools {
         bool followRedirects = true;
         bool verifySSL = true;
     };
+
+    std::pair<std::vector<uint8_t>, std::string> BuildMultipartBody(const std::vector<MultipartField>& fields);
 
     ResponseData CreateRequest(const RequestData& request);
 

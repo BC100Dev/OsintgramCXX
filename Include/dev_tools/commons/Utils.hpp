@@ -34,17 +34,25 @@
 #ifdef __amd64__
 #define SYSTEM_ARCHITECTURE "amd64"
 #define CPU_ARCHITECTURE "x64"
+#define LABEL_ARCH "x64"
 #endif
 
 #ifdef __aarch64__
 #define SYSTEM_ARCHITECTURE "aarch64"
 #define CPU_ARCHITECTURE "arm64"
+#define LABEL_ARCH "aarch64"
 #endif
 
 #ifdef __i386__
 #define SYSTEM_ARCHITECTURE "i386"
 #define CPU_ARCHITECTURE "x32"
+#define LABEL_ARCH "x32"
 #endif
+
+#define CHARS_UPPER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define CHARS_LOWER "abcdefghijklmnopqrstuvwxyz"
+#define CHARS_NUMS "0123456789"
+#define CHARS_SPECIAL "@!§%&.,"
 
 using namespace nlohmann;
 namespace fs = std::filesystem;
@@ -54,6 +62,15 @@ namespace DevTools {
     public:
         explicit JsonKeyMissingError(const std::string& msg) : runtime_error(msg) {
         }
+    };
+
+    struct HomeDirConfig {
+#ifdef __linux__
+        bool resolveSudoEnv = false;
+        bool resolveDoasEnv = false;
+        std::optional<uid_t> userId = std::nullopt;
+        fs::path defHomeDir;
+#endif
     };
 
     std::string ToLowercase(const std::string& str);
@@ -76,6 +93,8 @@ namespace DevTools {
 
     // don't forget to pull up that Regex skill without googling it! (evil laughter)
     std::string ReplaceAll(const std::string& str, const std::string& pattern, const std::string& replacement);
+
+    std::string ReplaceAll(const std::string& str, const std::regex& pattern, const std::string& replacement);
 
     std::string ReplaceFirst(const std::string& str, const std::string& from, const std::string& to);
 
@@ -108,6 +127,10 @@ namespace DevTools {
     // I'd recommend at least sparing 512 MB for this project
     long RandomSeed(long min = 5, long max = 500);
 
+    std::string RandomString(int len);
+
+    std::string RandomString(int len, const std::string& chars);
+
     void threadSleep(long duration);
 
     std::vector<char> Pause(const std::string& prompt, const ssize_t& count);
@@ -130,15 +153,17 @@ namespace DevTools {
 
     fs::path UserHomeDirectory();
 
-    std::wstring FromStrToWideStr(const std::string& str);
+    fs::path UserHomeDirectory(const HomeDirConfig& config);
 
-    std::string FromWideStrToStr(const std::wstring& wstr);
+    std::wstring FromStrToWideStr(const std::string& data);
+
+    std::string FromWideStrToStr(const std::wstring& data);
 
     std::string RandomUUID();
 
     std::string ConstructErrorMessage();
 
-    void ForceCloseThread(const THREAD_HANDLE handle);
+    void ForceCloseThread(const THREAD_HANDLE& handle);
 
     void ForceCloseThread(std::thread& th);
 
@@ -170,9 +195,9 @@ namespace DevTools {
 
     void RequireJsonKeys(const json& data, const std::vector<std::string>& keys, const std::string& errMsgPrefix);
 
-#ifdef _WIN32
     fs::path ResolveUnixSymlink(const fs::path& path);
-#endif
+
+    fs::path TempDirectory();
 }
 
 #endif //DEVTOOLS_UTILS_HPP

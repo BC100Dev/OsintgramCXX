@@ -55,7 +55,10 @@ int main(int argc, char** argv) {
     ResponseData res = CreateRequest(req);
 
     std::cout << "Status: " << res.statusCode << std::endl;
-    std::cout << "Body: " << ReadByteData(res.body) << std::endl;
+    std::cout << "Body: ";
+
+    for (const auto& b : res.body)
+        std::cout << b << std::endl;
 
     return 0;
 }

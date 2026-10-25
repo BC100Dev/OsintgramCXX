@@ -106,13 +106,13 @@ namespace IG::Session {
          * Must be overridden to reflect the proper format required by the Instagram's APIs.
          * @return a callable User-Agent header value
          */
-        std::string MakeUserAgent();
+        [[nodiscard]] std::string MakeUserAgent() const;
 
         /**
          * Returns the type of device that ends up being spoofed.
          * @return The type itself, being either DESKTOP or MOBILE.
          */
-        Type GetDeviceType();
+        [[nodiscard]] Type GetDeviceType() const;
 
         /**
          * Sets a different device type on the device object itself
@@ -133,9 +133,9 @@ namespace IG::Session {
          * @param key The key that accesses the device map itself
          * @return Returns any type of value given by the SetInfo call.
          */
-        std::any GetInfo(const std::string &key);
+        [[nodiscard]] std::any GetInfo(const std::string &key) const;
 
-        OperatingSystem GetOperatingSystem();
+        [[nodiscard]] OperatingSystem GetOperatingSystem() const;
 
         void SetOperatingSystem(const OperatingSystem &os);
 
@@ -147,6 +147,10 @@ namespace IG::Session {
     };
 
     Device CopyHostDeviceSetup();
+
+    void SetCurrentDevice(const Device& dev);
+
+    std::optional<Device> GetCurrentDevice();
 
     /**
      * Represents an authenticated Instagram user.

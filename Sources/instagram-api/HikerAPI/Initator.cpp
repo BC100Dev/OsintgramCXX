@@ -25,18 +25,18 @@ namespace IG::Session {
 
     HikerBalance HikerAPI::GetBalance() {
         HikerResponse hResp = InitiateHikerRequest({
-            "/sys/balance",
-            "application/json",
-            RequestMethod::REQ_GET,
-            {},
-            std::nullopt
+            .endpoint = "/sys/balance",
+            .accepts = "application/json",
+            .method = RequestMethod::REQ_GET,
+            .extraHeaders = {},
+            .body = std::nullopt
         });
 
-        auto raw = std::get<std::string>(hResp.body.body);
+        auto raw = std::string(hResp.body.body.begin(), hResp.body.body.end());
         json data;
         try {
             data = json::parse(raw);
-        } catch (json::parse_error& e) {
+        } catch (json::parse_error&) {
             throw HikerError("Could not parse HikerAPI json", raw);
         }
 
@@ -49,16 +49,17 @@ namespace IG::Session {
                         }, "HikerAPI Error");
 
         return {
-            data.at("requests"),
-            data.at("rate"),
-            data.at("amount"),
-            data.at("currency")
+            .requests = data.at("requests"),
+            .rate = data.at("rate"),
+            .amount = data.at("amount"),
+            .currency = data.at("currency")
         };
     }
 
     HikerResponse HikerAPI::InitiateHikerRequest(const HikerRequest& request) {
+        // I need therapy rn 😭
         std::string haveYouReceivedTheErection = request.endpoint;
-        if (!haveYouReceivedTheErection.starts_with("/"))
+        if (!haveYouReceivedTheErection.starts_with('/'))
             haveYouReceivedTheErection.insert(0, 1, '/');
 
         // have you?
@@ -76,13 +77,8 @@ namespace IG::Session {
         }
 
         if (request.body.has_value()) {
-            HikerBody body = request.body.value();
-            req.headers.emplace_back("Content-Type", body.contentType);
-
-            if (std::holds_alternative<std::string>(body.body))
-                req.body = std::get<std::string>(body.body);
-            else if (std::holds_alternative<std::vector<unsigned char>>(body.body))
-                req.body = std::get<std::vector<unsigned char>>(body.body);
+            req.headers.emplace_back("Content-Type", request.body->contentType);
+            req.body = request.body->body;
         }
 
         ResponseData response = CreateRequest(req);
@@ -96,11 +92,7 @@ namespace IG::Session {
             if (std::string fstLwr = ToLowercase(fst); fstLwr == "content-type")
                 hResp.body.contentType = snd;
         }
-
-        if (std::holds_alternative<std::string>(response.body))
-            hResp.body.body = std::get<std::string>(response.body);
-        else if (std::holds_alternative<std::vector<unsigned char>>(response.body))
-            hResp.body.body = std::get<std::vector<unsigned char>>(response.body);
+        hResp.body.body = response.body;
 
         return hResp;
     }

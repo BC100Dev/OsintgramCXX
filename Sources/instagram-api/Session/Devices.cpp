@@ -173,11 +173,14 @@ namespace IG::Session {
 
     const std::string& Device::KEYINFO_BROWSER_VERSION = "browser_version";
 
-    std::string Device::MakeUserAgent() {
+    std::optional<Device> currentDevice = std::nullopt;
+
+    std::string Device::MakeUserAgent() const {
         // Example Android UA: "25/7.1.1; 440dpi; 1080x1920; Xiaomi; MI MAX 2; oxygen; qcom"
         std::stringstream ua;
 
         if (m_deviceType == Type::MOBILE) {
+            ua << "Instagram (Android; ";
             ua << m_androidInfo.androidVersion.apiVersion << "/";
             ua << m_androidInfo.androidVersion.niceVersion << "; ";
             ua << m_androidInfo.displaySize.dpi << "dpi; ";
@@ -185,7 +188,7 @@ namespace IG::Session {
             ua << m_androidInfo.manufacturer << "; ";
             ua << m_androidInfo.product << "; ";
             ua << m_androidInfo.codename << "; ";
-            ua << m_androidInfo.cpuLabel;
+            ua << m_androidInfo.cpuLabel << ")";
         } else {
             auto browserVer = std::any_cast<std::string>(GetInfo(KEYINFO_BROWSER_VERSION));
             ua << "Mozilla/5.0 (";
@@ -213,7 +216,7 @@ namespace IG::Session {
         return ua.str();
     }
 
-    Device::Type Device::GetDeviceType() {
+    Device::Type Device::GetDeviceType() const {
         return m_deviceType;
     }
 
@@ -224,9 +227,9 @@ namespace IG::Session {
     void Device::SetInfo(const std::string& key, const std::any& val) {
         deviceInfo[key] = val;
 
+        bool typeStr = val.type() == typeid(std::string);
         if (m_deviceType == Type::MOBILE) {
             bool typeInt = val.type() == typeid(int);
-            bool typeStr = val.type() == typeid(std::string);
 
             try {
                 if (key == KEYINFO_ANDROID_API && typeInt) {
@@ -255,7 +258,7 @@ namespace IG::Session {
         }
     }
 
-    std::any Device::GetInfo(const std::string& key) {
+    std::any Device::GetInfo(const std::string& key) const {
         if (m_deviceType == Type::MOBILE) {
             if (key == KEYINFO_ANDROID_API)
                 return m_androidInfo.androidVersion.apiVersion;
@@ -294,7 +297,7 @@ namespace IG::Session {
         throw KeyNotFoundError("Key " + key + " not found");
     }
 
-    Device::OperatingSystem Device::GetOperatingSystem() {
+    Device::OperatingSystem Device::GetOperatingSystem() const {
         return m_os;
     }
 
@@ -442,5 +445,13 @@ namespace IG::Session {
 #endif
 
         return device;
+    }
+
+    void SetCurrentDevice(const Device& dev) {
+        currentDevice = dev;
+    }
+
+    std::optional<Device> GetCurrentDevice() {
+        return currentDevice;
     }
 }

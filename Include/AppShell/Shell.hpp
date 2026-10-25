@@ -2,6 +2,7 @@
 #define OSINTGRAMCXX_SHELL_HPP
 
 #include <map>
+#include <optional>
 #include <string>
 #include <functional>
 #include <stdexcept>
@@ -25,6 +26,11 @@ namespace Application {
         std::function<int(const CommandLineInputArgs& /* args */, const ShellEnvironment& /* env */)> handle;
     };
 
+    struct ExecutionData {
+        int returnCode;
+        std::string data;
+    };
+
     enum class ExecutionType {
         PRE_EXEC,
         POST_EXEC
@@ -33,15 +39,14 @@ namespace Application {
     // params: cmdName, argc, argv, envc, env_map
     using C_CommandExec = std::function<int(const char*, int, char**, int, char**)>;
 
-    using CommandHelperFinderFn = std::function<bool(const std::string& /*cmd*/)>;
-    using CommandHelperCallbackFn = std::function<int(const std::string& /*cmd*/,
-                                                      const CommandLineInputArgs&,
-                                                      const ShellEnvironment&)>;
+    using CommandHelperFinderFn = std::function<bool(const std::string& /* cmd_name */)>;
+    using CommandHelperCallbackFn = std::function<int(const std::string& /* cmd_name */,
+                                                      const CommandLineInputArgs& /* args */,
+                                                      const ShellEnvironment& /* env_map */)>;
     using CommandHelperListingFn = std::function<std::string()>;
     using CommandExecutionListener = std::function<void(const ExecutionType& /* type */,
                                                         const std::string& /* cmdline */,
-                                                        std::optional<int> /* return_code */,
-                                                        const std::optional<std::string>& /* data */)>;
+                                                        const std::optional<ExecutionData>& /* return_data */)>;
 
     struct ShellLibEntry {
         std::string cmd;
@@ -69,7 +74,7 @@ namespace Application {
 
         void Start();
 
-        bool IsRunning() const;
+        [[nodiscard]] bool IsRunning() const;
 
         void Stop(bool forceStop);
 
@@ -79,11 +84,9 @@ namespace Application {
 
         void AddCommand(const CommandImpl& cmd);
 
-        void SetCommandFallbackHandler(const CommandFallbackContent& data, bool replace) const;
+        void AddCommandFallbackHandler(const CommandFallbackContent& data) const;
 
-        void SetCommandFallbackHandler(const CommandFallbackContent& data) const;
-
-        void SetCommandExecutionListener(const CommandExecutionListener& listener) const;
+        void AddCommandExecutionListener(const CommandExecutionListener& listener) const;
 
         void SetEnv(const std::string& key, const std::string& val);
 
@@ -113,9 +116,6 @@ namespace Application {
         void chEnvMapTable(const std::string& line);
 
         void helpCmd();
-
-        [[deprecated]] static void reloadCmd();
-
 
         std::string m_prompt;
         bool m_customCommandEntryWarning = true;

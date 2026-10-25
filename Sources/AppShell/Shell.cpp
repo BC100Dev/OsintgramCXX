@@ -1,7 +1,6 @@
 #include <AppShell/Shell.hpp>
 
 #include <dev_tools/commons/Utils.hpp>
-#include <dev_tools/commons/Terminal.hpp>
 #include <dev_tools/commons/Tools.hpp>
 #include <dev_tools/commons/HelpPage.hpp>
 
@@ -22,7 +21,6 @@
 #elif _WIN32
 
 #include <windows.h>
-#include <shlobj.h>
 
 #endif
 
@@ -40,15 +38,24 @@ namespace Application {
 
     void HandleShellForceClose(int);
 
-    std::optional<CommandHelperFinderFn> finderFunc;
-    std::optional<CommandHelperCallbackFn> callbackFunc;
-    std::optional<CommandHelperListingFn> listingFunc;
-    std::optional<CommandExecutionListener> execListener;
+    struct AdditionalCommandHelperP {
+        CommandHelperFinderFn finderFunc;
+        CommandHelperCallbackFn callbackFunc;
+        CommandHelperListingFn listingFunc;
+    };
+
+    std::vector<CommandExecutionListener> execListeners;
+    std::vector<AdditionalCommandHelperP> additCommandHelpers;
 
     void AppShell::AddCommand(const CommandImpl& cmd) {
         for (const auto& val : m_cmdList) {
             if (val.name == cmd.name)
                 throw ShellException("Command by the name of \"" + cmd.name + "\" exists");
+        }
+
+        for (const auto& addit : additCommandHelpers) {
+            if (addit.finderFunc(cmd.name))
+                throw ShellException("Command by the name of \"" + cmd.name + "\" is declared by a module");
         }
 
         m_cmdList.emplace_back(cmd);
@@ -143,15 +150,38 @@ namespace Application {
 
     void AppShell::chEnvMapTable(const std::string& line) {
         std::string worker = TrimString(line);
+        if (worker.empty())
+            return;
+
         if (worker[0] == '&')
             worker = worker.substr(1);
 
-        if (StringContains(line, "=")) {
-            std::vector<std::string> opt = SplitString(worker, "=", 2);
-            opt[0] = TrimString(opt[0]);
-            opt[1] = TrimString(opt[1]);
+        // another processing after potential '&' removal
+        if (worker.empty())
+            return;
 
-            SetEnv(opt[0], opt[1]);
+        if (size_t eqp = worker.find('='); eqp != std::string::npos) {
+            std::string k = TrimString(worker.substr(0, eqp));
+            std::string v = TrimString(worker.substr(eqp + 1));
+
+            if (k.starts_with('\"') || k.starts_with('\''))
+                k = k.substr(1);
+
+            if (k.ends_with('\"') || k.ends_with('\''))
+                k = k.substr(0, k.size() - 1);
+
+            if (k.empty()) {
+                std::cerr << "An environment variable's key name cannot be empty." << std::endl;
+                return;
+            }
+
+            if (v.starts_with('\"') || v.starts_with('\''))
+                v = v.substr(1);
+
+            if (v.ends_with('\"') || v.ends_with('\''))
+                v = v.substr(0, v.size() - 1);
+
+            SetEnv(k, v);
         } else {
             auto it = m_environment.find(worker);
             if (it == m_environment.end()) {
@@ -174,6 +204,11 @@ namespace Application {
         signal(SIGSTOP, HandleShellForceClose);
         signal(SIGTERM, HandleShellForceClose);
 #endif
+
+        auto ResetMultiline = [&] {
+            isMultiline = false;
+            multiLineCmd = "";
+        };
 
         while (m_running && !g_forceStop) {
             try {
@@ -209,7 +244,24 @@ namespace Application {
                 if (isMultiline)
                     multiLineCmd += line;
 
-                std::vector<std::string> cmdLine = TranslateStrToCmdline(isMultiline ? multiLineCmd : line);
+                std::vector<std::string> cmdLine{};
+                try {
+                    cmdLine = TranslateStrToCmdline(isMultiline ? multiLineCmd : line);
+                } catch (const std::runtime_error& e) {
+                    if (std::string(e.what()).contains("unbalanced quotes")) {
+                        std::cerr << "Unbalanced quotes detected." << std::endl;
+                        std::cerr << "Please retype your command again." << std::endl;
+                        ResetMultiline();
+                        threadSleep(70);
+                        continue;
+                    }
+                } catch (...) {
+                    std::cerr << "An issue occurred, while translating cmdline" << std::endl;
+                    ResetMultiline();
+                    threadSleep(70);
+                    continue;
+                }
+
                 std::vector<std::string> cmdArgs;
 
                 if (cmdLine.size() > 1) {
@@ -218,26 +270,27 @@ namespace Application {
                 }
 
                 if (cmdLine[0] == "exit" || cmdLine[0] == "quit" || cmdLine[0] == "close") {
+                    ResetMultiline();
                     Stop(false);
                     return;
                 }
 
                 if (cmdLine[0] == "help") {
                     helpCmd();
+                    ResetMultiline();
                     continue;
                 }
-
-                isMultiline = false;
-                multiLineCmd = "";
 
                 CommandExecution ret = run_cmd(isMultiline ? multiLineCmd : line, cmdLine[0], cmdArgs, m_environment);
                 if (!ret.cmdFound) {
                     std::cerr << ret.msg << std::endl;
                     threadSleep(70);
 
+                    ResetMultiline();
                     continue;
                 }
 
+                ResetMultiline();
                 if (ret.rc != 0) {
                     std::cerr << cmdLine[0] << ": exit code " << ret.rc << std::endl;
                     threadSleep(70);
@@ -269,21 +322,13 @@ namespace Application {
             mPage.display(std::cout);
         }
 
-        if (listingFunc.has_value()) {
-            std::string listingData = listingFunc.value()();
+        for (const auto& addit : additCommandHelpers) {
+            std::string listingData = addit.listingFunc();
             listingData = TrimString(listingData);
 
             if (!listingData.empty())
                 std::cout << listingData << "\n" << std::endl;
         }
-    }
-
-    [[deprecated]] void AppShell::reloadCmd() {
-        // it was meant to be able to reload all "commands.json" configs,
-        // but this would mean that I would need to move another part of the codebase,
-        // specifically from "Application" to another library or something. peak laziness haha
-        // idk why you reading this p.o.s, but if you do, just be mindful that I was lazy
-        // and that I wanted a few additional methods.
     }
 
     AppShell::CommandExecution AppShell::run_cmd(const std::string& cmdline,
@@ -305,11 +350,13 @@ namespace Application {
             }
         }
 
-        if (!found && finderFunc.has_value() && callbackFunc.has_value()) {
-            found = finderFunc.value()(cmd);
-
-            if (found)
+        std::optional<CommandHelperCallbackFn> callbackFn = std::nullopt;
+        for (const auto& addit : additCommandHelpers) {
+            if (addit.finderFunc(cmd)) {
+                found = true;
                 usingCallback = true;
+                callbackFn = addit.callbackFunc;
+            }
         }
 
         if (!found) {
@@ -321,34 +368,46 @@ namespace Application {
 
         execReturn.cmdFound = true;
 
-        if (execListener.has_value()) {
+        for (const auto& execLis : execListeners) {
             std::thread th([&] {
-                execListener.value()(ExecutionType::PRE_EXEC, cmdline, std::nullopt, std::nullopt);
+                try {
+                    execLis(ExecutionType::PRE_EXEC, cmdline, std::nullopt);
+                } catch (...) {
+                }
             });
-            th.join();
+            th.detach();
         }
 
         StdCapture scap;
 
-        if (usingCallback)
-            execReturn.rc = callbackFunc.value()(cmd, args, env);
+        if (usingCallback && callbackFn.has_value())
+            execReturn.rc = callbackFn.value()(cmd, args, env);
         else if (std::holds_alternative<NFCommandExec>(cmdExecHandlerVar)) {
             try {
                 execReturn.rc = std::get<NFCommandExec>(cmdExecHandlerVar)(args, env);
             } catch (const std::runtime_error& err) {
                 std::cerr << "Runtime error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
+                execReturn.rc = -105;
             } catch (const std::exception& err) {
                 std::cerr << "Error occurred, while executing \"" << cmd << "\": " << err.what() << std::endl;
+                execReturn.rc = -106;
             } catch (...) {
                 std::cerr << "Unknown error occurred, while executing \"" << cmd << "\"" << std::endl;
+                execReturn.rc = -107;
             }
         }
 
-        if (execListener.has_value()) {
+        for (const auto& execLis : execListeners) {
             std::thread th([&] {
-                execListener.value()(ExecutionType::POST_EXEC, cmdline, execReturn.rc, scap.str());
+                try {
+                    execLis(ExecutionType::POST_EXEC, cmdline, ExecutionData{
+                                .returnCode = execReturn.rc,
+                                .data = scap.str()
+                            });
+                } catch (...) {
+                }
             });
-            th.join();
+            th.detach();
         }
 
         if (m_timeMeasuringSystem) {
@@ -364,21 +423,17 @@ namespace Application {
         return execReturn;
     }
 
-    void AppShell::SetCommandFallbackHandler(const CommandFallbackContent& data, bool replace) const {
-        if ((callbackFunc.has_value() && listingFunc.has_value() && finderFunc.has_value()) && !replace)
-            throw ShellException("Command fallback handlers have already been defined");
+    void AppShell::AddCommandFallbackHandler(const CommandFallbackContent& data) const {
+        AdditionalCommandHelperP p;
+        p.callbackFunc = data.callbackFn;
+        p.listingFunc = data.listingFn;
+        p.finderFunc = data.finderFn;
 
-        callbackFunc = data.callbackFn;
-        listingFunc = data.listingFn;
-        finderFunc = data.finderFn;
+        additCommandHelpers.emplace_back(p);
     }
 
-    void AppShell::SetCommandFallbackHandler(const CommandFallbackContent& data) const {
-        SetCommandFallbackHandler(data, false);
-    }
-
-    void AppShell::SetCommandExecutionListener(const CommandExecutionListener& listener) const {
-        execListener = listener;
+    void AppShell::AddCommandExecutionListener(const CommandExecutionListener& listener) const {
+        execListeners.emplace_back(listener);
     }
 
     AppShell& GetShellInstance() {

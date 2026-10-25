@@ -318,8 +318,8 @@ int main(int argc, char** argv) {
         }
 
         if (getuid() == 0) {
-            if (seteuid(0) == 0)
-                std::cout << "Applied root privileges upon seteuid call, continuing..." << std::endl;
+            //if (seteuid(0) == 0)
+            //    std::cout << "Applied root privileges upon seteuid call, continuing..." << std::endl;
 
             if (chroot(chrootPath.c_str()) != 0) {
                 std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;

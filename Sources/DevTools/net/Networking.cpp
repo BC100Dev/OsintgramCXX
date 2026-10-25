@@ -3,6 +3,9 @@
 
 #include <algorithm>
 #include <iostream>
+#include <cctype>
+#include <chrono>
+#include <optional>
 
 #ifdef __ANDROID__
 
@@ -39,24 +42,21 @@ namespace DevTools {
         case RequestMethod::REQ_TRACE:
             return "TRACE";
         default:
-            return "UNKNOWN";
+            return "EXTRA";
         }
+    }
+
+    static long nowMillis() {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()
+        ).count();
     }
 
     static size_t WCallback(void* contents, size_t size, size_t nmemb, void* userp) {
         auto* response = static_cast<ResponseData*>(userp);
         size_t totalSize = size * nmemb;
-
-        if (std::holds_alternative<ByteData>(response->body))
-            std::get<ByteData>(response->body).append(
-                static_cast<char*>(contents), totalSize);
-        else {
-            auto& raw = std::get<RawData>(response->body);
-            raw.insert(raw.end(),
-                       static_cast<unsigned char*>(contents),
-                       static_cast<unsigned char*>(contents) + totalSize);
-        }
-
+        auto* data = static_cast<uint8_t*>(contents);
+        response->body.insert(response->body.end(), data, data + totalSize);
         return totalSize;
     }
 
@@ -77,10 +77,8 @@ namespace DevTools {
     }
 
     static int PCallback(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
-        auto* state = static_cast<ProgressState*>(clientp);
-        long currentTime = static_cast<long>(time(nullptr)) * 1000;
-
-        if ((currentTime - state->startTime) > state->readTimeoutMillis)
+        if (auto* state = static_cast<ProgressState*>(clientp);
+            (nowMillis() - state->startTime) > state->readTimeoutMillis)
             return 1;
 
         return 0;
@@ -106,6 +104,40 @@ namespace DevTools {
         curl_global_cleanup();
     }
 
+    std::pair<std::vector<uint8_t>, std::string> BuildMultipartBody(const std::vector<MultipartField>& fields) {
+        const std::string boundary = "----boundary";
+        const std::string dash = "--";
+        const std::string crlf = "\r\n";
+
+        std::vector<uint8_t> body;
+
+        auto append = [&](const std::string& s) {
+            body.insert(body.end(), s.begin(), s.end());
+        };
+
+        for (const auto& field : fields) {
+            append(dash + boundary + crlf);
+
+            if (field.filename.has_value()) {
+                append("Content-Disposition: form-data; name=\"" + field.name + "\"; filename=\""
+                    + field.filename.value() + "\"" + crlf);
+                const std::string ct = field.contentType.value_or("application/octet-stream");
+                append("Content-Type: " + ct + crlf);
+            } else {
+                append("Content-Disposition: form-data; name=\"" + field.name + "\"" + crlf);
+                if (field.contentType.has_value())
+                    append("Content-Type: " + field.contentType.value() + crlf);
+            }
+
+            append(crlf);
+            body.insert(body.end(), field.data.begin(), field.data.end());
+            append(crlf);
+        }
+
+        append(dash + boundary + dash + crlf);
+        return { body, boundary };
+    }
+
     ResponseData CreateRequest(const RequestData& request) {
         CURL* curl = curl_easy_init();
         ResponseData response;
@@ -116,18 +148,8 @@ namespace DevTools {
         try {
             curl_easy_setopt(curl, CURLOPT_URL, request.url.c_str());
 
-            const void* bodyPtr = nullptr;
-            size_t bodySize = 0;
-            if (std::holds_alternative<ByteData>(request.body)) {
-                const auto& b = std::get<ByteData>(request.body);
-                bodyPtr = b.data();
-                bodySize = b.size();
-            }
-            else {
-                const auto& b = std::get<RawData>(request.body);
-                bodyPtr = b.data();
-                bodySize = b.size();
-            }
+            const void* bodyPtr = reinterpret_cast<const char*>(request.body.data());
+            size_t bodySize = request.body.size();
 
             switch (request.method) {
             case RequestMethod::REQ_GET:
@@ -173,7 +195,7 @@ namespace DevTools {
             curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, MapHttpVersion(request.version));
 
             // Headers
-            struct curl_slist* curlHeaders = nullptr;
+            curl_slist* curlHeaders = nullptr;
             for (const auto& [key, value] : request.headers) {
                 std::string header = key + ": " + value;
                 curlHeaders = curl_slist_append(curlHeaders, header.c_str());
@@ -202,7 +224,7 @@ namespace DevTools {
             curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, request.readTimeoutMillis + request.connTimeoutMillis);
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
-            ProgressState pState = {static_cast<long>(time(nullptr)) * 1000, request.readTimeoutMillis};
+            ProgressState pState = {nowMillis(), request.readTimeoutMillis};
             curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, PCallback);
             curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &pState);
 
@@ -237,31 +259,13 @@ namespace DevTools {
             response.statusCode = static_cast<int>(httpStatusCode);
 
             curl_slist_free_all(curlHeaders);
-        }
-        catch (const std::exception& ex) {
-            response.errorData = ex.what();
+        } catch (const std::exception& ex) {
             CleanCurl(curl);
-
-            return response;
+            throw NetworkError(ex.what());
         }
 
         CleanCurl(curl);
 
         return response;
     }
-
-    const ByteData& ReadByteData(const Data& d) {
-        if (!std::holds_alternative<ByteData>(d))
-            throw std::runtime_error("[DevTools] Data has not been given as ByteData");
-
-        return std::get<ByteData>(d);
-    }
-
-    const RawData& ReadRawData(const Data& d) {
-        if (!std::holds_alternative<RawData>(d))
-            throw std::runtime_error("[DevTools] Data has not been given as RawData");
-
-        return std::get<RawData>(d);
-    }
-
 }

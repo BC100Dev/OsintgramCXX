@@ -104,8 +104,7 @@ std::string ShellHelpers_Listings() {
 
 void ShellHelpers_CommandExecListener(const ExecutionType& exType,
                                       const std::string& cmdline,
-                                      std::optional<int> retCode,
-                                      const std::optional<std::string>& data) {
+                                      const std::optional<ExecutionData>& data) {
     for (const auto& val : loadedLibraries | std::views::values) {
         if (exType == ExecutionType::PRE_EXEC && val.handler_onCmdExecStart != nullptr) {
             std::thread th([&] {
@@ -114,11 +113,11 @@ void ShellHelpers_CommandExecListener(const ExecutionType& exType,
             th.detach();
         }
 
-        if (exType == ExecutionType::POST_EXEC && val.handler_onCmdExecFinish != nullptr) {
+        if (exType == ExecutionType::POST_EXEC && val.handler_onCmdExecFinish != nullptr && data.has_value()) {
             std::thread th([&] {
                 val.handler_onCmdExecFinish(const_cast<char*>(cmdline.c_str()),
-                    retCode.has_value() ? retCode.value() : -16,
-                    const_cast<char*>(std::string(data.has_value() ? data.value() : "").c_str()));
+                    data->returnCode,
+                    const_cast<char*>(data->data.data()));
             });
             th.join();
         }
@@ -126,10 +125,10 @@ void ShellHelpers_CommandExecListener(const ExecutionType& exType,
 }
 
 void OSINT_IncludeShellCallback(const AppShell& shell) {
-    shell.SetCommandFallbackHandler({
+    shell.AddCommandFallbackHandler({
                                         .finderFn = ShellHelpers_Finder,
                                         .callbackFn = ShellHelpers_Executor,
                                         .listingFn = ShellHelpers_Listings
-                                    }, true);
-    shell.SetCommandExecutionListener(ShellHelpers_CommandExecListener);
+                                    });
+    shell.AddCommandExecutionListener(ShellHelpers_CommandExecListener);
 }
