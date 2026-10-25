@@ -34,8 +34,8 @@ Alongside, people have been asking me about using this tool, with one clear exam
 version. I don't want to make this personal or offend anyone that are eagerly waiting for
 this tool to come out, but actual development, with and without AI, does take time. This
 means that actual development are not always "quick coding sessions", as you may imagine.
-Development takes time, and so does performing throughout testing. Despite the time, I will
-be updating on any updates.
+Development takes time, and so does thorough testing. Despite the time, I will be updating
+on any updates.
 
 However, what I can describe on what features are implemented (or will be) in here are these:
 - **Modding Support**: Add your own Hooks and Commands to OsintgramCXX itself (requires C/C++
@@ -89,8 +89,8 @@ By using this tool, you acknowledge that:
 - **Actions getting logged**: Instagram will log each action you take using this tool
 - **Liability**: we, the developers of Osintgram, are not liable for the consequences you 
   take by potentially misusing this tool.
-- **Terms and Imprint**: using this tool, you also break the Instagram's [Terms of Service
-  / Privacy Policy](https://help.instagram.com/581066165581870/?locale=en_US). As per the
+- **Terms and Privacy Policy**: using this tool, you also break the Instagram's
+  [ToS / Privacy Policy](https://help.instagram.com/581066165581870/?locale=en_US). As per the
   Privacy Policy violation, you may be in violation of other people's privacy, if you are
   doing activities using this tool without any consent.
 - **Consensual Activities**: you are using this tool with the permission that you are
@@ -222,7 +222,7 @@ doesn't exist, or in worse case scenario, `commands.json` not being found or not
 OsintgramCXX may not crash, but no commands will be present. The `AppSettings.cfg` file
 is an optional file dedicated to on-startup settings.
 
-However, if the build does fail, please report an issue by pasing in the build logs of
+However, if the build does fail, please report an issue by passing in the build logs of
 what exactly failed and under what commit hash you are under. The commit hash is effective
 due to the exact traceability of where and when exactly it has crashed. You may fetch out
 the commit hash using either `git rev-parse HEAD` or via `echo $(git log -1 --format="%H")`.
@@ -354,7 +354,7 @@ extern "C" void plugin_stop() {}
 The `plugin_start` is also effective, if you are preloading commands yourself via C++ code
 instead of putting symbols dynamically via `cmd_symbol`. For dynamic preloading, you link
 against `app-shell` itself and call on `AddCommand`, which takes in these specific parameters
-via the namespace, as demonstrated below via sample code:
+via the namespace, as demonstrated below via sample code (C++20 syntax):
 
 ```c++
 #include <AppShell/Shell.hpp>
@@ -443,7 +443,7 @@ architecture and what system you are running on, along with not planning to cros
 you can leave out other platforms alone. That is, if your system is a Linux x86_64, you will
 only need the `linux:x64` under `lib`. The other lib entries are there to separate your own
 current system with other system architectures. Please do note that OsintgramCXX is built
-with Glibc on top, so if you are using Musl, the C library will be most likely be a clashing
+with Glibc on top, so if you are using Musl, the C library will most likely be a clashing 
 point.
 
 A bit of undocumented, but under `commands.json` under the `command_sets` section, you can
@@ -454,4 +454,4 @@ Also keep in mind that I will not support any modifications / plugins that viola
 Instagram ToS harder than this tool already does. If you are unaware of what I mean, refer to
 the disclaimer section or let your desired choice of an LLM model read it for you.
 Additionally, I am not willing to make an open market for plugins / mods that are considered
-"official", "safe to use" or some kind of mod repository in any shape of form.
+"official", "safe to use" or some kind of mod repository in any shape or form.
