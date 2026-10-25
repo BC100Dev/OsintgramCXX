@@ -9,24 +9,17 @@
 ```
 
 Ever since the development on [the original Project](https://github.com/Datalux/Osintgram)
-has stopped and the Instagram API being changed constantly, I have decided to take care
-of this project and rewrite most to all components by myself. Well... except for the
-Networking part, me and Networking aren't the best friends... just yet. Wait, until I
-finish one of the most insane projects known to man. A hint, it's on my GitHub profile.
+originally stopped back in 2023, I decided to initiate a complete rewrite, with the original
+attempt [being made in Java](https://github.com/BC100Dev/osintgram4j). Despite the original
+project having resumed development on the web basis, I am tackling this rewrite anyway with
+the original functionality of Osintgram v2.0 being implemented before HikerAPI was included
+in the first place. This version of Osintgram, that being the CXX version, handles things
+in the Terminal instead of on the web, persisting on the classic.
 
-## Halting development temporarily
-I know that y'all hate to see this part, but due to upcoming final exams that I'll be
-having, I have to shift focus onto them. No, I'm not fully stopping development for
-OsintgramCXX itself. This may or may not take up until May, June or July, depending on how
-the finals will eat me up.
-
-[See the full information here.](https://github.com/BC100Dev/OsintgramCXX/discussions/5)
-
-With me and Datalux further expanding the [Osintgram](https://github.com/Datalux/Osintgram)
-project, I have decided to take care on the CLI part, while the original version can
-officially deviate into web-based tooling. This means that if you are a CLI deliberate,
-this version is for you. This version allows you to use the legacy version of logging into
-your Instagram account.
+This means that if you primarily use tooling in the Terminal, this version is for you, when
+it eventually stabilizes. On top of that, this version allows you to use the legacy version
+of logging into your own Instagram accounts, with the strong recommendation being on the use
+of alternative accounts.
 
 ---
 
