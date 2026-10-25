@@ -38,7 +38,6 @@
 #if defined(__linux__) && !defined(__ANDROID__)
 
 #include <typeinfo>
-#include <libs/libcap.h>
 
 #endif
 
@@ -93,10 +92,12 @@ void exceptionHandler() {
 }
 
 void usage() {
-    std::string cmd = ".";
+    std::string cmd = "./Osintgram";
     if (fs::path execFile = ExecutableFile(); !execFile.empty()) {
         std::string fileName = execFile.filename().string();
-        cmd = fileName == "java" ? "osintgram4j.jar" : fileName;
+        cmd = fileName.contains("java") || fileName.contains("jar")
+                  ? "osintgram4j.jar"
+                  : fileName;
     }
 
     std::cout << "usage:" << std::endl;
@@ -233,8 +234,10 @@ void parseArgs(const std::vector<std::string>& args) {
                 Runtime::defMap[keyValue.substr(0, eqPos)] = keyValue.substr(eqPos + 1);
             }
 
-            if (_arg == "--reconfigure-info")
+            if (_arg == "--reconfigure-info") {
                 main_shouldReconfigure = true;
+                continue;
+            }
 
 #ifdef __linux__
             if (_arg.rfind("--sandbox", 0) == 0) {
@@ -255,8 +258,7 @@ void OsintgramCXX_init() {
     std::set_terminate(exceptionHandler);
     init();
 
-    // required: coloring system in "src/AppCommons/Terminal.cpp" under Windows systems
-    // damn, this comment above me is so old, it still resolves back, before I changed up the structure to be more modular...
+    // required: coloring system in "Sources/DevTools/redist/Terminal.cpp" under Windows systems
     WinSetColorMode();
 
 #if APP_GUI_COMPATIBILITY_MODE_ENABLED
@@ -290,14 +292,14 @@ int main(int argc, char** argv) {
 
     // yes, I'm an asshole, but mainly because of certain warning messages going into the line of the Shell,
     // making things ugly in the process
-    threadSleep(10);
+    threadSleep(25);
 
     ModLoader_load();
     AppShell& shell = GetShellInstance();
     OSINT_IncludeShellCallback(shell);
 
     // optional, by the CLI args, enable FS sandboxing under self-app build
-#if __linux__
+#ifdef __linux__
     if (!chrootPath.empty()) {
         if (!fs::exists(chrootPath)) {
             try {
@@ -309,37 +311,13 @@ int main(int argc, char** argv) {
             }
         }
 
-        if (fs::exists(chrootPath) && !fs::is_directory(chrootPath)) {
-            std::cerr << "Unable to setup a secure environment (" << chrootPath << " is not a directory)" << std::endl;
+        if (!fs::is_directory(chrootPath)) {
+            std::cerr << "Unable to setup a sandbox environment (\"" << chrootPath << "\" is not a directory)" <<
+                std::endl;
             return 1;
         }
 
-        bool shouldChroot = getuid() == 0;
-#if defined(__linux__) && !defined(__ANDROID__)
-        if (!shouldChroot) {
-            cap_dynamic_init();
-            cap_t proc = cap_get_proc();
-            if (!proc) {
-                std::cerr << "Unable to fetch executable capabilities" << std::endl;
-                cap_dynamic_close();
-                return 1;
-            }
-
-            cap_flag_value_t procVal;
-            if (cap_get_flag(proc, CAP_SYS_CHROOT, CAP_EFFECTIVE, &procVal) == -1) {
-                std::cerr << "Failed to fetch chroot capabilities for the running executable" << std::endl;
-                cap_free(proc);
-                cap_dynamic_close();
-                return 1;
-            }
-
-            shouldChroot = procVal == CAP_SET;
-            cap_free(proc);
-            cap_dynamic_close();
-        }
-#endif
-
-        if (shouldChroot) {
+        if (getuid() == 0) {
             if (chroot(chrootPath.c_str()) != 0) {
                 std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;
                 return 1;
@@ -350,14 +328,7 @@ int main(int argc, char** argv) {
                 return 1;
             }
         } else {
-            std::cerr << "Sandboxing failed: not root";
-
-#ifdef __ANDROID__
-            std::cerr << ", which requires the process to enable Sandboxing capability" << std::endl;
-#else
-            std::cerr << ", nor given the binary's capability to do so" << std::endl;
-#endif
-
+            std::cerr << "Sandboxing failed: the current process is not running as root" << std::endl;
             return 1;
         }
     }
