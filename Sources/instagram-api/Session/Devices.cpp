@@ -360,6 +360,7 @@ namespace IG::Session {
         device.SetInfo(Device::KEYINFO_DISPLAY_DPI, d);
         device.SetInfo(Device::KEYINFO_DISPLAY_HEIGHT, h);
         device.SetInfo(Device::KEYINFO_DISPLAY_WIDTH, w);
+        device.SetOperatingSystem(Device::OperatingSystem::ANDROID);
 #else
         device = Device(Device::Type::DESKTOP);
         std::string version = BROWSER_DEFAULT_VERSION;
@@ -401,7 +402,9 @@ namespace IG::Session {
                 }
             }
         }
-#elif defined(_WIN32) // #ifdef __linux__
+
+        device.SetOperatingSystem(Device::OperatingSystem::LINUX);
+#elif defined(_WIN32) // #if defined(__linux__) && !defined(__ANDROID__)
         auto Win32Firefox_GetVersion = [](bool currentUser) -> std::optional<std::string> {
             HKEY hKey = nullptr;
             DWORD cbData = 0;
@@ -439,6 +442,8 @@ namespace IG::Session {
             if (auto pos = version.find(' '); pos != std::string::npos)
                 version.erase(pos);
         }
+
+        device.SetOperatingSystem(Device::OperatingSystem::WINDOWS);
 #endif
 
         device.SetInfo(Device::KEYINFO_BROWSER_VERSION, version);

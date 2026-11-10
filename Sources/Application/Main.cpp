@@ -21,6 +21,7 @@
 #include "android/AndroidCA.hpp"
 #include "settings/AppSettings.hpp"
 #include "shell/ShellCallback.hpp"
+#include "config_legacy/CredentialsIni.hpp"
 
 #ifdef _WIN32
 
@@ -295,6 +296,11 @@ int main(int argc, char** argv) {
     threadSleep(25);
 
     ModLoader_load();
+    if (LegacyCreds::HasIniFile()) {
+        if (std::optional<LegacyCreds::Credentials> creds = LegacyCreds::ParseIniFile(); creds.has_value())
+            LegacyCreds::InsertCredentials(*creds);
+    }
+
     AppShell& shell = GetShellInstance();
     OSINT_IncludeShellCallback(shell);
 
@@ -318,9 +324,6 @@ int main(int argc, char** argv) {
         }
 
         if (getuid() == 0) {
-            //if (seteuid(0) == 0)
-            //    std::cout << "Applied root privileges upon seteuid call, continuing..." << std::endl;
-
             if (chroot(chrootPath.c_str()) != 0) {
                 std::cerr << "Sandboxing failed, error: " << std::strerror(errno) << std::endl;
                 return 1;

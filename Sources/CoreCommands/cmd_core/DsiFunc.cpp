@@ -77,7 +77,32 @@ namespace DSI_Data {
 
 int HostInfoCopy() {
     Device device = CopyHostDeviceSetup();
-#if NDEBUG
+    std::cout << "Applying host device specs" << std::endl;
+    std::cout << "OS: ";
+
+    switch (device.GetOperatingSystem()) {
+    case Device::OperatingSystem::WINDOWS:
+        std::cout << "Windows\n";
+        break;
+    case Device::OperatingSystem::ANDROID:
+        std::cout << "Android\n";
+        break;
+    case Device::OperatingSystem::LINUX:
+        std::cout << "Linux\n";
+        break;
+    case Device::OperatingSystem::IOS:
+        std::cout << "iOS\n";
+        break;
+    case Device::OperatingSystem::MAC_OS:
+        std::cout << "macOS / OSX\n";
+        break;
+    case Device::OperatingSystem::UNDEFINED:
+    default:
+        std::cout << "Unknown / Undefined\n";
+        break;
+    }
+
+#ifdef __ANDROID__
     std::cout << "Display Height: " << std::any_cast<int>(device.GetInfo(Device::KEYINFO_DISPLAY_HEIGHT)) << std::endl;
     std::cout << "Display Width: " << std::any_cast<int>(device.GetInfo(Device::KEYINFO_DISPLAY_WIDTH)) << std::endl;
     std::cout << "Display DPI: " << std::any_cast<int>(device.GetInfo(Device::KEYINFO_DISPLAY_DPI)) << std::endl;
@@ -90,6 +115,9 @@ int HostInfoCopy() {
         std::endl;
     std::cout << "Android API: " << std::any_cast<int>(device.GetInfo(Device::KEYINFO_ANDROID_API)) << std::endl;
     std::cout << "Android Version: " << std::any_cast<std::string>(device.GetInfo(Device::KEYINFO_ANDROID_VERSION)) <<
+        std::endl;
+#else
+    std::cout << "Browser version: " << std::any_cast<std::string>(device.GetInfo(Device::KEYINFO_BROWSER_VERSION)) <<
         std::endl;
 #endif
 
