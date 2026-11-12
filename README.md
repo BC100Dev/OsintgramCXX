@@ -380,8 +380,33 @@ extern "C" void plugin_start() {
 }
 ```
 
-Please note that when using `AddCommand` directly, your command will not be sorted, as it
-usually would, if being used via the C-symbol route.
+Alternatively, if you want to group your own commands, use this example:
+
+```c++
+#include <AppShell/Shell.hpp>
+
+int my_cmd(const CommandLineInputArgs& args, const ShellEnvironment& env) {
+    // here would be your own logic
+    // the return code of "int" is designed as a return code
+    // for successful execution, return 0.
+    return 0;
+}
+
+extern "C" void plugin_start() {
+    AppShell& instance = AppShell::GetShellInstance();
+    CommandImpl impl = {
+        .name = "my-cmd",
+        .description = "This is my own command",
+        .handle = my_cmd
+    };
+    CommandGroup grp = {
+        .identifier = 9501,
+        .name = "My group title",
+        .commands = {impl}
+    };
+    instance.AddCommandGroup(grp);
+}
+```
 
 If you want to snoop around command execution pipelines, you can perform so by making these
 additional handlers:
