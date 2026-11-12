@@ -8,15 +8,15 @@
                       |___/                     
 ```
 
-Ever since the development on [the original Project](https://github.com/Datalux/Osintgram)
+Ever since the development on [the original project](https://github.com/Datalux/Osintgram)
 originally stopped back in 2023, I decided to initiate a complete rewrite, with the original
 attempt [being made in Java](https://github.com/BC100Dev/osintgram4j). Despite the original
-project having resumed development on the web basis, I am tackling this rewrite anyway with
-the original functionality of Osintgram v2.0 being implemented before HikerAPI was included
-in the first place. This version of Osintgram, that being the CXX version, handles things
-in the Terminal instead of on the web, persisting on the classic.
+project having resumed development as a web-based application, I'm continuing this rewrite
+with the goal of implementing the original functionality of Osintgram v2.0, before HikerAPI
+was introduced. Unlike the web-based version, OsintgramCXX operates directly in the terminal,
+preserving the classic experience.
 
-This means that if you primarily use tooling in the Terminal, this version is for you, when
+This means that if you primarily use tooling in the terminal, this version is for you, when
 it eventually stabilizes. On top of that, this version allows you to use the legacy version
 of logging into your own Instagram accounts, with the strong recommendation being on the use
 of alternative accounts.
@@ -29,13 +29,13 @@ the slow codebase updates. I will be conducting announcements and polls, in case
 to disclose more information or when planned additional features need voting first to
 understand, what the OSINT community truly needs out of OsintgramCXX.
 
-Alongside, people have been asking me about using this tool, with one clear example
-[being shown here](https://github.com/BC100Dev/osintgram4j/issues/16) from the previous
-version. I don't want to make this personal or offend anyone that are eagerly waiting for
-this tool to come out, but actual development, with and without AI, does take time. This
-means that actual development are not always "quick coding sessions", as you may imagine.
-Development takes time, and so does thorough testing. Despite the time, I will be updating
-on any updates.
+Alongside this, people have been asking me about using this tool, with one notable example
+being [this issue](https://github.com/BC100Dev/osintgram4j/issues/16) from the previous
+version. I don't want to make this personal or offend anyone eagerly waiting for this tool's
+release, but actual development, with and without AI, takes time. Development isn't always
+about having quick coding sessions or straight up vibe-coding, where that AI model starts using
+workarounds and breaks on a different use case. Thorough testing takes time, too. Nevertheless,
+I will continue providing updates on the project's progress.
 
 However, what I can describe on what features are implemented (or will be) in here are these:
 - **Modding Support**: Add your own Hooks and Commands to OsintgramCXX itself (requires C/C++
@@ -77,11 +77,11 @@ account has decided to make their details public, which may include, but not lim
 - Public phone number
 
 Developers, myself included, do not support unethical activities like black-hat hacking
-or gray-hat hacking, along wth other malicious activities. Always follow relevant laws of
+or gray-hat hacking, along with other malicious activities. Always follow relevant laws of
 your location and where you live. Despite what any other project may claim, development on
-projects like these also make the developers held liable for the malicious actions taken by
-a malicious user. The liabilities may include, but are not limited to, lawsuits, fines, cease
-and desist letters, and potential jail time.
+projects like these also make the developers being held liable for the malicious actions taken
+by a malicious user. The liabilities may include, but are not limited to, lawsuits, fines,
+cease and desist letters, and potential jail time.
 
 By using this tool, you acknowledge that:
 - **Responsibility**: You are accountable for the actions you take
@@ -89,10 +89,10 @@ By using this tool, you acknowledge that:
 - **Actions getting logged**: Instagram will log each action you take using this tool
 - **Liability**: we, the developers of Osintgram, are not liable for the consequences you 
   take by potentially misusing this tool.
-- **Terms and Privacy Policy**: using this tool, you also break the Instagram's
-  [ToS / Privacy Policy](https://help.instagram.com/581066165581870/?locale=en_US). As per the
-  Privacy Policy violation, you may be in violation of other people's privacy, if you are
-  doing activities using this tool without any consent.
+- **Terms and Privacy Policy**: using this tool, you also violate Instagram's [ToS /
+  Privacy Policy](https://help.instagram.com/581066165581870/?locale=en_US). As per the
+  Privacy Policy violation, you may violate other people's privacy, if you are doing
+  activities using this tool without any consent.
 - **Consensual Activities**: you are using this tool with the permission that you are
   targeting. Performing activities without consent or permission may lead to fines by law
   enforcement, especially towards people in or from the EU (GDPR fines), which may also lead
@@ -189,7 +189,7 @@ However, if `vcpkg` is already installed, `vcpkg` will be updated and if package
 missing or need to be updated, the script will follow suit.
 
 In cases of cross-compilation, you can reuse the package management environment, as it will
-be located under the current directory's path via `.vcpkg`. The script does not adhere for
+be located under the current directory's path via `.vcpkg`. The script does not support
 cross-compilation, so that needs more manual work.
 
 ### Using in-system dependencies (manual)
@@ -215,10 +215,10 @@ $ cmake --build Build --parallel
 ```
 
 Upon the build being successful, the files should be located at `Build/bundle`, containing
-the `OsintgramCXX` executable, alongside its needed libraries. Alongside the built files, a
-directory by the name of `Resources` will also appear, as they are the core files for
+the `OsintgramCXX` executable, alongside the needed libraries it requires. Alongside the built
+files, a directory by the name of `Resources` will also appear, as they are the core files for
 OsintgramCXX to run properly without any issues. If an issue occurs because `Resources`
-doesn't exist, or in worse case scenario, `commands.json` not being found or not loaded,
+doesn't exist, or in the worst-case scenario, `commands.json` not being found or not loaded,
 OsintgramCXX may not crash, but no commands will be present. The `AppSettings.cfg` file
 is an optional file dedicated to on-startup settings.
 
@@ -262,11 +262,15 @@ methods include:
 - WSL (Windows only)
 - Termux (Android only, still experimenting for a proper build)
 
-A note on building OsintgramCXX directly from Termux: since it may or may not be a known
-problem to some that are statically linking this project, you may encounter issues regarding
-missing libraries. I am currently unaware of how to fix it, other than being able to use the
-Android NDK version directly that Google provides via Android Studio. I will be tackling
-the issues, once OsintgramCXX does eventually get its first release stage.
+A note on building OsintgramCXX directly from Termux: since it may be a known issue that are
+statically linking this project, you may encounter issues regarding missing libraries. I
+am currently unaware of how to fix it, other than being able to use the Android NDK directly
+that Google provides via Android Studio. I will be tackling the issues, once OsintgramCXX
+does eventually get its first release stage.
+
+To top it off, building any type of executables directly in Termux is currently broken. Even
+a simple `int main{return 0;}` gives you a segmentation fault, which signifies that
+something is entirely broken and this is not on the side of OsintgramCXX at all.
 
 ---
 
@@ -275,17 +279,18 @@ For the default installment of this tool, I decided to separate the codebase int
 sections, which include:
 
 - [**Core Application**](Sources/Application): The initial module that fires up, once you
-  execute `./OsintgramCXX` (if you are in the same directory as the build files, the `./`
-  is the reason).
-- [**Interactive Commands**](Sources/CoreCommands): The part that would give you the most
-  interests, considering that it is the base module, where all the standard commands live at.
-- [**Instagram Private API**](Sources/instagram-api): Oh, this one's spicy, eh? Yes,
-  this code will be the main reason all your custom mods will most likely depend on. That is,
-  if you don't rely on user input and probably automate.
-- [**Development Tools**](Sources/DevTools): The Instagram APIs use them. The core
-  application uses them. Most of the reusable code, whether that being the networking code,
-  string utilities, checking for administrative permissions or doing other helpful things,
-  this library contains most of the shared code.
+  execute `./OsintgramCXX` (if you are in the same directory as the build files, the `./` is
+  the reason).
+- [**Interactive Commands**](Sources/CoreCommands): The part that would be of the greatest
+  interests to you, considering that it is the base module, where all the standard commands
+  live at.
+- [**Instagram Private API**](Sources/instagram-api): Oh, this one's spicy, eh? Yes, this code will be the main
+  reason all your custom mods will most likely depend on. That is, if you don't rely on user
+  input and probably automate.
+- [**Development Tools**](Sources/DevTools): The Instagram APIs use them. The core application
+  uses them. Most of the reusable code, whether that being the networking code, string 
+  utilities, checking for administrative permissions or doing other helpful things, this
+  library contains most of the shared code.
 - [**Security layers**](Sources/Security): A reason to make your accounts secure, whether
   local or somewhere online, is to securely encrypt them. OsintgramCXX doesn't take a raw
   configuration file right at the start. You explicitly use the `loginctl` command itself
@@ -301,7 +306,7 @@ are being used are as follows:
 - x86_64 Android builds: `x86_64-linux-android24-clang++`
 - Windows builds: `x86_64-w64-mingw32-g++`
 
-This information can be helpful, when targeting the modules and not knowing, why you are
+This information can be helpful, when targeting the modules and not knowing why you are
 unable to link them. If compiling on a Windows system is an issue and a Linux system is
 required to build them, without having to tackle the Arch Linux installation, use CachyOS as
 a safer alternative. Let it even be the installation on a VM with just 4 GB of RAM, if you
@@ -343,7 +348,7 @@ include the ability of having a handler of immediate execution after loading, th
 `plugin_start`, as demonstrated below. In cases of a `SIGKILL` signal, which cannot be
 captured, OsintgramCXX plainly cannot capture and initiate a stop handler, unless given the
 capability by the kernel via a flag by the name of `SIGNAL_UNKILLABLE` (don't ask me where I
-know that information).
+know that information, but just know that it is a kernel thing, not userland).
 
 ```c++
 extern "C" void plugin_start() {}
@@ -351,10 +356,10 @@ extern "C" void plugin_start() {}
 extern "C" void plugin_stop() {}
 ```
 
-The `plugin_start` is also effective, if you are preloading commands yourself via C++ code
-instead of putting symbols dynamically via `cmd_symbol`. For dynamic preloading, you link
-against `app-shell` itself and call on `AddCommand`, which takes in these specific parameters
-via the namespace, as demonstrated below via sample code (C++20 syntax):
+The `plugin_start` also works, if you are preloading commands yourself via C++ code instead
+of putting symbols dynamically via `cmd_symbol`. For dynamic preloading, you link against
+`app-shell` itself and call on `AddCommand`, which takes in these specific parameters via
+the namespace, as demonstrated below via sample code (C++20 syntax):
 
 ```c++
 #include <AppShell/Shell.hpp>
@@ -376,8 +381,8 @@ extern "C" void plugin_start() {
 }
 ```
 
-Please do note that when using `AddCommand` directly, your command will not be sorted, as
-it usually would, if being used via the C-symbol route.
+Please note that when using `AddCommand` directly, your command will not be sorted, as it
+usually would, if being used via the C-symbol route.
 
 If you want to snoop around command execution pipelines, you can perform so by making these
 additional handlers:
@@ -393,14 +398,14 @@ With the handle being executed, you are given the values of the raw entered comm
 (`stream` from the captured `stdout` & `stderr`).
 
 The possibilities are endless. You can start creating one now, although it is recommended
-that you wait, until the version 1 of `commands.json` gets finalized, as it is not finished
-and the v1 changes of OsintgramCXX may include changes before release.
+that you wait until the version 1 of `commands.json` gets finalized, as it is not finished and
+the v1 changes of OsintgramCXX may include changes before release.
 
-Once you have built your own module (by either using `cmake` or manually built with a
+Once you have built your own module (by either using `cmake` or built manually using a
 compiler), you will need to export it to the commands JSON file. With OsintgramCXX already
 built, you're targeting the `Build/bundle/Resources/commands.json` file, unless you are
 rebuilding it entirely, in which you can use `Resources/commands.json`. Additionally, you
-will need to put your module next to the OsintgramCXX's binary for it to pick your module up.
+will need to put your module next to the OsintgramCXX's binary for it to detect your module.
 One sample registration for that would happen to be with this particular structure:
 
 ```json
