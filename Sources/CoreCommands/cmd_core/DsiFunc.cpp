@@ -109,7 +109,7 @@ int HostInfoCopy() {
     std::cout << "Manufacturer: " << std::any_cast<std::string>(device.GetInfo(Device::KEYINFO_DEVICE_MANUFACTURER)) <<
         std::endl;
     std::cout << "Product: " << std::any_cast<std::string>(device.GetInfo(Device::KEYINFO_DEVICE_PRODUCT)) << std::endl;
-    std::cout << "Codenase: " << std::any_cast<std::string>(device.GetInfo(Device::KEYINFO_DEVICE_CODENAME)) <<
+    std::cout << "Codename: " << std::any_cast<std::string>(device.GetInfo(Device::KEYINFO_DEVICE_CODENAME)) <<
         std::endl;
     std::cout << "CPU label: " << std::any_cast<std::string>(device.GetInfo(Device::KEYINFO_DEVICE_CPU_LABEL)) <<
         std::endl;
@@ -174,65 +174,71 @@ int dsi_func(const std::vector<std::string>& args, const std::map<std::string, s
     }
 
     if (args[0] == "set-device") {
-        if (args[1] == "host")
-            return HostInfoCopy();
+        if (args.size() > 1) {
+            if (args[1] == "host")
+                return HostInfoCopy();
 
-        size_t pos;
-        try {
-            pos = std::stoi(args[1]);
-        } catch (...) {
-            std::cerr << "Malformed index given" << std::endl;
-            std::cerr << "Index must be somewhere between 0 and " << devList.size() - 1 << std::endl;
-            return 1;
-        }
-
-        Device& dev = devList.at(pos);
-        SetCurrentDevice(dev);
-
-        if (dev.GetDeviceType() == Device::Type::MOBILE) {
-            std::cout << "Now set device to [Mobile]" << std::endl;
-            std::cout << "Manufacturer: "
-                << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_DEVICE_MANUFACTURER)) << std::endl;
-            std::cout << "Product: "
-                << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_DEVICE_PRODUCT)) << std::endl;
-            std::cout << "Android version: "
-                << std::any_cast<int>(dev.GetInfo(Device::KEYINFO_ANDROID_API)) << "/"
-                << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_ANDROID_VERSION)) << " (codenamed "
-                << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_ANDROID_CODEBASE)) << ")"
-                << std::endl;
-            std::cout << "Device codename: "
-                << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_DEVICE_CODENAME)) << std::endl;
-        }
-
-        if (dev.GetDeviceType() == Device::Type::DESKTOP) {
-            std::cout << "Now set device to [Desktop]" << std::endl;
-            std::cout << "Operating system: ";
-            switch (dev.GetOperatingSystem()) {
-            case Device::OperatingSystem::WINDOWS:
-                std::cout << "Windows" << std::endl;
-                break;
-            case Device::OperatingSystem::MAC_OS:
-                std::cout << "macOS" << std::endl;
-                break;
-            case Device::OperatingSystem::LINUX:
-                std::cout << "Linux" << std::endl;
-                break;
-            case Device::OperatingSystem::ANDROID:
-                std::cout << "Android" << std::endl;
-                break;
-            case Device::OperatingSystem::IOS:
-                std::cout << "iOS" << std::endl;
-                break;
-            default:
-                std::cout << "[Unknown OS]" << std::endl;
-                break;
+            size_t pos;
+            try {
+                pos = std::stoi(args[1]);
+            } catch (...) {
+                std::cerr << "Malformed index given" << std::endl;
+                std::cerr << "Index must be somewhere between 0 and " << devList.size() - 1 << std::endl;
+                return 1;
             }
 
-            std::cout << "Assigned Firefox Browser version: "
-                << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_BROWSER_VERSION)) << std::endl;
+            Device& dev = devList.at(pos);
+            SetCurrentDevice(dev);
+
+            if (dev.GetDeviceType() == Device::Type::MOBILE) {
+                std::cout << "Now set device to [Mobile]" << std::endl;
+                std::cout << "Manufacturer: "
+                    << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_DEVICE_MANUFACTURER)) << std::endl;
+                std::cout << "Product: "
+                    << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_DEVICE_PRODUCT)) << std::endl;
+                std::cout << "Android version: "
+                    << std::any_cast<int>(dev.GetInfo(Device::KEYINFO_ANDROID_API)) << "/"
+                    << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_ANDROID_VERSION)) << " (codenamed "
+                    << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_ANDROID_CODEBASE)) << ")"
+                    << std::endl;
+                std::cout << "Device codename: "
+                    << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_DEVICE_CODENAME)) << std::endl;
+            }
+
+            if (dev.GetDeviceType() == Device::Type::DESKTOP) {
+                std::cout << "Now set device to [Desktop]" << std::endl;
+                std::cout << "Operating system: ";
+                switch (dev.GetOperatingSystem()) {
+                case Device::OperatingSystem::WINDOWS:
+                    std::cout << "Windows" << std::endl;
+                    break;
+                case Device::OperatingSystem::MAC_OS:
+                    std::cout << "macOS" << std::endl;
+                    break;
+                case Device::OperatingSystem::LINUX:
+                    std::cout << "Linux" << std::endl;
+                    break;
+                case Device::OperatingSystem::ANDROID:
+                    std::cout << "Android" << std::endl;
+                    break;
+                case Device::OperatingSystem::IOS:
+                    std::cout << "iOS" << std::endl;
+                    break;
+                default:
+                    std::cout << "[Unknown OS]" << std::endl;
+                    break;
+                }
+
+                std::cout << "Assigned Firefox Browser version: "
+                    << std::any_cast<std::string>(dev.GetInfo(Device::KEYINFO_BROWSER_VERSION)) << std::endl;
+            }
+
+            return 0;
         }
 
-        return 0;
+        std::cerr << "Missing parameter for set-device" << std::endl;
+        std::cerr << "Requires either \"host\" or an index position from the list" << std::endl;
+        return 1;
     }
 
     if (args[0] == "get-device") {
