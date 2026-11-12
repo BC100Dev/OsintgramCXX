@@ -204,7 +204,7 @@ namespace IG::Session {
          * It is expected to internally populate _authHeaders upon success.
          *
          * @param pw Raw pointer to the password string to use for login
-         * @throws AuthenticationError when an Authentication Request fails due to an unexpected Instagram APU response
+         * @throws AuthenticationError when an Authentication Request fails due to an unexpected Instagram API response
          */
         void Login(const char *pw);
 
