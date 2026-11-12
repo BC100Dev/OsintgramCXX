@@ -2,7 +2,7 @@ CollectSources(${PROJECT_MODULE_ROOT} ModSources)
 add_executable(OsintgramCXX ${ModSources})
 
 SetTargetOutputDir(OsintgramCXX "${OUTPUT_DIRECTORY_ROOT}")
-target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} devtools app-shell OsintgramCXX-security instagram-api)
+target_link_libraries(OsintgramCXX PRIVATE ${OsintgramCXX_LINK_DEPS} devtools app-shell account-storage instagram-api)
 
 if (APP_SYSTEM_TARGET STREQUAL "Linux")
     SetRpathValue(OsintgramCXX)

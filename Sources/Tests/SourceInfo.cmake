@@ -11,5 +11,5 @@ CollectSources(${PROJECT_MODULE_ROOT} ModSources)
 
 add_executable(OsintgramCXX-testing ${ModSources})
 SetRpathValue(OsintgramCXX-testing)
-target_link_libraries(OsintgramCXX-testing PRIVATE ${OsintgramCXX_LINK_DEPS} OsintgramCXX-security devtools)
+target_link_libraries(OsintgramCXX-testing PRIVATE ${OsintgramCXX_LINK_DEPS} account-storage devtools)
 DisableBionicFortify(OsintgramCXX-testing)

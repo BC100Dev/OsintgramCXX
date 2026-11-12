@@ -284,17 +284,16 @@ sections, which include:
 - [**Interactive Commands**](Sources/CoreCommands): The part that would be of the greatest
   interests to you, considering that it is the base module, where all the standard commands
   live at.
-- [**Instagram Private API**](Sources/instagram-api): Oh, this one's spicy, eh? Yes, this code will be the main
-  reason all your custom mods will most likely depend on. That is, if you don't rely on user
-  input and probably automate.
+- [**Instagram Private API**](Sources/instagram-api): Oh, this one's spicy, eh? Yes, this code
+  will be the main reason all your custom mods will most likely depend on. That is, if you
+  don't rely on user input and probably automate.
 - [**Development Tools**](Sources/DevTools): The Instagram APIs use them. The core application
   uses them. Most of the reusable code, whether that being the networking code, string 
   utilities, checking for administrative permissions or doing other helpful things, this
   library contains most of the shared code.
-- [**Security layers**](Sources/Security): A reason to make your accounts secure, whether
-  local or somewhere online, is to securely encrypt them. OsintgramCXX doesn't take a raw
-  configuration file right at the start. You explicitly use the `loginctl` command itself
-  to log in.
+- [**Account Storage**](Sources/AccountStorage): The type of storage that allows you to store
+  your accounts safely and secure. This is usually the way and not using the legacy way, that
+  being `config/credentials.ini`, which is supported but heavily discouraged.
 
 All modules are being tested on an up-to-date Arch Linux system via `vcpkg`, with eventually
 testing the building on a Debian-based system later on via a Dockerfile. The compilers that

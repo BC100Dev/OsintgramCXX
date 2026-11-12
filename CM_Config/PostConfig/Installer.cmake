@@ -2,7 +2,7 @@ install(TARGETS
         OsintgramCXX-core
         OsintgramCXX
         OsintgramCXX-interactive
-        OsintgramCXX-security
+        account-storage
         instagram-api
         app-shell
         devtools)

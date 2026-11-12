@@ -35,6 +35,7 @@ namespace fs = std::filesystem;
 namespace Application {
     static std::optional<AppShell> instance = std::nullopt;
     sig_atomic_t g_forceStop = 0;
+    bool g_promptModified = false;
 
     void HandleShellForceClose(int);
 
@@ -53,12 +54,30 @@ namespace Application {
                 throw ShellException("Command by the name of \"" + cmd.name + "\" exists");
         }
 
+        for (const auto& grp : m_groupCmdList) {
+            for (const auto& impl : grp.commands) {
+                if (impl.name == cmd.name)
+                    throw ShellException("Command by the name of \"" + cmd.name +
+                        "\" exists in a group \"" + grp.name + "\"");
+            }
+        }
+
         for (const auto& addit : additCommandHelpers) {
             if (addit.finderFunc(cmd.name))
                 throw ShellException("Command by the name of \"" + cmd.name + "\" is declared by a module");
         }
 
         m_cmdList.emplace_back(cmd);
+    }
+
+    void AppShell::AddCommandGroup(const CommandGroup& group) {
+        for (const auto& grp : m_groupCmdList) {
+            if (grp.identifier == group.identifier)
+                throw ShellException("Command group by the identifier of " +
+                    std::to_string(grp.identifier) + "exists.");
+        }
+
+        m_groupCmdList.emplace_back(group);
     }
 
     void AppShell::cleanup() {
@@ -78,15 +97,14 @@ namespace Application {
         m_running = false;
     }
 
-    void AppShell::init_shell() {
+    void AppShell::init_shell(const std::string& appName) {
         m_alreadyForceStopped = false;
 
         std::stringstream strStream;
-        strStream << "[" << CurrentUsername() << " % " << SHELL_APPLICATION_NAME << "] >> ";
+        strStream << "[" << CurrentUsername() << " % " << appName << "] >> ";
 
         m_prompt = strStream.str();
         m_initialized = true;
-        m_customCommandEntryWarning = true;
     }
 
     bool AppShell::IsRunning() const {
@@ -137,6 +155,7 @@ namespace Application {
     void AppShell::SetEnv(const std::string& key, const std::string& val) {
         if (key == "PS1") {
             m_prompt = val;
+            g_promptModified = true;
             return;
         }
 
@@ -322,6 +341,24 @@ namespace Application {
             mPage.display(std::cout);
         }
 
+        if (!m_groupCmdList.empty()) {
+            for (const auto& grp : m_groupCmdList) {
+                HelpPage mPage;
+                mPage.setStartSpaceWidth(grp.startSpaceWidth);
+                mPage.setSpaceWidth(grp.spaceWidth);
+
+                std::cout << "[" << grp.name << "]";
+                if (grp.author.has_value())
+                    std::cout << " -- " << *grp.author;
+
+                std::cout << std::endl;
+                for (const auto& impl : grp.commands)
+                    mPage.addArg(impl.name, std::nullopt, impl.description);
+
+                mPage.display(std::cout);
+            }
+        }
+
         for (const auto& addit : additCommandHelpers) {
             std::string listingData = addit.listingFunc();
             listingData = TrimString(listingData);
@@ -350,12 +387,29 @@ namespace Application {
             }
         }
 
+        if (!found) {
+            for (const auto& grp : m_groupCmdList) {
+                for (const auto& impl : grp.commands) {
+                    if (cmd == impl.name) {
+                        found = true;
+                        cmdExecHandlerVar = impl.handle;
+                        break;
+                    }
+                }
+
+                if (found)
+                    break;
+            }
+        }
+
         std::optional<CommandHelperCallbackFn> callbackFn = std::nullopt;
-        for (const auto& addit : additCommandHelpers) {
-            if (addit.finderFunc(cmd)) {
-                found = true;
-                usingCallback = true;
-                callbackFn = addit.callbackFunc;
+        if (!found) {
+            for (const auto& addit : additCommandHelpers) {
+                if (addit.finderFunc(cmd)) {
+                    found = true;
+                    usingCallback = true;
+                    callbackFn = addit.callbackFunc;
+                }
             }
         }
 
@@ -440,7 +494,14 @@ namespace Application {
         if (instance == std::nullopt)
             instance = AppShell();
 
-        return instance.value();
+        return *instance;
+    }
+
+    AppShell& GetShellInstance(const std::string& appName) {
+        if (instance == std::nullopt)
+            instance = AppShell(appName);
+
+        return *instance;
     }
 
     void HandleShellForceClose(int) {
@@ -455,5 +516,20 @@ namespace Application {
             throw ShellException("Key \"" + key + "\" not found");
 
         return m_environment[key];
+    }
+
+    void AppShell::SetName(const std::string& name) {
+        m_appName = name;
+
+        if (!g_promptModified) {
+            std::stringstream strStream;
+            strStream << "[" << CurrentUsername() << " % " << name << "] >> ";
+
+            m_prompt = strStream.str();
+        }
+    }
+
+    std::string AppShell::GetName() const {
+        return m_appName;
     }
 }

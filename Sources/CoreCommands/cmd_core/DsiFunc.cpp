@@ -20,8 +20,8 @@ namespace fs = std::filesystem;
 
 namespace DSI_Data {
     struct ListInf {
-        std::optional<size_t> maxCount = std::nullopt;
-        size_t startAt = 0;
+        std::optional<long> maxCount = std::nullopt;
+        long startAt = 0;
     };
 
     std::variant<int, ListInf> ParseListCmd(const std::vector<std::string>& args, const std::vector<Device>& devList) {
@@ -39,7 +39,7 @@ namespace DSI_Data {
                 std::string val = arg.substr(eqp + 1);
                 try {
                     // probe
-                    size_t tmp = std::stol(val);
+                    long tmp = std::stol(val);
                     inf.maxCount = tmp;
                 } catch (...) {
                     std::cerr << "cannot convert " << val << " (not valid number)" << std::endl;
@@ -57,7 +57,7 @@ namespace DSI_Data {
                 std::string val = arg.substr(eqp + 1);
                 try {
                     // probe
-                    size_t tmp = std::stol(val);
+                    long tmp = std::stol(val);
                     if (tmp >= devList.size()) {
                         std::cerr << "Starting position " << tmp << " is outside the device list range." << std::endl;
                         return 1;
@@ -178,12 +178,18 @@ int dsi_func(const std::vector<std::string>& args, const std::map<std::string, s
             if (args[1] == "host")
                 return HostInfoCopy();
 
-            size_t pos;
+            long pos;
             try {
-                pos = std::stoi(args[1]);
+                pos = std::stol(args[1]);
             } catch (...) {
                 std::cerr << "Malformed index given" << std::endl;
                 std::cerr << "Index must be somewhere between 0 and " << devList.size() - 1 << std::endl;
+                return 1;
+            }
+
+            if (pos < 0) {
+                std::cerr << "Invalid position given" << std::endl;
+                std::cerr << "Position must be at least 0 and be in the positive range." << std::endl;
                 return 1;
             }
 

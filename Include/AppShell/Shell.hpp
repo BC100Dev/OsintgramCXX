@@ -12,7 +12,7 @@
 #define ENFORCE_MANUAL_COMMAND_ENTRY_WARNING true
 #define ENFORCE_MANUAL_COMMAND_HELPCMD_WARNING true
 
-#define SHELL_APPLICATION_NAME "OsintgramCXX"
+#define SHELL_DEFAULT_APPLICATION_NAME "AShell"
 
 namespace Application {
     class AppShell;
@@ -21,9 +21,19 @@ namespace Application {
     using CommandLineInputArgs = std::vector<std::string>;
 
     struct CommandImpl {
+        int group_id;
         std::string name;
         std::string description;
         std::function<int(const CommandLineInputArgs& /* args */, const ShellEnvironment& /* env */)> handle;
+    };
+
+    struct CommandGroup {
+        int identifier;
+        std::string name;
+        std::optional<std::string> author;
+        int startSpaceWidth = 2;
+        int spaceWidth = 5;
+        std::vector<CommandImpl> commands;
     };
 
     struct ExecutionData {
@@ -69,7 +79,11 @@ namespace Application {
     class AppShell {
     public:
         AppShell() {
-            init_shell();
+            init_shell(SHELL_DEFAULT_APPLICATION_NAME);
+        }
+
+        explicit AppShell(const std::string& appName) {
+            init_shell(appName);
         }
 
         void Start();
@@ -84,6 +98,8 @@ namespace Application {
 
         void AddCommand(const CommandImpl& cmd);
 
+        void AddCommandGroup(const CommandGroup& group);
+
         void AddCommandFallbackHandler(const CommandFallbackContent& data) const;
 
         void AddCommandExecutionListener(const CommandExecutionListener& listener) const;
@@ -91,6 +107,10 @@ namespace Application {
         void SetEnv(const std::string& key, const std::string& val);
 
         std::string GetEnv(const std::string& key);
+
+        void SetName(const std::string& name);
+
+        [[nodiscard]] std::string GetName() const;
 
     private:
         struct CommandExecution {
@@ -100,7 +120,7 @@ namespace Application {
             int rc;
         };
 
-        void init_shell();
+        void init_shell(const std::string& appName);
 
         void launch_shell();
 
@@ -118,7 +138,6 @@ namespace Application {
         void helpCmd();
 
         std::string m_prompt;
-        bool m_customCommandEntryWarning = true;
         bool m_initialized = false;
         bool m_startOnCurrentThread = false;
         bool m_running = false;
@@ -126,11 +145,15 @@ namespace Application {
         ShellEnvironment m_environment;
         bool m_timeMeasuringSystem = false;
         std::vector<CommandImpl> m_cmdList;
+        std::vector<CommandGroup> m_groupCmdList;
+        std::string m_appName;
 
         std::thread m_shellThread;
     };
 
     AppShell& GetShellInstance();
+
+    AppShell& GetShellInstance(const std::string& appName);
 }
 
 #endif //OSINTGRAMCXX_SHELL_HPP

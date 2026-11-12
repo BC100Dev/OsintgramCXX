@@ -5,7 +5,7 @@
 
 CollectSources(${PROJECT_MODULE_ROOT} ModSources)
 
-add_library(OsintgramCXX-security SHARED ${ModSources})
+add_library(account-storage SHARED ${ModSources})
 
-target_link_libraries(OsintgramCXX-security PRIVATE ${OsintgramCXX_LINK_OpenSSL} ${OsintgramCXX_LINK_DEPS})
-SetRpathValue(OsintgramCXX-security)
+target_link_libraries(account-storage PRIVATE ${OsintgramCXX_LINK_OpenSSL} ${OsintgramCXX_LINK_DEPS})
+SetRpathValue(account-storage)
